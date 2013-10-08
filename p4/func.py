@@ -10,7 +10,8 @@ import random
 import glob
 import time
 from .Var import var
-from .SequenceList import Sequence,SequenceList
+from .SequenceList import Sequence, SequenceList
+from .GuessString import isDnaRnaOrProtein
 from .Alignment import Alignment
 from .Nexus import Nexus
 from .Tree import Tree
@@ -70,7 +71,7 @@ def nexusUnquoteName(theName):
 
     if theName[0] == '\'':
         if theName[-1] != "'":
-            gm = ['func.nexusUnquotName()']
+            gm = ['func.nexusUnquoteName()']
             gm.append('the name is %s' % theName)
             gm.append("First char is a single quote, but last char is not.")
             raise Glitch(gm)
@@ -129,61 +130,6 @@ def nexusFixNameIfQuotesAreNeeded(theName, verbose=0):
     
         
 
-def isDnaRnaOrProtein(aString):
-    """Attempts to determinine the data type by the composition.
-
-    Returns 1 for DNA, 2 for RNA, and 0 for protein.  Or so it thinks.
-
-    It only works for lowercase symbol letters.
-    """
-    nGaps = string.count(aString, '-')
-    nQs = string.count(aString, '?')
-    strLenNoGaps = len(aString) - (nGaps + nQs)
-    acgn = (string.count(aString, 'a') +
-           string.count(aString, 'c') +
-           string.count(aString, 'g') +
-           string.count(aString, 'n'))
-    t = string.count(aString, 't')
-    u = string.count(aString, 'u')
-    if 0:
-        print("stringLength(no gaps) = %s" % strLenNoGaps)
-        print("acgn = %f" % acgn)
-        print("t = %f" % t)
-        print("u = %f" % u)
-
-    # If it is 90% or better acgn +t or +u, then assume it is dna or rna
-    threshold = 0.9 * strLenNoGaps
-    if acgn + t >= threshold:
-        return 1
-    elif acgn + u >= threshold:
-        return 2
-
-    # At this point we still don't know.  It might be dna or rna with
-    # lots of ambigs.  But we will only allow that if the content of
-    # acgn +t or +u is more than threshold1.  That should
-    # prevent eg 'rymkswhvd' from being assigned as dna.
-    
-    threshold1 = 0.75 * strLenNoGaps
-    tally = (string.count(aString, 'r') +
-             string.count(aString, 'y') +
-             string.count(aString, 'm') +
-             string.count(aString, 'k') +
-             string.count(aString, 's') +
-             string.count(aString, 'w') +
-             string.count(aString, 'h') +
-             string.count(aString, 'b') +
-             string.count(aString, 'v') +
-             string.count(aString, 'd') )
-    threshold2 = 0.99 * strLenNoGaps
-    #print "  string length is %i, strLenNoGaps is %i" % (len(aString), strLenNoGaps)
-    #print "  threshold2 is %3.1f, acgn + t + ambigs = %i" % (threshold, (acgn + t + tally))
-    #print "  threshold1 is %3.1f, acgn + t = %i" % (threshold, (acgn + t))
-    if (acgn + t + tally >= threshold2) and (acgn + t >= threshold1):
-        return 1
-    elif (acgn + u + tally >= threshold2) and (acgn + u >= threshold1):
-        return 2
-    else:
-        return 0
 
 
 def stringZapWhitespaceAndDigits(inString):
@@ -626,7 +572,6 @@ def _tryToReadNexusFile(fName, flob):
             print("Got nexus file '%s'" % fName)
         return 1
 
-
 def _tryToReadFastaFile(fName, flob, firstLine=None):
     if not firstLine:
         firstLine = False
@@ -716,7 +661,6 @@ def _tryToReadFastaFile(fName, flob, firstLine=None):
         else:
             if var.verboseRead:
                 print("First line is blank--- not fasta")
-
 
 
 def _tryToReadPhylipFile(fName, flob, firstLine):
@@ -2569,38 +2513,6 @@ def sortListOfListsOnListElementNumber(aListOfLists, elementNumber):
     return list(map(stripit, paired))
 
 
-def readAndPop(stuff):
-    """Read in simple stuff, pop the single object from var lists, and return it.
-
-    The stuff to be read in must be convertible to a single object,
-    one of Alignment, SequenceList, or Tree.  When that is read, the
-    stuff as usual goes into one of var.alignments, var.sequenceLists,
-    or var.trees.  The single object is popped from where it ends up,
-    and returned.
-
-    """
-    gm = ['func.readAndPop()']
-    #assert os.path.isfile(fName)
-    onSL = len(var.sequenceLists)
-    onAlig = len(var.alignments)
-    onTrees = len(var.trees)
-    read(stuff)
-    nnSL = len(var.sequenceLists) - onSL
-    nnAlig = len(var.alignments) - onAlig
-    nnTrees = len(var.trees) - onTrees
-    mySum = nnSL + nnAlig + nnTrees
-    if mySum != 1:
-        if mySum < 1:
-            gm.append("no appropriate objects were made.")
-        else:
-            gm.append("Got %i objects.  Only 1 allowed." % mySum)
-        raise Glitch(gm)
-    if nnSL:
-        return var.sequenceLists.pop()
-    elif nnAlig:
-        return var.alignments.pop()
-    elif nnTrees:
-        return var.trees.pop()
 
 ###############################################################################################################
 ###############################################################################################################

@@ -3,7 +3,7 @@ from . import func
 from .Var import var
 from .Alignment import ExcludeDelete
 from .DistanceMatrix import DistanceMatrix
-from .SequenceList import Sequence
+from .SequenceList import Sequence, 
 from .Glitch import Glitch
 import numpy as np
 from .NexusSets import CharSet
@@ -1585,7 +1585,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
 
     So you might use it like this::
 
-      a = func.readAndPop('myAlignment.fasta')
+      a = SequenceList.readAndPop('myAlignment.fasta')
       a.setGBlocksCharSet(b5='h')
       a.writeNexus('align_withGblocksCharset.nex')  # Nexus format to get sets block
 
@@ -1597,7 +1597,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
     myblocks char set in Seaview.  Then save it in Seaview as
     ``align_myblocks_handEdited.nex``.  Then, back in p4::
 
-      a = func.readAndPop('align_myblocks_handEdited.nex')
+      a = SequenceList.readAndPop('align_myblocks_handEdited.nex')
       b = a.subsetUsingCharSet('myblocks')
       b.writePhylip('align_goodSitesOnly.phy')
 

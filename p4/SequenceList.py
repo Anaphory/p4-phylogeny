@@ -1,9 +1,42 @@
 import sys,re,string,os,io
-from . import func
+from .GuessString import isDnaRnaOrProtein
 import copy
 from .Var import var
 from .Glitch import Glitch
 from subprocess import Popen,PIPE
+
+def readAndPop(stuff):
+    """Read in simple stuff, pop the single object from var lists, and return it.
+
+    The stuff to be read in must be convertible to a single object,
+    one of Alignment, SequenceList, or Tree.  When that is read, the
+    stuff as usual goes into one of var.alignments, var.sequenceLists,
+    or var.trees.  The single object is popped from where it ends up,
+    and returned.
+
+    """
+    gm = ['func.readAndPop()']
+    #assert os.path.isfile(fName)
+    onSL = len(var.sequenceLists)
+    onAlig = len(var.alignments)
+    onTrees = len(var.trees)
+    read(stuff)
+    nnSL = len(var.sequenceLists) - onSL
+    nnAlig = len(var.alignments) - onAlig
+    nnTrees = len(var.trees) - onTrees
+    mySum = nnSL + nnAlig + nnTrees
+    if mySum != 1:
+        if mySum < 1:
+            gm.append("no appropriate objects were made.")
+        else:
+            gm.append("Got %i objects.  Only 1 allowed." % mySum)
+        raise Glitch(gm)
+    if nnSL:
+        return var.sequenceLists.pop()
+    elif nnAlig:
+        return var.alignments.pop()
+    elif nnTrees:
+        return var.trees.pop()
 
 class Sequence(object):
     """A container for a single molecular sequence.
@@ -930,7 +963,7 @@ class SequenceList(object):
         p = Popen(["muscle"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ret = p.communicate(input=flob.getvalue())
         flob.close()
-        a = func.readAndPop(ret[0])
+        a = readAndPop(ret[0])
         a.makeSequenceForNameDict()
         newSequenceList = []
         for sSelf in self.sequences:
@@ -958,7 +991,7 @@ class SequenceList(object):
             print(ret)
             raise Glitch("clustalo()  Something wrong here ...")
         flob.close()
-        a = func.readAndPop(ret[0])
+        a = readAndPop(ret[0])
         a.makeSequenceForNameDict()
         newSequenceList = []
         for sSelf in self.sequences:

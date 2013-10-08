@@ -3,7 +3,7 @@ import copy
 from .Var import var
 # Don't bother with NexusToken2, cuz sets blocks are small
 from .NexusToken import nexusSkipPastNextSemiColon,safeNextTok 
-from . import func
+from .func import nexusUnquoteName, nexusCheckName, nexusFixNameIfQuotesAreNeeded
 from .Glitch import Glitch
 
 
@@ -268,10 +268,10 @@ class NexusSets(object):
         gm = ['NexusSets._readCharSetCommand()']
         if hasattr(flob, 'name') and flob.name:
             gm.append("file name %s" % flob.name)
-        name = func.nexusUnquoteName(safeNextTok(flob, 'NexusSets: _readCharSetCommand'))
+        name = nexusUnquoteName(safeNextTok(flob, 'NexusSets: _readCharSetCommand'))
         #print "readCharSetCommand: got name '%s'" % name
         lowName = string.lower(name)
-        if not func.nexusCheckName(lowName):
+        if not nexusCheckName(lowName):
             gm.append("Bad charSet name '%s'" % name)
             raise Glitch(gm)
 
@@ -298,10 +298,10 @@ class NexusSets(object):
         gm = ['NexusSets._readTaxSetCommand()']
         if hasattr(flob, 'name') and flob.name:
             gm.append("file name %s" % flob.name)
-        name = func.nexusUnquoteName(safeNextTok(flob, 'NexusSets: readTaxSetCommand'))
+        name = nexusUnquoteName(safeNextTok(flob, 'NexusSets: readTaxSetCommand'))
         #print "readTaxSetCommand: got name '%s'" % name
         lowName = string.lower(name)
-        if not func.nexusCheckName(lowName):
+        if not nexusCheckName(lowName):
             gm.append("Bad taxSet name '%s'" % name)
             raise Glitch(gm)
 
@@ -324,10 +324,10 @@ class NexusSets(object):
         gm = ['NexusSets._readCharPartitionCommand()']
         if hasattr(flob, 'name') and flob.name:
             gm.append("file name %s" % flob.name)
-        name = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+        name = nexusUnquoteName(safeNextTok(flob, gm[0]))
         #print "readCharPartitionCommand: got name '%s'" % name
         lowName = string.lower(name)
-        if not func.nexusCheckName(lowName):
+        if not nexusCheckName(lowName):
             gm.append("Bad charPartition name '%s'" % name)
 
         if lowName in self.charPartitionLowNames:
@@ -362,7 +362,7 @@ class NexusSets(object):
         for cp in self.charPartitions:
             cp.dump()
         if self.charPartition:
-            print("            self.charPartition.name is %s" % func.nexusFixNameIfQuotesAreNeeded(self.charPartition.name))
+            print("            self.charPartition.name is %s" % nexusFixNameIfQuotesAreNeeded(self.charPartition.name))
         else:
             print("            There is no self.charPartition")
 
@@ -487,7 +487,7 @@ class TaxOrCharSet(object):
             pass
         elif lowTok == '(':
             #['standard', 'vector']:
-            tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+            tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
             lowTok = string.lower(tok)
             if lowTok == 'standard':
                 pass
@@ -498,14 +498,14 @@ class TaxOrCharSet(object):
                 gm.append("(I was expecting either 'standard' or")
                 gm.append("'vector' following the parenthesis.)")
                 raise Glitch(gm)
-            tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+            tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
             if tok == ')':
                 pass
             else:
                 gm.append("Unexpected '%s'" % tok)
                 gm.append("(I was expecting an unparentheis after '%s')" % self.format)
                 raise Glitch(gm)
-            tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+            tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
             if tok != '=':
                 gm.append("Unexpected '%s'" % tok)
                 gm.append("I was expecting an '=' after '(%s)'" % self.format)
@@ -515,11 +515,11 @@ class TaxOrCharSet(object):
             raise Glitch(gm)
 
         # Now we are on the other side of the '='
-        tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+        tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
         lowTok = string.lower(tok)
         while lowTok not in [None, ';', 'end', 'endblock']:
             self.tokens.append(tok)
-            tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+            tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
             lowTok = string.lower(tok)
 
         if self.format == 'vector':
@@ -820,7 +820,7 @@ class TaxOrCharSet(object):
             flob.write('  %s %s =' % (theSetName, self.name))
             if self.useTaxNames:
                 for tN in self.taxNames:
-                    flob.write(" %s" % func.nexusFixNameIfQuotesAreNeeded(tN))
+                    flob.write(" %s" % nexusFixNameIfQuotesAreNeeded(tN))
             else:
                 #for i in self.tokens:
                 #    flob.write(' %s' % i)
@@ -828,7 +828,7 @@ class TaxOrCharSet(object):
                 for theTok in self.tokens:
                     if type(theTok) == bytes:
                         if theTok not in ['-', '\\']:
-                            tok = func.nexusFixNameIfQuotesAreNeeded(theTok)
+                            tok = nexusFixNameIfQuotesAreNeeded(theTok)
                         else:
                             tok = theTok
                     else:
@@ -1071,7 +1071,7 @@ class CharPartitionSubset(object):
 
     def dump(self):
         print("                              -- CharPartitionSubset")
-        print("                                         name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name))
+        print("                                         name: %s" % nexusFixNameIfQuotesAreNeeded(self.name))
         print("                                     triplets: ")
         for t in self.triplets:
             print("                                               %s" % t)
@@ -1116,11 +1116,11 @@ class CharPartition(object):
         gm = ['CharPartition.readCharPartitionDefinition()']
         if hasattr(flob, 'name') and flob.name:
             gm.append("file name %s" % flob.name)
-        tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+        tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
         lowTok = string.lower(tok)
         while lowTok != '=':
             if lowTok == '(':
-                tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+                tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
                 lowTok = string.lower(tok)
                 while lowTok != ')':
                     if lowTok in ['notokens', 'vector']:
@@ -1135,18 +1135,18 @@ class CharPartition(object):
                         gm.append("This is not understood.")
                         gm.append("(Only 'tokens' and 'standard' are implemented.)")
                         raise Glitch(gm)
-                    tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+                    tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
                     lowTok = string.lower(tok)
             else:
                 gm.append("Got unexpected token: '%s'" % tok)
                 gm.append("I was expecting either an '=' or something in parentheses.")
                 raise Glitch(gm)
 
-        tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+        tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
         lowTok = string.lower(tok)
         while lowTok not in [None, ';', 'end', 'endblock']:
             self.tokens.append(tok)
-            tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
+            tok = nexusUnquoteName(safeNextTok(flob, gm[0]))
             lowTok = string.lower(tok)
 
         #print "readCharPartitionDefinition: tokens %s" % self.tokens
@@ -1158,7 +1158,7 @@ class CharPartition(object):
         while i< len(self.tokens):
             aSubset = CharPartitionSubset()
             aSubset.name = self.tokens[i]
-            if not func.nexusCheckName(aSubset.name):
+            if not nexusCheckName(aSubset.name):
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Bad subset name (%s, I think)" %  aSubset.name)
                 raise Glitch(gm)
@@ -1508,7 +1508,7 @@ class CharPartition(object):
 
 
     def dump(self):
-        print("                CharPartition:     name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name))
+        print("                CharPartition:     name: %s" % nexusFixNameIfQuotesAreNeeded(self.name))
         print("                                 tokens: %s" % self.tokens) #string.join(self.tokens)
         #for t in self.tokens:
         #    print "                                         %s" % t
