@@ -1,10 +1,10 @@
-from Glitch import Glitch
-from Tree import Tree
-import Nexus
-from Var import var
+from .Glitch import Glitch
+from .Tree import Tree
+from . import Nexus
+from .Var import var
 import sys
 
-import os,string,cStringIO,copy
+import os,string,io,copy
 
 class TreeFileLite(object):
     """Get trees in big files without reading the lot into memory.
@@ -73,10 +73,10 @@ class TreeFileLite(object):
         self.nSamples = len(self.tLines)
         if self.nSamples:
             if self.verbose >= 1:
-                print "Got %i samples." % self.nSamples
+                print("Got %i samples." % self.nSamples)
         else:
             gm.append("Got 0 tree samples.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
     def getTree(self, treeNum):
@@ -84,8 +84,8 @@ class TreeFileLite(object):
         var.nexus_doFastNextTok = False
         tLine = self.tLines[treeNum]
         if self.verbose >= 3:
-            print tLine
-        f = cStringIO.StringIO(tLine)
+            print(tLine)
+        f = io.StringIO(tLine)
         t = Tree()
         if tLine.startswith("("):
             t.parseNewick(f, translationHash=self.translationHash)
@@ -102,7 +102,7 @@ class TreeFileLite(object):
             f = file(self.fName, "U")
         except IOError:
             gm.append("Can't find tree file '%s'" % self.fName)
-            raise Glitch, gm
+            raise Glitch(gm)
         fLines = f.readlines()
         f.close()
 
@@ -177,7 +177,7 @@ class TreeFileLite(object):
                 lNum += 1
                 aLine = fLines[lNum].strip()
             translateLines.append(aLine)
-            translateFlob = cStringIO.StringIO(' '.join(translateLines))
+            translateFlob = io.StringIO(' '.join(translateLines))
             nx = Nexus.Nexus()
             self.translationHash = nx.readTranslateCommand(translateFlob)
             #print self.translationHash

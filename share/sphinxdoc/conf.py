@@ -46,8 +46,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'p4'
-copyright = u'2012, Peter G. Foster'
+project = 'p4'
+copyright = '2012, Peter G. Foster'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -186,8 +186,8 @@ htmlhelp_basename = 'p4doc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'p4.tex', u'p4 Documentation',
-   u'Peter G. Foster', 'manual'),
+  ('index', 'p4.tex', 'p4 Documentation',
+   'Peter G. Foster', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -219,6 +219,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'p4', u'p4 Documentation',
-     [u'Peter G. Foster'], 1)
+    ('index', 'p4', 'p4 Documentation',
+     ['Peter G. Foster'], 1)
 ]

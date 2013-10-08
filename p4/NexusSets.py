@@ -1,10 +1,10 @@
 import os,sys,string,array,types
 import copy
-from Var import var
+from .Var import var
 # Don't bother with NexusToken2, cuz sets blocks are small
-from NexusToken import nexusSkipPastNextSemiColon,safeNextTok 
-import func
-from Glitch import Glitch
+from .NexusToken import nexusSkipPastNextSemiColon,safeNextTok 
+from . import func
+from .Glitch import Glitch
 
 
 ##    [Examples from the paup manual,
@@ -35,19 +35,19 @@ class CaseInsensitiveDict(dict):
 
 
     def __setitem__(self, key, val):
-        if type(key) != types.StringType:
+        if type(key) != bytes:
             gm = ["CaseInsensitiveDict()"]
             gm.append("The key must be a string.  Got '%s'" % key)
-            raise Glitch, gm
+            raise Glitch(gm)
         lowKey = string.lower(key)
         dict.__setitem__(self, lowKey, val)
         #self.keyDict[string.lower(key)] = key
 
     def __getitem__(self, key):
-        if type(key) != types.StringType:
+        if type(key) != bytes:
             gm = ["CaseInsensitiveDict()"]
             gm.append("The key must be a string.  Got '%s'" % key)
-            raise Glitch, gm
+            raise Glitch(gm)
         lowKey = string.lower(key)
         try:
             return dict.__getitem__(self, lowKey)
@@ -236,8 +236,8 @@ class NexusSets(object):
         if hasattr(flob, 'name') and flob.name:
             gm.append("file name %s" % flob.name)
         if 0:
-            print gm[0]
-            print '    var.nexus_doFastNextTok = %s' % var.nexus_doFastNextTok
+            print(gm[0])
+            print('    var.nexus_doFastNextTok = %s' % var.nexus_doFastNextTok)
         nexusSkipPastNextSemiColon(flob)
         commandName = safeNextTok(flob, gm[0])
         lowCommandName = string.lower(commandName)
@@ -251,15 +251,15 @@ class NexusSets(object):
             elif lowCommandName == 'taxset':
                 self._readTaxSetCommand(flob)
             elif lowCommandName == 'taxpartition':
-                print
-                print gm[0]
+                print()
+                print(gm[0])
                 if len(gm) > 1:
-                    print gm[1]
-                print "    Sorry-- taxpartition is not implemented."
+                    print(gm[1])
+                print("    Sorry-- taxpartition is not implemented.")
                 nexusSkipPastNextSemiColon(flob)
             else:
                 gm.append("Got unrecognized sets block command '%s'" %  commandName)
-                raise Glitch, gm
+                raise Glitch(gm)
             commandName = safeNextTok(flob, 'NexusSets.continueReadingFromNexusFile()')
             lowCommandName = string.lower(commandName)
 
@@ -273,15 +273,15 @@ class NexusSets(object):
         lowName = string.lower(name)
         if not func.nexusCheckName(lowName):
             gm.append("Bad charSet name '%s'" % name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check for duped names
         if lowName in self.charSetLowNames:
             gm.append("Duplicated charSet name '%s'" % name)
-            raise Glitch, gm
+            raise Glitch(gm)
         elif lowName in self.predefinedCharSetLowNames:
             gm.append("You cannot use the name '%s' -- it is predefined." % name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         cs = CharSet(self)
         cs.name = name
@@ -303,12 +303,12 @@ class NexusSets(object):
         lowName = string.lower(name)
         if not func.nexusCheckName(lowName):
             gm.append("Bad taxSet name '%s'" % name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check for duped names
         if lowName in self.taxSetLowNames:
             gm.append("Duplicated taxSet name '%s'" % name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         ts = TaxSet(self)
         ts.name = name
@@ -332,7 +332,7 @@ class NexusSets(object):
 
         if lowName in self.charPartitionLowNames:
             gm.append("Duplicated charPartition name '%s'" % name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         cp = CharPartition(self)
         cp.name = name
@@ -345,26 +345,26 @@ class NexusSets(object):
 
 
     def dump(self):
-        print "        NexusSets dump"
+        print("        NexusSets dump")
         if self.constant:
-            print "            Predefined char set 'constant'"
+            print("            Predefined char set 'constant'")
             self.constant.dump()
         if self.gapped:
-            print "            Predefined char set 'gapped'"
+            print("            Predefined char set 'gapped'")
             self.gapped.dump()
-        print "            There are %i non-predefined char sets" % len(self.charSets)
+        print("            There are %i non-predefined char sets" % len(self.charSets))
         for cs in self.charSets:
             cs.dump()
-        print "            There are %i tax sets" % len(self.taxSets)
+        print("            There are %i tax sets" % len(self.taxSets))
         for ts in self.taxSets:
             ts.dump()
-        print "            There are %i char partitions" % len(self.charPartitions)
+        print("            There are %i char partitions" % len(self.charPartitions))
         for cp in self.charPartitions:
             cp.dump()
         if self.charPartition:
-            print "            self.charPartition.name is %s" % func.nexusFixNameIfQuotesAreNeeded(self.charPartition.name)
+            print("            self.charPartition.name is %s" % func.nexusFixNameIfQuotesAreNeeded(self.charPartition.name))
         else:
-            print "            There is no self.charPartition"
+            print("            There is no self.charPartition")
 
     def write(self):
         """Write self in Nexus format to stdout."""
@@ -415,7 +415,7 @@ class NexusSets(object):
     def dupeCharSet(self, existingCharSetName, newName):
         theCS = self.charSetsDict.get(existingCharSetName)
         if not theCS:
-            raise Glitch, "NexusSets.dupeCharSet() -- can't find char set '%s'" % existingCharSetName
+            raise Glitch("NexusSets.dupeCharSet() -- can't find char set '%s'" % existingCharSetName)
         
         cs = CharSet(self)
         cs.name = newName
@@ -455,24 +455,24 @@ class TaxOrCharSet(object):
 
 
     def dump(self):
-        print "                   %s %i" % (self.className, self.num)
-        print "                                   name: %s" % self.name
+        print("                   %s %i" % (self.className, self.num))
+        print("                                   name: %s" % self.name)
         if hasattr(self, 'nChar'):
-            print "                                  nChar: %s" % self.nChar
-        print "                                 format: %s" % self.format
+            print("                                  nChar: %s" % self.nChar)
+        print("                                 format: %s" % self.format)
         if hasattr(self, 'useTaxNames'):
-            print "                            useTaxNames: %s" % self.useTaxNames
-        print "                               triplets: "
+            print("                            useTaxNames: %s" % self.useTaxNames)
+        print("                               triplets: ")
         for t in self.triplets:
-            print "                                         %s" % t
+            print("                                         %s" % t)
         if hasattr(self, 'numberTriplets'):
-            print "                         numberTriplets: "
+            print("                         numberTriplets: ")
             for t in self.numberTriplets:
-                print "                                         %s" % t
-        print "                                 tokens: %s" % self.tokens
-        print "                                   mask: %s" % self.mask
+                print("                                         %s" % t)
+        print("                                 tokens: %s" % self.tokens)
+        print("                                   mask: %s" % self.mask)
         if self.mask:
-            print "                          mask 1s-count: %s" % self.mask.count('1')
+            print("                          mask 1s-count: %s" % self.mask.count('1'))
 
 
 
@@ -497,22 +497,22 @@ class TaxOrCharSet(object):
                 gm.append("Unexpected '%s'" % tok)
                 gm.append("(I was expecting either 'standard' or")
                 gm.append("'vector' following the parenthesis.)")
-                raise Glitch, gm
+                raise Glitch(gm)
             tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
             if tok == ')':
                 pass
             else:
                 gm.append("Unexpected '%s'" % tok)
                 gm.append("(I was expecting an unparentheis after '%s')" % self.format)
-                raise Glitch, gm
+                raise Glitch(gm)
             tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
             if tok != '=':
                 gm.append("Unexpected '%s'" % tok)
                 gm.append("I was expecting an '=' after '(%s)'" % self.format)
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             gm.append("Unexpected '%s'" % tok)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Now we are on the other side of the '='
         tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
@@ -529,7 +529,7 @@ class TaxOrCharSet(object):
                 if self.mask[i] not in ['0', '1']:
                     gm.append("%s '%s', vector format" % (self.className, self.name))
                     gm.append("The vector must be all zeros or ones.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             #print self.mask
 
         # do a once-over sanity check, and convert integer strings to ints
@@ -558,7 +558,7 @@ class TaxOrCharSet(object):
                         pass
                     elif self.className == 'CharSet':
                         gm.append("I don't understand the token '%s'" % tok)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 
         # Now I want to make a list of triplets representing eg 23-87\3
         # first item = 23, second item = 87, third = 3
@@ -582,11 +582,11 @@ class TaxOrCharSet(object):
                     if self.tokens[tokNum] == '-':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("An existing tax or char set may not be followed by a '-'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if self.tokens[tokNum] == '\\':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("An existing tax or char set may not be followed by a '\\'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             elif tok == 'all':
                 aTriplet = [tok, None, None]
@@ -596,21 +596,21 @@ class TaxOrCharSet(object):
                     if self.tokens[tokNum] == '-':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("Tax or char set 'all' may not be followed by a '-'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if self.tokens[tokNum] == '\\':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("Tax or char set 'all' may not be followed by a '\\'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             elif tok == '-':
                 gm.append("%s '%s' definition" % (self.className, self.name))
                 gm.append("Out of place '-'")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             elif tok == '\\':
                 gm.append("%s '%s' definition" % (self.className, self.name))
                 gm.append("Out of place '\\'")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             elif tok == '.':
                 aTriplet = [tok, None, None]
@@ -620,11 +620,11 @@ class TaxOrCharSet(object):
                     if self.tokens[tokNum] == '-':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("Tax or char set '.' may not be followed by a '-'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if self.tokens[tokNum] == '\\':
                         gm.append("%s '%s' definition" % (self.className, self.name))
                         gm.append("Tax or char set '.' may not be followed by a '\\'")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             elif type(tok) == type(1) or type(tok) == type('str'):
                 aTriplet = [tok, None, None]
@@ -646,12 +646,12 @@ class TaxOrCharSet(object):
                                         #    aTriplet[0], aTriplet[1], aTriplet[2]))
                                         gm.append("the second number of a range must be bigger than")
                                         gm.append("the first.")
-                                        raise Glitch, gm
+                                        raise Glitch(gm)
                                 else:
                                     aTriplet[1] = self.tokens[tokNum]
 
                             else:
-                                raise Glitch, gm
+                                raise Glitch(gm)
 
                             tokNum += 1
 
@@ -665,7 +665,7 @@ class TaxOrCharSet(object):
                                             gm.append("%s '%s' definition" % (self.className, self.name))
                                             gm.append("Step value of a range must be a number")
                                             gm.append("(Got '%s')" % self.tokens[tokNum])
-                                            raise Glitch, gm
+                                            raise Glitch(gm)
                                         tokNum += 1
                 
                 self.triplets.append(aTriplet)
@@ -673,11 +673,11 @@ class TaxOrCharSet(object):
         if not self.triplets and not self.mask:
             gm.append("%s '%s' definition" % (self.className, self.name))
             gm.append("Got no definition (no triplets or mask)")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if 0:
-            print gm[0]
-            print "    Got self.triplets %s" % self.triplets
+            print(gm[0])
+            print("    Got self.triplets %s" % self.triplets)
 
 
 
@@ -691,15 +691,15 @@ class TaxOrCharSet(object):
                 pass
             else:
                 gm.append("vector format, but no mask?")
-                raise Glitch, gm
+                raise Glitch(gm)
         elif self.format == 'standard':
             if 0:
-                print gm[0]
+                print(gm[0])
                 self.dump()
                 
             if not len(self.triplets):
                 gm.append("standard format, but we have no triplets? - no definition?")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             if self.className == 'CharSet':
                 thisMaskLen = self.nChar
@@ -715,8 +715,8 @@ class TaxOrCharSet(object):
 
             for aTriplet in theTriplets:
                 if 0:
-                    print gm[0]
-                    print "        '%s' aTriplet=%s" % (self.name, aTriplet)
+                    print(gm[0])
+                    print("        '%s' aTriplet=%s" % (self.name, aTriplet))
                 first = aTriplet[0]
                 second = aTriplet[1]
                 third = aTriplet[2]
@@ -754,7 +754,7 @@ class TaxOrCharSet(object):
                                     mask[j] = '1'
                         else:
                             gm.append("I don't know '%s'" % first)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                                 
                     elif first == '.':
                         mask[-1] = '1'
@@ -764,7 +764,7 @@ class TaxOrCharSet(object):
                         else:
                             # This will have been checked before.
                             gm.append("Component '%s' is out of range of mask len (%s)" % (first, thisMask))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                 elif first and second:
                     # Its a range.
                     start = int(first)
@@ -793,7 +793,7 @@ class TaxOrCharSet(object):
         if not self.mask:
             self.dump()
             gm.append("The charset has no mask")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.mask = list(self.mask)
         for i in range(len(self.mask)):
             if self.mask[i] == '0':
@@ -826,7 +826,7 @@ class TaxOrCharSet(object):
                 #    flob.write(' %s' % i)
                 previousTok = None
                 for theTok in self.tokens:
-                    if type(theTok) == types.StringType:
+                    if type(theTok) == bytes:
                         if theTok not in ['-', '\\']:
                             tok = func.nexusFixNameIfQuotesAreNeeded(theTok)
                         else:
@@ -940,7 +940,7 @@ class CharSet(TaxOrCharSet):
                             gm.append("Charset '%s' definition" % self.name)
                             gm.append("Charset definition element '%s' is out of range" % first)
                             gm.append("(nChar = %i)" % self.nChar)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         pass
                 elif first and second:  # its a range
                     try:
@@ -948,7 +948,7 @@ class CharSet(TaxOrCharSet):
                     except ValueError:
                         gm.append("Charset '%s' definition" % self.name)
                         gm.append("Can't parse definition element '%s'" % first)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if second == '.':
                         fin = self.nChar
                     else:
@@ -957,14 +957,14 @@ class CharSet(TaxOrCharSet):
                         except ValueError:
                             gm.append("Charset '%s' definition" % self.name)
                             gm.append("Can't parse definition element '%s'" % second)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                     if third:
                         try:
                             bystep = int(third)
                         except ValueError:
                             gm.append("Charset '%s' definition" % self.name)
                             gm.append("Can't parse definition element '%s'" % third)
-                            raise Glitch, gm
+                            raise Glitch(gm)
         elif self.format == 'vector':
             #print "charset %s, vector format %s, mask %s" % (self.name, self.format, self.mask)
             if self.mask:
@@ -972,10 +972,10 @@ class CharSet(TaxOrCharSet):
                     pass
                 else:
                     gm.append("len(self.mask) is %i, but nChar is %i" % (len(self.mask), self.nChar))
-                    raise Glitch, gm
+                    raise Glitch(gm)
         else:
             gm.append("bad format %s" % self.format)
-            raise Glitch, gm
+            raise Glitch(gm)
 
 class TaxSet(TaxOrCharSet):
     def __init__(self, theNexusSets):
@@ -1013,7 +1013,7 @@ class TaxSet(TaxOrCharSet):
                         if lowTrItem not in self.nexusSets.lowTaxNames:
                             gm.append("Triplet %s" % tr)
                             gm.append("'%s' is a string, but not in the taxNames." % trItem)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         theIndx = self.nexusSets.lowTaxNames.index(lowTrItem)
                         theIndx += 1
                         numTr.append(theIndx)
@@ -1040,7 +1040,7 @@ class TaxSet(TaxOrCharSet):
                         gm.append("Triplet expressed as numbers. %s" % numTr)
                         gm.append("This appears to be a range, but the second number")
                         gm.append("is not bigger than the first.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     assert second <= self.nexusSets.nTax
                 assert first <= self.nexusSets.nTax
                               
@@ -1070,15 +1070,15 @@ class CharPartitionSubset(object):
         self.triplets = []
 
     def dump(self):
-        print "                              -- CharPartitionSubset"
-        print "                                         name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name)
-        print "                                     triplets: "
+        print("                              -- CharPartitionSubset")
+        print("                                         name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name))
+        print("                                     triplets: ")
         for t in self.triplets:
-            print "                                               %s" % t
-        print "                                       tokens: %s" % self.tokens
+            print("                                               %s" % t)
+        print("                                       tokens: %s" % self.tokens)
         #for t in self.tokens:
         #    print "                                               %s" % t
-        print "                                         mask: %s" % self.mask
+        print("                                         mask: %s" % self.mask)
 
     def writeNexusToOpenFile(self, flob):   ##Ignore
         flob.write('%s:' % self.name)
@@ -1127,20 +1127,20 @@ class CharPartition(object):
                         gm.append("Got charpartition modifier: '%s'" % tok)
                         gm.append("It is not implemented.")
                         gm.append("Only 'tokens' and 'standard' are implemented.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     elif lowTok in ['tokens', 'standard']:
                         pass
                     else:
                         gm.append("Got charpartition modifier: '%s'" % tok)
                         gm.append("This is not understood.")
                         gm.append("(Only 'tokens' and 'standard' are implemented.)")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
                     lowTok = string.lower(tok)
             else:
                 gm.append("Got unexpected token: '%s'" % tok)
                 gm.append("I was expecting either an '=' or something in parentheses.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         tok = func.nexusUnquoteName(safeNextTok(flob, gm[0]))
         lowTok = string.lower(tok)
@@ -1161,23 +1161,23 @@ class CharPartition(object):
             if not func.nexusCheckName(aSubset.name):
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Bad subset name (%s, I think)" %  aSubset.name)
-                raise Glitch, gm
+                raise Glitch(gm)
             aSubset.lowName = string.lower(aSubset.name)
             i += 1
             if i >= len(self.tokens):
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Subset name (%s) should be followed by a colon" %  aSubset.name)
-                raise Glitch, gm
+                raise Glitch(gm)
             if self.tokens[i] != ':':
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Subset name (%s) should be followed by a colon" %  aSubset.name)
-                raise Glitch, gm
+                raise Glitch(gm)
             i += 1
             if i >= len(self.tokens):
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Subset name (%s) and colon should be followed" %  aSubset.name)
                 gm.append("by a subset definition (charSet or charSet definition)")
-                raise Glitch, gm
+                raise Glitch(gm)
             while i < len(self.tokens) and self.tokens[i] != ',':
                 aSubset.tokens.append(self.tokens[i])
                 i += 1
@@ -1194,7 +1194,7 @@ class CharPartition(object):
             if aSubset.lowName in existingPartNames:
                 gm.append("CharPartition '%s' definition:" % self.name)
                 gm.append("Duplicated subset name (%s, I think)" %  aSubset.name)
-                raise Glitch, gm
+                raise Glitch(gm)
             existingPartNames.append(aSubset.lowName)
             for i in range(len(aSubset.tokens)):
                 tok = aSubset.tokens[i]
@@ -1218,7 +1218,7 @@ class CharPartition(object):
                               (tok, aSubset.name))
                         gm.append("(If you are using read('whatever'), and there are backslashes,")
                         gm.append("are you using raw strings, ie read(r'whatever')?)")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
 
     def setSubsetMasks(self):
@@ -1262,12 +1262,12 @@ class CharPartition(object):
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("An existing char set may not be followed by a '-'")
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if aSubset.tokens[i] == '\\':
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("An existing char set may not be followed by a '\\'")
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
                 elif lowTok in ['all', 'remainder']:
                     aTriplet = [lowTok, None, None]
@@ -1277,30 +1277,30 @@ class CharPartition(object):
                         gm.append("CharPartition '%s' definition" % self.name)
                         gm.append("Subset '%s' definition" % aSubset.name)
                         gm.append("Char set 'remainder' must be the last one in the charPartition definition")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
                     if i < len(aSubset.tokens):
                         if aSubset.tokens[i] == '-':
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Char set '%s' may not be followed by a '-'" % lowTok)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if aSubset.tokens[i] == '\\':
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Char set '%s' may not be followed by a '\\'" % lowTok)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                 elif tok == '-':
                     gm.append("CharPartition '%s' definition" % self.name)
                     gm.append("Subset '%s' definition" % aSubset.name)
                     gm.append("Out of place '-'")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 elif tok == '\\':
                     gm.append("CharPartition '%s' definition" % self.name)
                     gm.append("Subset '%s' definition" % aSubset.name)
                     gm.append("Out of place '\\'")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 elif tok == '.':
                     aTriplet = [tok, None, None]
@@ -1311,12 +1311,12 @@ class CharPartition(object):
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Char set '.' may not be followed by a '-'")
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if aSubset.tokens[i] == '\\':
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Char set '.' may not be followed by a '\\'")
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
                 elif type(tok) == type(1):
                     aTriplet = [tok, None, None]
@@ -1335,14 +1335,14 @@ class CharPartition(object):
                                         gm.append("Subset '%s' definition" % aSubset.name)
                                         gm.append("Second number of a character range must be bigger than")
                                         gm.append("the first.")
-                                        raise Glitch, gm
+                                        raise Glitch(gm)
 
                                 else:
                                     gm.append("CharPartition '%s' definition" % self.name)
                                     gm.append("Subset '%s' definition" % aSubset.name)
                                     gm.append("Second item of a character range must be either a")
                                     gm.append("number or a '.'.  I got '%s'" % aSubset.tokens[i])
-                                    raise Glitch, gm
+                                    raise Glitch(gm)
 
                                 i = i + 1
                                 if i < len(aSubset.tokens):
@@ -1356,7 +1356,7 @@ class CharPartition(object):
                                                 gm.append("Subset '%s' definition" % aSubset.name)
                                                 gm.append("Step value of a range must be a number")
                                                 gm.append("(Got '%s')" % aSubset.tokens[i])
-                                                raise Glitch, gm
+                                                raise Glitch(gm)
 
                                             i = i + 1
                     aSubset.triplets.append(aTriplet)
@@ -1364,11 +1364,11 @@ class CharPartition(object):
                     gm.append("CharPartition '%s' definition" % self.name)
                     gm.append("Subset '%s' definition" % aSubset.name)
                     gm.append("token '%s' is not understood." % tok)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             if 0:
-                print gm[0]
-                print "Got aSubset (%s) triplets %s" % (aSubset.name, aSubset.triplets)
+                print(gm[0])
+                print("Got aSubset (%s) triplets %s" % (aSubset.name, aSubset.triplets))
                 #sys.exit()
 
 
@@ -1423,7 +1423,7 @@ class CharPartition(object):
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Charset definition element '%s' is out of range" % first)
                             gm.append("(nChar = %i)" % self.nexusSets.nChar)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                     elif lowFirst == 'remainder':
                         #print "Got first == remainder"
                         for i in range(self.nexusSets.nChar):
@@ -1440,12 +1440,12 @@ class CharPartition(object):
                                 gm.append("Subset '%s' definition" % aSubset.name)
                                 gm.append("When implementing 'remainder' charset")
                                 gm.append("Found that subset '%s' had no mask" % ss)
-                                raise Glitch, gm
+                                raise Glitch(gm)
                     else:
                         gm.append("CharPartition '%s' definition" % self.name)
                         gm.append("Subset '%s' definition" % aSubset.name)
                         gm.append("Charset definition element '%s' is not understood" % first)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
                 elif first and second:  # its a range
                     try:
@@ -1454,7 +1454,7 @@ class CharPartition(object):
                         gm.append("CharPartition '%s' definition" % self.name)
                         gm.append("Subset '%s' definition" % aSubset.name)
                         gm.append("Can't parse definition element '%s'" % first)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if second == '.':
                         fin = len(aSubset.mask)
                     else:
@@ -1464,7 +1464,7 @@ class CharPartition(object):
                             gm.append("CharPartition '%s' definition" % self.name)
                             gm.append("Subset '%s' definition" % aSubset.name)
                             gm.append("Can't parse definition element '%s'" % second)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                     if third:
                         try:
                             bystep = int(third)
@@ -1481,7 +1481,7 @@ class CharPartition(object):
             #print "Got char subset '%s' mask '%s'" % (aSubset.name, aSubset.mask)
             if aSubset.mask.count('1') == 0:
                 gm.append("The mask for charPartitionSubset '%s' is empty." % aSubset.name)
-                raise Glitch, gm
+                raise Glitch(gm)
 
 
     ##Ignore
@@ -1498,7 +1498,7 @@ class CharPartition(object):
                 gm.append("The problem is that there are overlapping subsets in this")
                 gm.append("charpartition.  The same position is in more than one subset.")
                 gm.append("Zero-based position %i, one-based position %i." % (i, i + 1))
-                raise Glitch, gm
+                raise Glitch(gm)
             if sum < 1:
                 unspanned = 1
         if unspanned:
@@ -1508,11 +1508,11 @@ class CharPartition(object):
 
 
     def dump(self):
-        print "                CharPartition:     name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name)
-        print "                                 tokens: %s" % self.tokens #string.join(self.tokens)
+        print("                CharPartition:     name: %s" % func.nexusFixNameIfQuotesAreNeeded(self.name))
+        print("                                 tokens: %s" % self.tokens) #string.join(self.tokens)
         #for t in self.tokens:
         #    print "                                         %s" % t
-        print "                      number of subsets: %s" % len(self.subsets)
+        print("                      number of subsets: %s" % len(self.subsets))
         for aSubset in self.subsets:
             aSubset.dump()
 

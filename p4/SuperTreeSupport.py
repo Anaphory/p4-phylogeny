@@ -1,8 +1,8 @@
 import sys, csv, random
-from Tree import Tree
-from func import read
-from Var import var
-from Glitch import Glitch
+from .Tree import Tree
+from .func import read
+from .Var import var
+from .Glitch import Glitch
 from p4.ReducedStrictConsensus import Intersection, TreeBuilderFromSplits
 
 class SuperTreeInputTrees(object):
@@ -64,12 +64,12 @@ class SuperTreeInputTrees(object):
             read(inputTree)
             if len(var.trees) > 1:
                 gm.append('Sorry, supply only one tree as supertree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.inputTree = var.trees.pop()       # this was originally a list, ie [var.trees.pop()]
         else:
             gm.append("Input tree was neither a p4 Tree nor a valid filename")
             gm.append("Got %s" % inputTree)
-            raise Glitch, gm
+            raise Glitch(gm)
         
         if not self.inputTree._taxNames:
             self.inputTree._setTaxNamesFromLeaves()
@@ -109,7 +109,7 @@ class SuperTreeInputTrees(object):
                 for t in distributionTrees:
                     if not isinstance(t, Tree):
                         gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 superTree = distributionTrees.pop(0)
                 inputTrees = distributionTrees
             elif type(distributionTrees) == type(""):
@@ -117,7 +117,7 @@ class SuperTreeInputTrees(object):
                 read(distributionTrees)
                 if len(var.trees) < 1:
                     gm.append('Sorry, at least one tree must be supplied as input tree')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 superTree = var.trees.pop(0)
                 inputTrees = var.trees
             self._generateDistribution(superTree, inputTrees)
@@ -183,7 +183,7 @@ class SuperTreeInputTrees(object):
         if not self.useTaxonDistribution:
             if self.noTaxaToRemove >= len(self.inputTree.taxNames) - 2:
                 gm.append('The number of taxa to remove would leave less than 3 taxa in the tree, quite uninformative')
-                raise Glitch, gm
+                raise Glitch(gm)
 
     #Prepare the distribution by normalizing it to the size of the input tree
         if self.useTaxonDistribution:
@@ -202,8 +202,8 @@ class SuperTreeInputTrees(object):
             if len(tree.taxNames) == len(self.inputTree.taxNames) - taxa2Remove:
                 self.outputTrees.append(tree)
             else:
-                print 'Bugger, the correct number of taxa were not removed, taxa remaining: ', len(tree.taxNames)
-                print 'Expected: ', len(self.inputTree.taxNames) - taxa2Remove
+                print('Bugger, the correct number of taxa were not removed, taxa remaining: ', len(tree.taxNames))
+                print('Expected: ', len(self.inputTree.taxNames) - taxa2Remove)
     
         #Writes the trees to file
         if self.writeInputTreesToFile:
@@ -461,18 +461,18 @@ class SuperTreeSupport(object):
             for t in inputTrees:
                 if not isinstance(t, Tree):
                     gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             self.inputTrees = inputTrees
         elif type(inputTrees) == type(""):
             var.trees = []
             read(inputTrees)
             if len(var.trees) < 1:
                 gm.append('Sorry, at least one tree must be supplied as input tree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.inputTrees = var.trees
         else:
             gm.append("Input trees are neither a list of p4 Tree objects nor a valid filename.")
-            raise Glitch, gm
+            raise Glitch(gm)
         
         if isinstance(supertree, Tree):
             self.supertree = supertree            # not a list.
@@ -481,12 +481,12 @@ class SuperTreeSupport(object):
             read(supertree)
             if len(var.trees) > 1:
                 gm.append('Sorry, supply only one tree as supertree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.supertree = var.trees.pop()       # this was originally a list, ie [var.trees.pop()]
         else:
             gm.append("Supertree was neither a p4 Tree nor a valid filename")
             gm.append("Got %s" % supertree)
-            raise Glitch, gm
+            raise Glitch(gm)
         
         for tree in self.inputTrees:
             if not tree._taxNames:
@@ -525,7 +525,7 @@ class SuperTreeSupport(object):
         """
         gm = ['superTreeSupport()']
 
-        allOnes = 2L**(len(self.bitkeys)) - 1
+        allOnes = 2**(len(self.bitkeys)) - 1
 
         inputSplits = self.splits[0]
         self.T = len(inputSplits)
@@ -551,7 +551,7 @@ class SuperTreeSupport(object):
         self.SC = len(supertreeSplits)
         
         if self.verbose > 1:
-            print 'Identifying supporting, conflicting and neutral input trees,'
+            print('Identifying supporting, conflicting and neutral input trees,')
             sys.stdout.flush()
 
         """
@@ -664,14 +664,14 @@ class SuperTreeSupport(object):
                     supertreeDict[index][4] = supertreeDict[index][4] + ws
             
         if self.verbose > 1:
-            print 'done.'
+            print('done.')
                     
         """
         How many input trees containing the taxa in the supertree split, conflict, agree, neutral. 
         
         """
         if self.verbose > 1:
-            print 'Creating statistics and supertree with support values,'
+            print('Creating statistics and supertree with support values,')
             
         self._calcSupport(supertreeDict)
         
@@ -683,7 +683,7 @@ class SuperTreeSupport(object):
         
         if self.doDrawTree:
             self.decoratedSuperTree.draw()
-            print ''
+            print('')
         
         if self.doSaveDecoratedTree:
             self.decoratedSuperTree.writeNexus(self.decoratedFilename)        
@@ -697,7 +697,7 @@ class SuperTreeSupport(object):
 
     def buildDecoratedTree(self, supertreeSplits, supertreeDict):
             
-        for key, value in supertreeDict.items():
+        for key, value in list(supertreeDict.items()):
             inter = Intersection(supertreeSplits[key][0], supertreeSplits[key][1], 0, 0)
             name = ''
             if self.doStandardDecoration:
@@ -712,7 +712,7 @@ class SuperTreeSupport(object):
         self.decoratedSuperTree = treeBuilderFromSplits.buildTreeFromInformativeList(self.intersections, treeName='decoratedSupertree')  
 
     def saveIndexTree(self, supertreeSplits, supertreeDict):
-        for key, value in supertreeDict.items():
+        for key, value in list(supertreeDict.items()):
             inter = Intersection(supertreeSplits[key][0], supertreeSplits[key][1], 0, 0)
             if self.doStandardDecoration:
                 self.csvValues.append([key,int(round(100.0*(value[0]/self.T))),int(round(100.0*(value[1]/self.T))), 
@@ -736,7 +736,7 @@ class SuperTreeSupport(object):
     
     def _calcSupport(self, supertreeDict):
         
-        for value in supertreeDict.values():
+        for value in list(supertreeDict.values()):
             S = value[0]
             P = value[1]
             Q = value[3]
@@ -777,17 +777,17 @@ class SuperTreeSupport(object):
                 value[11] = (wS - Q - wP)/(wS + Q + wP)
                 self.wVv += value[11]
         if 0:
-            print "self.SC =", self.SC
-            print "self.S =", self.S
-            print "self.P =", self.P
-            print "self.Q =", self.Q
-            print "self.R =", self.R
-            print "self.V =", self.V
-            print "self.VV =", self.VV
-            print "self.Vv =", self.Vv
-            print "self.wV =", self.wV
-            print "self.wVV =", self.wVV
-            print "self.wVv =", self.wVv
+            print("self.SC =", self.SC)
+            print("self.S =", self.S)
+            print("self.P =", self.P)
+            print("self.Q =", self.Q)
+            print("self.R =", self.R)
+            print("self.V =", self.V)
+            print("self.VV =", self.VV)
+            print("self.Vv =", self.Vv)
+            print("self.wV =", self.wV)
+            print("self.wVV =", self.wVV)
+            print("self.wVv =", self.wVv)
 
         if self.SC:
             self.S = self.S/self.SC
@@ -804,38 +804,38 @@ class SuperTreeSupport(object):
 
     def printReducedOutput(self, printInstructions=False):
         if printInstructions: 
-            print 'I = no. of input trees;'
-            print 'L = no. of leaves;'
-            print 'Mean = mean taxon overlap among input trees'
-            print 'Medi = median taxon overlap among input trees'
-            print 'C = coverage (average proportion of leaves in the input tree);'
-            print 'SC = number of supertree clades;'
-            print 'U = no. of unsupported supertree clades;'
-            print 'U* = no. of unsupported supertree clades that conflict with at least one input tree;'
-            print 'U** = no. of unsupported clades conflicting with all relevant input trees;' 
-            print 'V = avg of support-conflict / support+conflict;'
-            print 'V+ = avg of support-conflict+permitting / support+conflict+permitting ;' 
-            print 'V- = avg of support-conflict-permitting / support+conflict+permitting ;' 
-            print 'wV = avg of weighted support-conflict / weighted support+conflict;'
-            print 'wV+ = avg of weighted support-conflict+weighted permitting / weighted support+conflict+weighted permitting ;' 
-            print 'wV- = avg of weighted support-conflict-weighted permitting / weighted support+conflict+weighted permitting ;'
-            print 'I     L     Mean  Medi  C     SC    U     U*    U**   V     V+    V-    wV    wV+   wV-'
+            print('I = no. of input trees;')
+            print('L = no. of leaves;')
+            print('Mean = mean taxon overlap among input trees')
+            print('Medi = median taxon overlap among input trees')
+            print('C = coverage (average proportion of leaves in the input tree);')
+            print('SC = number of supertree clades;')
+            print('U = no. of unsupported supertree clades;')
+            print('U* = no. of unsupported supertree clades that conflict with at least one input tree;')
+            print('U** = no. of unsupported clades conflicting with all relevant input trees;') 
+            print('V = avg of support-conflict / support+conflict;')
+            print('V+ = avg of support-conflict+permitting / support+conflict+permitting ;') 
+            print('V- = avg of support-conflict-permitting / support+conflict+permitting ;') 
+            print('wV = avg of weighted support-conflict / weighted support+conflict;')
+            print('wV+ = avg of weighted support-conflict+weighted permitting / weighted support+conflict+weighted permitting ;') 
+            print('wV- = avg of weighted support-conflict-weighted permitting / weighted support+conflict+weighted permitting ;')
+            print('I     L     Mean  Medi  C     SC    U     U*    U**   V     V+    V-    wV    wV+   wV-')
 
-        print repr(self.T).ljust(6)[:5],
-        print repr(self.L).ljust(6)[:5],
-        print repr(self.mean).ljust(6)[:5],
-        print repr(self.median).ljust(6)[:5],
-        print repr(self.C).ljust(6)[:5],
-        print repr(self.SC).ljust(6)[:5],
-        print repr(self.U).ljust(6)[:5],
-        print repr(self.UC).ljust(6)[:5],
-        print repr(self.UCC).ljust(6)[:5],
-        print repr(self.V).ljust(6)[:5],
-        print repr(self.VV).ljust(6)[:5],
-        print repr(self.Vv).ljust(6)[:5],
-        print repr(self.wV).ljust(6)[:5],
-        print repr(self.wVV).ljust(6)[:5],
-        print repr(self.wVv).ljust(6)[:5]
+        print(repr(self.T).ljust(6)[:5], end=' ')
+        print(repr(self.L).ljust(6)[:5], end=' ')
+        print(repr(self.mean).ljust(6)[:5], end=' ')
+        print(repr(self.median).ljust(6)[:5], end=' ')
+        print(repr(self.C).ljust(6)[:5], end=' ')
+        print(repr(self.SC).ljust(6)[:5], end=' ')
+        print(repr(self.U).ljust(6)[:5], end=' ')
+        print(repr(self.UC).ljust(6)[:5], end=' ')
+        print(repr(self.UCC).ljust(6)[:5], end=' ')
+        print(repr(self.V).ljust(6)[:5], end=' ')
+        print(repr(self.VV).ljust(6)[:5], end=' ')
+        print(repr(self.Vv).ljust(6)[:5], end=' ')
+        print(repr(self.wV).ljust(6)[:5], end=' ')
+        print(repr(self.wVV).ljust(6)[:5], end=' ')
+        print(repr(self.wVv).ljust(6)[:5])
                           
     def popcount(self, n, bitkeys):
         count = 0
@@ -865,8 +865,8 @@ class SuperTreeSupport(object):
                     intersection = intersection + '?'
                 else:
                     intersection = intersection + '*'
-            print 'Split: %s' % (intersection)
-        print ' '
+            print('Split: %s' % (intersection))
+        print(' ')
     
 
 class CommonLeafSet(object):
@@ -888,12 +888,12 @@ class CommonLeafSet(object):
         for name in list:
             if not name in taxnames:
                 gm.append('Found taxa in that does not appear in the supplied taxa list: ' + name)
-                raise Glitch, gm
+                raise Glitch(gm)
                
         for name in taxnames:
             if not name in list:
                 gm.append('Found taxa in supplied taxa list that does not appear in the supertree: '+ name)
-                raise Glitch, gm
+                raise Glitch(gm)
         
         self.weights = []
         splits = []
@@ -901,7 +901,7 @@ class CommonLeafSet(object):
             t = tfl.getTree(i)
             if not t._taxNames:
                 t._setTaxNamesFromLeaves()
-            t.missingTaxa = 0L
+            t.missingTaxa = 0
             for name in taxnames:
                 if not t.taxNames.count(name):
                     t.missingTaxa = t.missingTaxa | dict[name]
@@ -946,7 +946,7 @@ class CommonLeafSet(object):
                 for name in t.taxNames:
                     uniqueSet.add(name)
                 if index % sampler == 0:
-                    print '%s trees processed ' % (int (index))
+                    print('%s trees processed ' % (int (index)))
                     sys.stdout.flush()
                 
         self.list = []
@@ -958,8 +958,8 @@ class CommonLeafSet(object):
         self.dict = {}
         self.bitkeys = []
         for i in range(len(self.list)):
-            self.bitkeys.append(1L << i)
-            self.dict[self.list[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            self.dict[self.list[i]] = 1 << i 
         
         self.weights = []
         self.treeNames = []
@@ -971,7 +971,7 @@ class CommonLeafSet(object):
                 self.treeNames.append(t.name)
                 if not t._taxNames:
                     t._setTaxNamesFromLeaves()
-                t.missingTaxa = 0L
+                t.missingTaxa = 0
                 for name in self.list:
                     if not t.taxNames.count(name):
                         t.missingTaxa = t.missingTaxa | self.dict[name]
@@ -1005,7 +1005,7 @@ class CommonLeafSet(object):
             
                     splits.append(t.splits)
                 if index % sampler == 0:
-                    print '%s trees processed ' % (int (index))
+                    print('%s trees processed ' % (int (index)))
                     sys.stdout.flush()
             tflsSplits.append(splits)
             
@@ -1031,7 +1031,7 @@ class CommonLeafSet(object):
                 for name in t.taxNames:
                     uniqueSet.add(name)
                 if index % sampler == 0:
-                    print '%s trees processed ' % (int (index))
+                    print('%s trees processed ' % (int (index)))
                     sys.stdout.flush()
                 
         self.list = []
@@ -1043,8 +1043,8 @@ class CommonLeafSet(object):
         self.dict = {}
         self.bitkeys = []
         for i in range(len(self.list)):
-            self.bitkeys.append(1L << i)
-            self.dict[self.list[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            self.dict[self.list[i]] = 1 << i 
         
         self.weights = []
         self.treeNames = []
@@ -1057,7 +1057,7 @@ class CommonLeafSet(object):
                 self.treeNames.append(t.name)
                 if not t._taxNames:
                     t._setTaxNamesFromLeaves()
-                t.missingTaxa = 0L
+                t.missingTaxa = 0
                 for name in self.list:
                     if not t.taxNames.count(name):
                         t.missingTaxa = t.missingTaxa | self.dict[name]
@@ -1078,7 +1078,7 @@ class CommonLeafSet(object):
                         t.splits.append([m,t.missingTaxa])
                 splits.append(t.splits)
                 if index % sampler == 0:
-                    print '%s trees processed ' % (int (index))
+                    print('%s trees processed ' % (int (index)))
                     sys.stdout.flush()
             tflsSplits.append(splits)
             

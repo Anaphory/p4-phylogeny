@@ -1,6 +1,6 @@
-from Var import var
-from DistanceMatrix import DistanceMatrix
-from Glitch import Glitch
+from .Var import var
+from .DistanceMatrix import DistanceMatrix
+from .Glitch import Glitch
 import numpy, numpy.linalg
 import math,string
 #import func  # temp
@@ -189,26 +189,26 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
     elif self.nexusSets.charPartition and len(self.nexusSets.charPartition.subsets) > 1: # its partitioned.  Bad.
         gm = [complaintHead]
         gm.append("This only works with Alignments having only one data partition.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Check the corrections arg
     goodCorrections = ['L94', 'TK02', 'TK02_eqn10']
     if correction not in goodCorrections:
         gm.append("The corrections arg should be one of: %s" % goodCorrections)
         gm.append("Got %s" % correction)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Check the doPInvarOfConstants arg
     if doPInvarOfConstants not in [True, False]:
         gm.append("doPInvarOfConstants should be set to either True or False")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Check the pInvar or pInvarOfConstants args.  If zero, set to None.
     if doPInvarOfConstants:
         if pInvar:
             gm.append("doPInvarOfConstants is set, which means that pInvar does not apply.")
             gm.append("To prove that you are not mixed up, set it to None.")
-            raise Glitch, gm
+            raise Glitch(gm)
         try:
             pInvarOfConstants = float(pInvarOfConstants)
             if math.fabs(pInvarOfConstants) < 1.0e-10:
@@ -219,12 +219,12 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
             pInvarOfConstants = None
         if pInvarOfConstants and (pInvarOfConstants < 0.0 or pInvarOfConstants > 1.0):
             gm.append("pInvarOfConstants, if set, should be between zero and 1.0, inclusive.")
-            raise Glitch, gm
+            raise Glitch(gm)
     else:
         if pInvarOfConstants:
             gm.append("doPInvarOfConstants is off, which means that pInvarOfConstants does not apply.")
             gm.append("To prove that you are not mixed up, set it to None.")
-            raise Glitch, gm
+            raise Glitch(gm)
         try:
             pInvar = float(pInvar)
             if math.fabs(pInvar) < 1.0e-10:
@@ -235,7 +235,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
             pInvar = None
         if pInvar and (pInvar < 0.0 or pInvar > 1.0):
             gm.append("pInvar, if set, should be between zero and 1.0, inclusive.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     # Check the missingCharacterStrategy arg
     goodMissingCharacterStrategies = ['refuse', 'fudge', 'reduce']
@@ -244,7 +244,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
     else:
         gm.append("Arg missingCharacterStrategy should be one of %s" % goodMissingCharacterStrategies)
         gm.append("Got %s" % missingCharacterStrategy)
-        raise Glitch, gm
+        raise Glitch(gm)
     
     # Check the nonPositiveDetStrategy arg
     goodNonPositiveDetStrategies = ['refuse', 'invert']
@@ -253,11 +253,11 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
     else:
         gm.append("Arg nonPositiveDetStrategy should be one of %s" % goodNonPositiveDetStrategies)
         gm.append("Got %s" % nonPositiveDetStrategy)
-        raise Glitch, gm
+        raise Glitch(gm)
     
     # Equates
     if self.equates:
-        self.equateSymbols = self.equates.keys()
+        self.equateSymbols = list(self.equates.keys())
         self.equateSymbols.sort()
 
         # Make equatesArray
@@ -335,18 +335,18 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
         else:
             constComps = None
         if 0:
-            print "constants =", constants
-            print "nConstants = %i" % nConstants
-            print "constCounts = %s" % constCounts
-            print "constComps = %s" % constComps
+            print("constants =", constants)
+            print("nConstants = %i" % nConstants)
+            print("constCounts = %s" % constCounts)
+            print("constComps = %s" % constComps)
         # not used further
         del(constants)
 
     # The 'refUnambigCountMatrix' array is raw counts of changes between the two sequences.
     refUnambigCountMatrix = numpy.zeros((self.dim, self.dim), numpy.int32)
     normUnambig = numpy.zeros((self.dim, self.dim), numpy.float)
-    allSymbolNums = range(self.dim)
-    allSymbolNums += range(var.EQUATES_BASE, var.EQUATES_BASE + self.nEquates)
+    allSymbolNums = list(range(self.dim))
+    allSymbolNums += list(range(var.EQUATES_BASE, var.EQUATES_BASE + self.nEquates))
     allSymbolNums.append(var.N_LIKE)
     allSymbolNums = numpy.array(allSymbolNums, numpy.int32)
     #print "allSymbolNums = ", allSymbolNums
@@ -379,8 +379,8 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
             if numpy.sum(ignores):
                 hasIgnores = True
             if 0:
-                print "hasIgnores=%s" % hasIgnores
-                print 'ignores= %s' % ignores
+                print("hasIgnores=%s" % hasIgnores)
+                print('ignores= %s' % ignores)
             totalNoIgnores = 0
             if hasIgnores:
                 for i in range(self.dim):
@@ -392,14 +392,14 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                     gm.append("The arg 'minCompCount' is turned on, and set to %i." % minCompCount)
                     gm.append("There is not enough variation in these sequences to make a valid distance.")
                     gm.append("There are too many sites that will be ignored because of low frequency characters.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             if 0 and hasIgnores:
-                print "missingCharacterStrategy is set to 'reduce'"
-                print "The following char(s) will be ignored:"
+                print("missingCharacterStrategy is set to 'reduce'")
+                print("The following char(s) will be ignored:")
                 for i in range(self.dim):
                     if ignores[i]:
-                        print " %s" % self.symbols[i],
-                print "\n"
+                        print(" %s" % self.symbols[i], end=' ')
+                print("\n")
 
 
     nUnambig = numpy.zeros((1), numpy.int32)
@@ -494,12 +494,12 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                 nAmbig[0] += 1
 
                     if 0:
-                        print "nUnambig=%s, refUnambigCountMatrix=" % nUnambig
-                        print refUnambigCountMatrix
-                        print "nAmbig=%s, refAmbigCountMatrix=" % nAmbig
-                        print refAmbigCountMatrix
-                        print "nChar=%s, nAmbig=%s, nDoubleGap=%s, nUnambig=%s" % (
-                            self.nChar, nAmbig, nDoubleGap, nUnambig)
+                        print("nUnambig=%s, refUnambigCountMatrix=" % nUnambig)
+                        print(refUnambigCountMatrix)
+                        print("nAmbig=%s, refAmbigCountMatrix=" % nAmbig)
+                        print(refAmbigCountMatrix)
+                        print("nChar=%s, nAmbig=%s, nDoubleGap=%s, nUnambig=%s" % (
+                            self.nChar, nAmbig, nDoubleGap, nUnambig))
                     assert nAmbig[0]+nDoubleGap[0]+nUnambig[0] == self.nChar
 
                     # normUnambig is just the refUnambigCountMatrix array, normalized to sum
@@ -526,11 +526,11 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                             try:
                                 bigFxy[i,j] = float(refUnambigCountMatrix[i,j])
                             except:
-                                print "xxx i=%i, j=%i" % (i,j)
-                                print "xxx", refUnambigCountMatrix[i,j]
-                                print "xxx", float(refUnambigCountMatrix[i,j])
-                                print "xxx", bigFxy[i,j]
-                                raise Glitch, gm
+                                print("xxx i=%i, j=%i" % (i,j))
+                                print("xxx", refUnambigCountMatrix[i,j])
+                                print("xxx", float(refUnambigCountMatrix[i,j]))
+                                print("xxx", bigFxy[i,j])
+                                raise Glitch(gm)
 
 
                     if nAmbig[0]:
@@ -564,7 +564,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                                     fsum += normUnambig[i, j1]
                                                     nSlots += 1
                                         else:
-                                            raise Glitch, "This shouldn't happen. Ambig site, but both chars are non-ambig."
+                                            raise Glitch("This shouldn't happen. Ambig site, but both chars are non-ambig.")
                                     elif i == bigDim - 1: # firstChar is N_LIKE
                                         #print "b firstChar is N_LIKE"
                                         # secondChar must be either a symbol or an equate
@@ -575,7 +575,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                                 fsum += normUnambig[i1, j]
                                                 nSlots += 1
                                         elif j == bigDim - 1:
-                                            raise Glitch, "This shouldn't happen.  Ambig site with 2 N_LIKEs.  Should be a double gap."
+                                            raise Glitch("This shouldn't happen.  Ambig site with 2 N_LIKEs.  Should be a double gap.")
                                         else: # secondChar is an equate
                                             secondChar = self.equateSymbols[j - self.dim]
                                             #print "b secondChar = %s" % secondChar
@@ -637,14 +637,14 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                                     if equatesArray[j - self.dim, j1]:
                                                         bigFxy[i,j1] += na * oneOverNSlots
                                             else:
-                                                raise Glitch, "This shouldn't happen"
+                                                raise Glitch("This shouldn't happen")
                                         elif i == bigDim - 1: # firstChar is N_LIKE
                                             # secondChar must be either a symbol or an equate
                                             if j < self.dim: # secondChar is a symbol
                                                 for i1 in range(self.dim):
                                                     bigFxy[i1,j] += na * oneOverNSlots
                                             elif j == bigDim - 1:
-                                                raise Glitch, "This shouldn't happen."
+                                                raise Glitch("This shouldn't happen.")
                                             else: # secondChar is an equate
                                                 for i1 in range(self.dim):
                                                     for j1 in range(self.dim):
@@ -681,14 +681,14 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                                     if equatesArray[j - self.dim, j1]:
                                                         bigFxy[i,j1] += na * normUnambig[i, j1] / fsum
                                             else:
-                                                raise Glitch, "This shouldn't happen"
+                                                raise Glitch("This shouldn't happen")
                                         elif i == bigDim - 1: # firstChar is N_LIKE
                                             # secondChar must be either a symbol or an equate
                                             if j < self.dim: # secondChar is a symbol
                                                 for i1 in range(self.dim):
                                                     bigFxy[i1,j] += na * normUnambig[i1, j] / fsum
                                             elif j == bigDim - 1:
-                                                raise Glitch, "This shouldn't happen."
+                                                raise Glitch("This shouldn't happen.")
                                             else: # secondChar is an equate
                                                 for i1 in range(self.dim):
                                                     for j1 in range(self.dim):
@@ -714,16 +714,16 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                                             if equatesArray[j - self.dim, j1]:
                                                                 bigFxy[i1,j1] += na * normUnambig[i1, j1] / fsum
                                     if 0:
-                                        print "bigFxy= (after partial ambig resolution)"
-                                        print bigFxy
+                                        print("bigFxy= (after partial ambig resolution)")
+                                        print(bigFxy)
 
 
                     # End of the long section on resolving ambiguities.
                 # End of the long "else" clause to "if fastFillFxy:"
 
                 if 0:
-                    print "bigFxy=  (after ambig resolution)"
-                    print bigFxy
+                    print("bigFxy=  (after ambig resolution)")
+                    print(bigFxy)
 
                 # pInvar stuff
                 if doPInvarOfConstants==False and pInvar != None: # paup-like
@@ -736,8 +736,8 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                         bigFxy[i][i] -= constCounts[i] * pInvarOfConstants
 
                 if 0:
-                    print "bigFxy=  (after pInvarOfConstants removal)"
-                    print bigFxy
+                    print("bigFxy=  (after pInvarOfConstants removal)")
+                    print(bigFxy)
 
                 if missingCharacterStrategy == 'fudge':
                     # Replace zeros on the diagonal of Fxy with either 0.5
@@ -785,8 +785,8 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                 # Normalize Fxy to 1.0
                 theFxy /= float(sumTheFxy)
                 if 0:
-                    print "nSites=%f,  final normalized bigFxy (ie Fxy) = " % sumTheFxy
-                    print theFxy
+                    print("nSites=%f,  final normalized bigFxy (ie Fxy) = " % sumTheFxy)
+                    print(theFxy)
 
                 # Calculate the logDet, from the theFxy and from the bigPi
                 theDet = numpy.linalg.det(theFxy)
@@ -806,12 +806,12 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                     bigPiX = theFxy.sum(axis=0)   # sum of columns
                     bigPiY = theFxy.sum(axis=1)   # sum of rows
                     if 0:
-                        print "theFxy = "
-                        print theFxy, type(theFxy)
-                        print "bigPiX = "
-                        print bigPiX, type(bigPiX)
-                        print "bigPiY ="
-                        print bigPiY, type(bigPiY)
+                        print("theFxy = ")
+                        print(theFxy, type(theFxy))
+                        print("bigPiX = ")
+                        print(bigPiX, type(bigPiX))
+                        print("bigPiY =")
+                        print(bigPiY, type(bigPiY))
                     det_bigPiX = numpy.multiply.reduce(bigPiX)
                     det_bigPiY = numpy.multiply.reduce(bigPiY)
                     #print det_bigPiX, det_bigPiY
@@ -834,7 +834,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                 gm.append("det_bigPiX = %s, det_bigPiY=%s" % (det_bigPiX, det_bigPiY))
                                 gm.append("Got bad Pi det due to missing char(s).")
                                 gm.append("This should not happen-- programming error.")
-                                raise Glitch, gm
+                                raise Glitch(gm)
                             if 1:
                                 i2 = 0
                                 for i1 in range(self.dim):
@@ -861,7 +861,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                         gm.append("The arg 'minCompCount' is turned on, and set to %i." % minCompCount)
                                         gm.append("There is not enough variation in these sequences to make a valid distance.")
                                         gm.append("There are too many sites that will be ignored because of low frequency characters.")
-                                        raise Glitch, gm
+                                        raise Glitch(gm)
                                     else:
                                         return None
                                 break
@@ -885,9 +885,9 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                                     squareSum += (bigPiX[i] + bigPiY[i]) * (bigPiX[i] + bigPiY[i])
                                 theCorrection = (reducedDim - 1) / (1.0 - squareSum/4.0)
                             if 0:
-                                print "theDet = %g" % theDet
-                                print "theLogDet = %f" % theLogDet
-                                print "theCorrection = %s" % theCorrection
+                                print("theDet = %g" % theDet)
+                                print("theLogDet = %f" % theLogDet)
+                                print("theCorrection = %s" % theCorrection)
 
                             theLogDet /= theCorrection
                             theLogDet = -theLogDet
@@ -914,7 +914,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
 
                         if theLogDet < 0.0:
                             gm.append("Got negative logDet (%f).  This should not happen." % theLogDet)
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
                         #return theLogDet
                         d.matrix[sNum1][sNum2] = theLogDet
@@ -926,7 +926,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
                         nUndefinedLogDets += 1
                     else:
                         gm.append("This should never happen.  Programming error.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     
     # End of the main pairwise loop
 
@@ -935,7 +935,7 @@ def logDet(self, correction='TK02', doPInvarOfConstants=True, pInvar=None, pInva
         if nUndefinedLogDets == ((d.dim * d.dim) - d.dim) / 2:
             if 0:
                 gm.append("All distances were undefined.")
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 return None
         #print "xyz There were %i undefined distances." % nUndefinedLogDets

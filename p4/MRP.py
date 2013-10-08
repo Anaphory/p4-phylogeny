@@ -1,12 +1,12 @@
 # Matrix representation / parsimony.
 
-from Tree import Tree
-from Alignment import Alignment
-from Glitch import Glitch
-import func
-from NexusSets import CharSet
-from Node import Node
-from TreePartitions import TreePartitions
+from .Tree import Tree
+from .Alignment import Alignment
+from .Glitch import Glitch
+from . import func
+from .NexusSets import CharSet
+from .Node import Node
+from .TreePartitions import TreePartitions
 
 
 
@@ -17,16 +17,16 @@ def mrpSlice(self, pos, zeroBasedNumbering=True):
     """
     if zeroBasedNumbering:
         ss = self.sequenceSlice(pos)
-        print "mrp matrix position (zero-based) %i" % pos
+        print("mrp matrix position (zero-based) %i" % pos)
     else:
         pos2 = pos - 1
         ss = self.sequenceSlice(pos2)
-        print "mrp matrix position (1-based) %i" % pos2
+        print("mrp matrix position (1-based) %i" % pos2)
     for txNum in range(self.nTax):
         if ss[txNum] == '?':
             pass
         else:
-            print "  %25s %s" % (self.taxNames[txNum], ss[txNum])
+            print("  %25s %s" % (self.taxNames[txNum], ss[txNum]))
 
 Alignment.mrpSlice = mrpSlice
 del(mrpSlice)
@@ -51,11 +51,11 @@ def mrp(trees, taxNames=None):
     gm = ['mrp()']
     if type(trees) != type([]):
         gm.append("The 'trees' arg should be a list of p4 tree objects.")
-        raise Glitch, gm
+        raise Glitch(gm)
     for t in trees:
         if not isinstance(t, Tree):
             gm.append("The 'trees' arg should be a list of p4 tree objects.")
-            raise Glitch, gm
+            raise Glitch(gm)
     
     myTaxNames = []
     for t in trees:
@@ -66,13 +66,13 @@ def mrp(trees, taxNames=None):
         suppliedTaxNamesSet = set(taxNames)
         myTaxNamesSet = set(myTaxNames)
         if suppliedTaxNamesSet != myTaxNamesSet:
-            print suppliedTaxNamesSet
-            print myTaxNamesSet
+            print(suppliedTaxNamesSet)
+            print(myTaxNamesSet)
             symDiff = myTaxNamesSet.symmetric_difference(suppliedTaxNamesSet)
             gm.append("The taxNames list supplied does not represent the taxa in the input trees.")
             gm.append("The symmetric difference is:")
             gm.append(symDiff)
-            raise Glitch, gm
+            raise Glitch(gm)
     else:
         taxNames = myTaxNames
 
@@ -80,7 +80,7 @@ def mrp(trees, taxNames=None):
     txBkDict = {}
     for tNum in range(len(taxNames)):
         tx = taxNames[tNum]
-        bk = 1L << tNum
+        bk = 1 << tNum
         txBkDict[tx] = bk
 
     # Decorate trees with BitKeys, and count the number of splits.
@@ -91,7 +91,7 @@ def mrp(trees, taxNames=None):
             if not n == t.root:
                 if n.isLeaf:
                     # order comes from taxNames, not from the tree
-                    n.br.bitKey = 1L << taxNames.index(n.name)
+                    n.br.bitKey = 1 << taxNames.index(n.name)
                 else:
                     nSplits += 1
                     tNSplits += 1
@@ -102,10 +102,10 @@ def mrp(trees, taxNames=None):
                             y = t.nodes[i].br.bitKey
                             x = x | y
                     except AttributeError:
-                        print "t.preAndPostOrderAreValid = %s" % t.preAndPostOrderAreValid
+                        print("t.preAndPostOrderAreValid = %s" % t.preAndPostOrderAreValid)
                         #t.draw()
-                        print "n is nodeNum %i" % n.nodeNum
-                        print "childrenNums = %s" % childrenNums
+                        print("n is nodeNum %i" % n.nodeNum)
+                        print("childrenNums = %s" % childrenNums)
                         raise AttributeError
                     n.br.bitKey = x
 
@@ -124,13 +124,13 @@ def mrp(trees, taxNames=None):
             t.write()
         gm = ["mrp().  No splits were found in the input trees."]
         gm.append("That does not work.")
-        raise Glitch, gm
+        raise Glitch(gm)
     a = func.newEmptyAlignment(dataType='standard', symbols='01', taxNames=taxNames, length=nSplits)
     a.setNexusSets()
     for s in a.sequences:
         s.sequence = list(s.sequence)
     siteNum = 0
-    tRange = range(len(taxNames))
+    tRange = list(range(len(taxNames)))
     for tNum in range(len(trees)):
         t = trees[tNum]
         if t.nSplits:
@@ -188,7 +188,7 @@ def reverseMrp(alignment):
     a = alignment
     assert a.nexusSets
     assert a.nexusSets.charSets
-    tRange = range(len(a.taxNames))
+    tRange = list(range(len(a.taxNames)))
     tt = []
     for cs in a.nexusSets.charSets:
         #print cs.name

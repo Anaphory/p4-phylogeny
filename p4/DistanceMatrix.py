@@ -1,8 +1,8 @@
 import sys
 import os
-import func
-from Var import var
-from Glitch import Glitch
+from . import func
+from .Var import var
+from .Glitch import Glitch
 from subprocess import Popen,PIPE
 
 class DistanceMatrix:
@@ -48,26 +48,26 @@ class DistanceMatrix:
                         f = open(fName, 'a')
                     except IOError:
                         gm.append("Can't open %s for appending." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 else:
-                    print gm[0]
+                    print(gm[0])
                     assert not os.path.lexists()
-                    print "    'append' is requested,"
-                    print "    but '%s' is not a regular file (maybe it doesn't exist?)." % fName
-                    print "    Writing to a new file instead."
+                    print("    'append' is requested,")
+                    print("    but '%s' is not a regular file (maybe it doesn't exist?)." % fName)
+                    print("    Writing to a new file instead.")
                     try:
                         f = open(fName, 'w')
                         f.write('#NEXUS\n\n')
                     except IOError:
                         gm.append("Can't open %s for writing." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             else:
                 try:
                     f = open(fName, 'w')
                 except IOError:
                     gm.append("Can't open %s for writing." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
         self.writeNexusToOpenFile(f, writeTaxaBlock, append, digitsAfterDecimal)
         if f != sys.stdout:
             f.close()
@@ -114,7 +114,7 @@ class DistanceMatrix:
             numberFormat = '%' + '%i.%if' % (totWid, digitsAfterDecimal)
         else:
             gm.append("digitsAfterDecimal may not be below zero.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if self.names:
             longestNameLength = 0
@@ -158,25 +158,25 @@ class DistanceMatrix:
                         f = open(fName, 'a')
                     except IOError:
                         gm.append("Can't open %s for appending." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 else:
-                    print gm[0]
+                    print(gm[0])
                     assert not os.path.lexists()
-                    print "    'append' is requested,"
-                    print "    but '%s' is not a regular file (maybe it doesn't exist?)." % fName
-                    print "    Writing to a new file instead."
+                    print("    'append' is requested,")
+                    print("    but '%s' is not a regular file (maybe it doesn't exist?)." % fName)
+                    print("    Writing to a new file instead.")
                     try:
                         f = open(fName, 'w')
                     except IOError:
                         gm.append("Can't open %s for writing." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             else:
                 try:
                     f = open(fName, 'w')
                 except IOError:
                     gm.append("Can't open %s for writing." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
         self.writePhylipToOpenFile(f, digitsAfterDecimal)
         if f != sys.stdout:
             f.close()
@@ -201,7 +201,7 @@ class DistanceMatrix:
             numberFormat = '%' + '%i.%if' % (totWid, digitsAfterDecimal)
         else:
             gm.append("digitsAfterDecimal may not be below zero.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         longestNameLength = 0
         for i in self.names:
@@ -230,27 +230,27 @@ class DistanceMatrix:
         splitString = string.split(f.readline())
         if len(splitString) != 1:
             gm.append("The first line should have the number of taxa, and thats all.")
-            raise Glitch, gm
+            raise Glitch(gm)
         try:
             theDim = int(splitString[0])
         except ValueError:
             gm.append("Could not get an integer from the first line.")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.setDim(theDim)
         for i in range(theDim):
             aLine = f.readline()
             if not aLine:
                 gm.append("File too short?")
-                raise Glitch, gm
+                raise Glitch(gm)
             splitLine = string.split(aLine)
             if len(splitLine) == 0:
                 gm.append("Empty line?")
                 gm.append("Got: '%s'" % aLine)
-                raise Glitch, gm
+                raise Glitch(gm)
             if len(splitLine) <= 1:
                 gm.append("Line too short.")
                 gm.append("Got: '%s'" % aLine)
-                raise Glitch, gm
+                raise Glitch(gm)
             self.names.append(splitLine[0])
             #print "got name %s" % splitLine[0]
             j = 0
@@ -263,17 +263,17 @@ class DistanceMatrix:
                         break
                 except ValueError:
                     gm.append("    Could not convert %s to a float." % k)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             while j < theDim:
                 aLine = f.readline()
                 if not aLine:
                     gm.append("File too short?")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 splitLine = string.split(aLine)
                 if len(splitLine) == 0:
                     gm.append("Empty line?")
                     gm.append("Got: '%s'" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 for k in splitLine:
                     try:
                         self.matrix[i][j] = float(k)
@@ -283,7 +283,7 @@ class DistanceMatrix:
                             break
                     except ValueError:
                         gm.append("Could not convert %s to a float." % k)
-                        raise Glitch, gm
+                        raise Glitch(gm)
         f.close()
 
 
@@ -352,7 +352,7 @@ class DistanceMatrix:
             pass
         else:
             gm.append("I was expecting exactly one tree.  Got %i" % (oldLen - newLen))
-            raise Glitch, gm
+            raise Glitch(gm)
         t = var.trees.pop()
 
         # Tidy up.
@@ -402,7 +402,7 @@ class DistanceMatrix:
             pass
         else:
             gm.append("I was expecting exactly one tree.  Got %i" % (oldLen - newLen))
-            raise Glitch, gm
+            raise Glitch(gm)
         t = var.trees.pop()
 
         # Tidy up.
@@ -451,7 +451,7 @@ class DistanceMatrix:
             pass
         else:
             gm.append("I was expecting exactly one tree.  Got %i" % (oldLen - newLen))
-            raise Glitch, gm
+            raise Glitch(gm)
         t = var.trees.pop()
 
         # Tidy up.

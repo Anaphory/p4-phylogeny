@@ -2,11 +2,11 @@
 # Started 18 March 2011, first commit 22 March 2011.
 
 import pf,func
-from Var import var
-import math,random,string,sys,time,copy,os,cPickle,types,numpy,glob
-from Glitch import Glitch
-from TreePartitions import TreePartitions
-from Constraints import Constraints
+from .Var import var
+import math,random,string,sys,time,copy,os,pickle,types,numpy,glob
+from .Glitch import Glitch
+from .TreePartitions import TreePartitions
+from .Constraints import Constraints
 import datetime
 
 haveLoadedP4stm = False
@@ -20,16 +20,16 @@ except ImportError:
 
 def bitReduce(bk, txBits, lLen, sLen, allOnes):
     #print "bitReduce: bk %i, txBits %i, lLen %i, sLen %i, allOnes %i" % (bk, txBits, lLen, sLen, allOnes)
-    newBk = 0L
+    newBk = 0
     counter = 0
     pops = 0
     for pos in range(lLen):
-        tester = 1L << pos
+        tester = 1 << pos
         #print "pos %2i, tester: %3i" % (pos, tester)
         if tester & txBits:
             #print "    tester & txBits -- True"
             if tester & bk:
-                adder = 1L << counter
+                adder = 1 << counter
                 #print "        adding:", adder
                 newBk += adder
                 pops += 1
@@ -50,12 +50,12 @@ if 0: # test bitReduce
     lLen = 5
     sLen = 4
     allOnes = 15
-    print "     sk: %3i  %s" % (sk, func.getSplitStringFromKey(sk, lLen))
-    print "taxBits: %3i  %s" % (txBits, func.getSplitStringFromKey(txBits, lLen))
+    print("     sk: %3i  %s" % (sk, func.getSplitStringFromKey(sk, lLen)))
+    print("taxBits: %3i  %s" % (txBits, func.getSplitStringFromKey(txBits, lLen)))
                           
     rsk, popcount = bitReduce(sk, txBits, lLen, sLen, allOnes)
-    print "    rsk: %3i  %s" % (rsk, func.getSplitStringFromKey(rsk, sLen))
-    print "   popcount %i" % popcount
+    print("    rsk: %3i  %s" % (rsk, func.getSplitStringFromKey(rsk, sLen)))
+    print("   popcount %i" % popcount)
     #     sk:   6  .**..
     #     taxBits:  30  .****
     #     rsk:  12  ..**
@@ -64,13 +64,13 @@ if 0: # test bitReduce
 
 def maskedSymmetricDifference(skk, skkSet, taxBits, longLen, shortLen, allOnes):
     if 0:
-        print "skk (from the current tree)"
+        print("skk (from the current tree)")
         for sk in skk:
-            print func.getSplitStringFromKey(sk, longLen)
-        print "skkSet (from input tree)"
+            print(func.getSplitStringFromKey(sk, longLen))
+        print("skkSet (from input tree)")
         for sk in skkSet:
-            print func.getSplitStringFromKey(sk, shortLen)
-        print "taxBits:", taxBits, func.getSplitStringFromKey(taxBits, longLen)
+            print(func.getSplitStringFromKey(sk, shortLen))
+        print("taxBits:", taxBits, func.getSplitStringFromKey(taxBits, longLen))
             
     newSkk = []
     for sk in skk:
@@ -165,7 +165,7 @@ class STChain(object):
             elif self.stMcmc.dMetric == 'scqdist':
                 thisDist = t.beta * slowQuartetDistance(self.propTree, t)
             else:
-                raise Glitch, "STChain.getTreeLogLike() unknown metric '%s'" % self.stMcmc.dMetric
+                raise Glitch("STChain.getTreeLogLike() unknown metric '%s'" % self.stMcmc.dMetric)
             aTree.logLike -= thisDist
 
     def p4stm_getTreeLogLike(self):
@@ -214,7 +214,7 @@ class STChain(object):
             
         else:
             gm.append('Unlisted proposal.name=%s  Fix me.' % theProposal.name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if theProposal.doAbort:
             return 0.0
@@ -280,7 +280,7 @@ class STChain(object):
 
         else:
             gm.append('Unlisted proposal.name = %s  Fix me.' % aProposal.name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
 
@@ -306,15 +306,15 @@ class STMcmcTunings(object):
 
     def __setattr__(self, item, val):
         #print "Got request to set %s to %s" % (item, val)
-        if item in self.__dict__.keys():
+        if item in list(self.__dict__.keys()):
             # Here is where I should do the sanity checking of the new vals.  Some day.
             #print "    Setting tuning '%s' to %s" % (item, val)
             object.__setattr__(self, item, val)
         else:
-            print self.dump()
+            print(self.dump())
             gm = ["\nSTMcmcTunings.__setattr__()"]
             gm.append("Can't set tuning '%s'-- no such tuning." % item)
-            raise Glitch, gm
+            raise Glitch(gm)
     
     def reprString(self, advice=True):
         lst = ["\nSTMcmc.tunings:"]
@@ -325,7 +325,7 @@ class STMcmcTunings(object):
         return string.join(lst, '\n')
 
     def dump(self):
-        print self.reprString()
+        print(self.reprString())
 
     def __repr__(self):
         return  self.reprString()
@@ -358,7 +358,7 @@ class STMcmcProposalProbs(dict):
     def __setattr__(self, item, val):
         # complaintHead = "\nSTMcmcProposalProbs.__setattr__()"
         gm = ["\nSTMcmcProposalProbs(). (set %s to %s)" % (item, val)]
-        theKeys = self.__dict__.keys()
+        theKeys = list(self.__dict__.keys())
         if item in theKeys:
             try:
                 val = float(val)
@@ -367,26 +367,26 @@ class STMcmcProposalProbs(dict):
                 object.__setattr__(self, item, val)
             except:
                 gm.append("Should be a float.  Got '%s'" % val)
-                raise Glitch, gm
+                raise Glitch(gm)
                 
         else:
             self.dump()
             gm.append("    Can't set '%s'-- no such proposal." % item)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     def reprString(self):
         stuff = ["\nUser-settable relative proposal probabilities, from yourMcmc.prob"]
         stuff.append("  To change it, do eg ")
         stuff.append("    yourMcmc.prob.comp = 0.0 # turns comp proposals off")
         stuff.append("  Current settings:")
-        theKeys = self.__dict__.keys()
+        theKeys = list(self.__dict__.keys())
         theKeys.sort()
         for k in theKeys:
             stuff.append("        %15s: %s" % (k, getattr(self, k)))
         return string.join(stuff, '\n')
 
     def dump(self):
-        print self.reprString()
+        print(self.reprString())
 
     def __repr__(self):
         return  self.reprString()
@@ -413,10 +413,10 @@ class STProposal(object):
         self.nAborts = [0] * self.nChains
 
     def dump(self):
-        print "proposal name=%-10s pNum=%2i, mtNum=%2i, weight=%5.1f, tuning=%7.2f" % (
-            '%s,' % self.name, self.pNum, self.mtNum, self.weight, self.tuning)
-        print "    nProposals   by temperature:  %s" % self.nProposals
-        print "    nAcceptances by temperature:  %s" % self.nAcceptances
+        print("proposal name=%-10s pNum=%2i, mtNum=%2i, weight=%5.1f, tuning=%7.2f" % (
+            '%s,' % self.name, self.pNum, self.mtNum, self.weight, self.tuning))
+        print("    nProposals   by temperature:  %s" % self.nProposals)
+        print("    nAcceptances by temperature:  %s" % self.nAcceptances)
         
     def _getTuning(self):
         if self.name in ['nni', 'spr']:
@@ -442,9 +442,9 @@ class STProposal(object):
             return None
         
     def _setTuning(self, whatever):
-        raise Glitch, "Can't set tuning this way."
+        raise Glitch("Can't set tuning this way.")
     def _delTuning(self):
-        raise Glitch, "Can't del tuning."
+        raise Glitch("Can't del tuning.")
     
     tuning = property(_getTuning, _setTuning, _delTuning) 
             
@@ -572,16 +572,16 @@ class STMcmc(object):
                     pass
                 else:
                     gm.append("At the moment STMcmc wants trees that are fully bifurcating.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
         
         try:
             nChains = int(nChains)
         except (ValueError,TypeError):
             gm.append("nChains should be an int, 1 or more.  Got %s" % nChains)
-            raise Glitch, gm
+            raise Glitch(gm)
         if nChains < 1:
             gm.append("nChains should be an int, 1 or more.  Got %s" % nChains)
-            raise Glitch, gm
+            raise Glitch(gm)
         self.nChains = nChains
         self.chains = []
         self.gen = -1
@@ -593,17 +593,17 @@ class STMcmc(object):
         if dMetric not in goodDMetrics:
             gm.append("dMetric should be one of %s" % goodDMetrics)
             gm.append("got '%s'" % dMetric)
-            raise Glitch, gm
+            raise Glitch(gm)
         self.dMetric = dMetric
 
         try:
             runNum = int(runNum)
         except (ValueError, TypeError):
             gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-            raise Glitch, gm
+            raise Glitch(gm)
         if runNum < 0:
             gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-            raise Glitch, gm
+            raise Glitch(gm)
         self.runNum = runNum
 
         # Check that we are not going to over-write good stuff
@@ -619,7 +619,7 @@ class STMcmc(object):
             gm.append("This is a new STMcmc, and I am refusing to over-write exisiting files.")
             gm.append("Maybe you want to re-start from the latest mcmc_checkPoint_%i file?" % self.runNum)
             gm.append("Otherwise, get rid of the existing mcmc_xxx_%i.xxx files and start again." % self.runNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if var.strictRunNumberChecking:
             # We want to start runs with number 0, so if runNum is more than that, check that there are other runs.
@@ -635,7 +635,7 @@ class STMcmc(object):
                         gm.append("runNums should go from zero up.")
                         gm.append("There are no mcmc_trees_%i.nex files to show that run %i has been done." % (runNum2, runNum2))
                         gm.append("Set the runNum to that, first.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                               
         
         
@@ -697,15 +697,15 @@ class STMcmc(object):
         self.nTax = len(self.taxNames)
         for t in inTrees:
             sorted_taxNames = []
-            t.taxBits = 0L
+            t.taxBits = 0
             for tNum in range(self.nTax):
                 tN = self.taxNames[tNum]
                 if tN in t.unsorted_taxNames:
                     sorted_taxNames.append(tN)
-                    adder = 1L << tNum
+                    adder = 1 << tNum
                     t.taxBits += adder
             t.taxNames = sorted_taxNames
-            t.allOnes = 2L**(t.nTax) - 1
+            t.allOnes = 2**(t.nTax) - 1
             t.makeSplitKeys()
             t.skSet = set([n.br.splitKey for n in t.iterInternalsNoRoot()])
 
@@ -719,7 +719,7 @@ class STMcmc(object):
                self.usingP4stmModule = True
             else:
                 gm.append("useP4stm is set, but I could not load the p4stm or the pyusblas modules.")
-                raise Glitch, gm
+                raise Glitch(gm)
                 
 
 
@@ -750,7 +750,7 @@ class STMcmc(object):
 
         if not self.proposals:
             gm.append("No proposals?")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.propWeights = []
         for p in self.proposals:
             self.propWeights.append(p.weight)
@@ -760,7 +760,7 @@ class STMcmc(object):
         self.totalPropWeights = sum(self.propWeights)
         if self.totalPropWeights < 1e-9:
             gm.append("No proposal weights?")
-            raise Glitch, gm
+            raise Glitch(gm)
         for p in self.proposals:
             self.proposalsHash[p.name] = p
 
@@ -785,7 +785,7 @@ class STMcmc(object):
         self.totalPropWeights = sum(self.propWeights)
         if self.totalPropWeights < 1e-9:
             gm.append("No proposal weights?")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
 
@@ -794,32 +794,32 @@ class STMcmc(object):
         """Pretty-print the proposal acceptances."""
 
         if (self.gen - self.startMinusOne) <= 0:
-            print "\nSTMcmc.writeProposalAcceptances()  There is no info in memory. "
-            print " Maybe it was just emptied after writing to a checkpoint?  "
-            print "If so, read the checkPoint and get the proposalAcceptances from there."
+            print("\nSTMcmc.writeProposalAcceptances()  There is no info in memory. ")
+            print(" Maybe it was just emptied after writing to a checkpoint?  ")
+            print("If so, read the checkPoint and get the proposalAcceptances from there.")
         else:
 
             spacer = ' ' * 8
-            print "\nProposal acceptances, run %i, for %i gens, from gens %i to %i, inclusive." % (
-                self.runNum, (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen)
-            print "%s %15s %10s %13s%8s" % (spacer, 'proposal', 'nProposals', 'acceptance(%)', 'tuning')
+            print("\nProposal acceptances, run %i, for %i gens, from gens %i to %i, inclusive." % (
+                self.runNum, (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen))
+            print("%s %15s %10s %13s%8s" % (spacer, 'proposal', 'nProposals', 'acceptance(%)', 'tuning'))
             for p in self.proposals:
-                print "%s" % spacer,
-                print "%15s" % p.name,
-                print "%10i" % p.nProposals[0],
+                print("%s" % spacer, end=' ')
+                print("%15s" % p.name, end=' ')
+                print("%10i" % p.nProposals[0], end=' ')
 
                 if p.nProposals[0]: # Don't divide by zero
-                    print "       %5.1f " % (100.0 * float(p.nAcceptances[0]) / float(p.nProposals[0])),
+                    print("       %5.1f " % (100.0 * float(p.nAcceptances[0]) / float(p.nProposals[0])), end=' ')
                 else:
-                    print "           - ",
+                    print("           - ", end=' ')
 
                 if p.tuning == None:
-                    print "      -",
+                    print("      -", end=' ')
                 elif p.tuning < 2.0:
-                    print "  %5.3f" % p.tuning,
+                    print("  %5.3f" % p.tuning, end=' ')
                 else:
-                    print "%7.1f" % p.tuning,
-                print
+                    print("%7.1f" % p.tuning, end=' ')
+                print()
 
             # # Tabulate topology changes, if any were attempted.
             # doTopol = 0
@@ -881,33 +881,33 @@ class STMcmc(object):
             
 
     def writeSwapMatrix(self):
-        print "\nChain swapping, for %i gens, from gens %i to %i, inclusive." % (
-            (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen)
-        print "    Swaps are presented as a square matrix, nChains * nChains."
-        print "    Upper triangle is the number of swaps proposed between two chains."
-        print "    Lower triangle is the percent swaps accepted."
-        print "    The current tunings.chainTemp is %5.3f\n" % self.tunings.chainTemp
-        print " " * 10,
+        print("\nChain swapping, for %i gens, from gens %i to %i, inclusive." % (
+            (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen))
+        print("    Swaps are presented as a square matrix, nChains * nChains.")
+        print("    Upper triangle is the number of swaps proposed between two chains.")
+        print("    Lower triangle is the percent swaps accepted.")
+        print("    The current tunings.chainTemp is %5.3f\n" % self.tunings.chainTemp)
+        print(" " * 10, end=' ')
         for i in range(self.nChains):
-            print "%7i" % i,
-        print
-        print " " * 10,
+            print("%7i" % i, end=' ')
+        print()
+        print(" " * 10, end=' ')
         for i in range(self.nChains):
-            print "   ----",
-        print
+            print("   ----", end=' ')
+        print()
         for i in range(self.nChains):
-            print " " * 7, "%2i" % i,
+            print(" " * 7, "%2i" % i, end=' ')
             for j in range(self.nChains):
                 if i < j: # upper triangle
-                    print "%7i" % self.swapMatrix[i][j],
+                    print("%7i" % self.swapMatrix[i][j], end=' ')
                 elif i == j:
-                    print "      -",
+                    print("      -", end=' ')
                 else:
                     if self.swapMatrix[j][i] == 0: # no proposals
-                        print "      -",
+                        print("      -", end=' ')
                     else:
-                        print "  %5.1f" % (100.0 * float(self.swapMatrix[i][j]) / float(self.swapMatrix[j][i])),
-            print
+                        print("  %5.1f" % (100.0 * float(self.swapMatrix[i][j]) / float(self.swapMatrix[j][i])), end=' ')
+            print()
         
 
     def _makeChainsAndProposals(self):
@@ -996,7 +996,7 @@ class STMcmc(object):
                 gm.append("With the current settings, the last generation won't be on a checkPointInterval.")
                 gm.append("self.gen+1=%i, nGensToDo=%i, checkPointInterval=%i" % ((self.gen + 1),
                                                                                   nGensToDo, self.checkPointInterval)) 
-                raise Glitch, gm
+                raise Glitch(gm)
             #  2.  We also want the checkPointInterval to be evenly
             #      divisible by the sampleInterval.
             if self.checkPointInterval % self.sampleInterval == 0:
@@ -1004,7 +1004,7 @@ class STMcmc(object):
             else:
                 gm.append("The checkPointInterval (%i) should be evenly divisible" % self.checkPointInterval)
                 gm.append("by the sampleInterval (%i)." % self.sampleInterval)
-                raise Glitch, gm
+                raise Glitch(gm)
 
 
         if self.proposals:
@@ -1075,16 +1075,16 @@ class STMcmc(object):
             #print "got c = '%s'" % c
             if c != "end;":
                 gm.append("Mcmc.run().  Failed to find and remove the 'end;' at the end of the tree file.")
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 f2.seek(pos, 2)
                 f2.truncate()
             f2.close()
                 
             if verbose:
-                print
-                print "Re-starting the MCMC run %i from gen=%i" % (self.runNum, self.gen)
-                print "Set to do %i more generations." % nGensToDo
+                print()
+                print("Re-starting the MCMC run %i from gen=%i" % (self.runNum, self.gen))
+                print("Set to do %i more generations." % nGensToDo)
                 #if self.writePrams:
                 #    if self.chains[0].curTree.model.nFreePrams == 0:
                 #        print "There are no free prams in the model, so I am turning writePrams off."
@@ -1094,8 +1094,8 @@ class STMcmc(object):
             self.startMinusOne = self.gen
         else:
             if verbose:
-                print "Starting the MCMC %s run %i" % ((self.constraints and "(with constraints)" or ""), self.runNum)
-                print "Set to do %i generations." % nGensToDo
+                print("Starting the MCMC %s run %i" % ((self.constraints and "(with constraints)" or ""), self.runNum))
+                print("Set to do %i generations." % nGensToDo)
                 # if self.writePrams:
                 #     if self.chains[0].curTree.model.nFreePrams == 0:
                 #         print "There are no free prams in the model, so I am turning writePrams off."
@@ -1110,13 +1110,13 @@ class STMcmc(object):
                 sys.stdout.flush()
             
         if verbose:
-            print "Sampling every %i." % self.sampleInterval
+            print("Sampling every %i." % self.sampleInterval)
             if self.checkPointInterval:
-                print "CheckPoints written every %i." % self.checkPointInterval
+                print("CheckPoints written every %i." % self.checkPointInterval)
             if nGensToDo <= 20000:
-                print "One dot is 100 generations."
+                print("One dot is 100 generations.")
             else:
-                print "One dot is 1000 generations."
+                print("One dot is 1000 generations.")
             sys.stdout.flush()
 
         self.treePartitions = None
@@ -1132,8 +1132,8 @@ class STMcmc(object):
                 diff_secs = time.time() - realTimeStart
                 total_secs = (float(nGensToDo)/float(100))*float(diff_secs)
                 deltaTime = datetime.timedelta(seconds = int(round(total_secs)))
-                print "Estimated completion time: %s days, %s" % (
-                    deltaTime.days, time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds)))
+                print("Estimated completion time: %s days, %s" % (
+                    deltaTime.days, time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds))))
 
             # Above is a list of proposals where it is possible to abort.
             # When a gen(aProposal) is made, below, aProposal.doAbort
@@ -1168,7 +1168,7 @@ class STMcmc(object):
                             gm.append("Could not find a proposal after %i attempts." % safety)
                             gm.append("Possibly a programming error.")
                             gm.append("Or possibly it is just a pathologically frustrating Mcmc.")
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
                     #if gNum % 2:
                     #    aProposal = self.proposalsHash['brLen']
@@ -1176,8 +1176,8 @@ class STMcmc(object):
                     #    aProposal = self.proposalsHash['comp']
 
                     if 0:
-                        print "==== gNum=%i, chNum=%i, aProposal=%s (part %i)" % (
-                            gNum, chNum, aProposal.name, aProposal.pNum),
+                        print("==== gNum=%i, chNum=%i, aProposal=%s (part %i)" % (
+                            gNum, chNum, aProposal.name, aProposal.pNum), end=' ')
                         sys.stdout.flush()
                         #print gNum,
 
@@ -1185,17 +1185,17 @@ class STMcmc(object):
 
                     if 0:
                         if failure:
-                            print "    failure"
+                            print("    failure")
                         else:
-                            print
+                            print()
                         
                     nAttempts += 1
                     if nAttempts > 1000:
                         gm.append("Was not able to do a successful generation after %i attempts." % nAttempts)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 #print "   Mcmc.run(). finished a gen on chain %i" % (chNum)
                 for pr in abortableProposals:
-                    if self.proposalsHash.has_key(pr):
+                    if pr in self.proposalsHash:
                         self.proposalsHash[pr].doAbort = False
                         
             # Do swap, if there is more than 1 chain.
@@ -1246,7 +1246,7 @@ class STMcmc(object):
                         break
                 if coldChainNum == -1:
                     gm.append("Unable to find which chain is the cold chain.  Bad.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             # If it is a writeInterval, write stuff
             if (self.gen + 1) % self.sampleInterval == 0:
@@ -1280,13 +1280,13 @@ class STMcmc(object):
                     self.hook(self.chains[coldChainNum].curTree)
 
                 if 0 and self.constraints:
-                    print "Mcmc x1c"
-                    print self.chains[0].verifyIdentityOfTwoTreesInChain()
-                    print "b checking curTree .."
+                    print("Mcmc x1c")
+                    print(self.chains[0].verifyIdentityOfTwoTreesInChain())
+                    print("b checking curTree ..")
                     self.chains[0].curTree.checkSplitKeys()
-                    print "b checking propTree ..."
+                    print("b checking propTree ...")
                     self.chains[0].propTree.checkSplitKeys()
-                    print "Mcmc xxx"
+                    print("Mcmc xxx")
 
                 # Add curTree to treePartitions
                 if self.treePartitions:
@@ -1298,11 +1298,11 @@ class STMcmc(object):
 
                 # Checking and debugging constraints
                 if 0 and self.constraints:
-                    print "Mcmc x1d"
-                    print self.chains[coldChainNum].verifyIdentityOfTwoTreesInChain()
-                    print "c checking curTree ..."
+                    print("Mcmc x1d")
+                    print(self.chains[coldChainNum].verifyIdentityOfTwoTreesInChain())
+                    print("c checking curTree ...")
                     self.chains[coldChainNum].curTree.checkSplitKeys()
-                    print "c checking propTree ..."
+                    print("c checking propTree ...")
                     self.chains[coldChainNum].propTree.checkSplitKeys()
                     #print "c checking that all constraints are present"
                     #theSplits = [n.br.splitKey for n in self.chains[0].curTree.iterNodesNoRoot()]
@@ -1310,7 +1310,7 @@ class STMcmc(object):
                     #    if sk not in theSplits:
                     #        gm.append("split %i is not present in the curTree." % sk)
                     #        raise Glitch, gm
-                    print "Mcmc zzz"
+                    print("Mcmc zzz")
 
                 # Check that the curTree has all the constraints
                 if self.constraints:
@@ -1320,7 +1320,7 @@ class STMcmc(object):
                             gm.append("Programming error.")
                             gm.append("The current tree (the last tree sampled) does not contain constraint")
                             gm.append("%s" % func.getSplitStringFromKey(sk, self.tree.nTax))
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
                 # If it is a checkPointInterval, pickle
                 if self.checkPointInterval and (self.gen + 1) % self.checkPointInterval == 0:
@@ -1356,7 +1356,7 @@ class STMcmc(object):
                                     deltaTime.days, time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds)))
                             else:
                                 timeString = time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds))
-                            print "%10i - %s" % (self.gen, timeString)
+                            print("%10i - %s" % (self.gen, timeString))
 
                         else:
                             sys.stdout.write(".")
@@ -1373,7 +1373,7 @@ class STMcmc(object):
                                     deltaTime.days, time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds)))
                             else:
                                 timeString = time.strftime("%H:%M:%S",time.gmtime(deltaTime.seconds))
-                            print "%10i - %s" % (self.gen, timeString)
+                            print("%10i - %s" % (self.gen, timeString))
                         else:
                             sys.stdout.write(".")
                             sys.stdout.flush()
@@ -1382,9 +1382,9 @@ class STMcmc(object):
                         sys.stdout.flush()
 
         # Gens finished.  Clean up.
-        print
+        print()
         if verbose:
-            print "Finished %s generations." % nGensToDo
+            print("Finished %s generations." % nGensToDo)
 
         treeFile = file(self.treeFileName, 'a')
         treeFile.write('end;\n\n')
@@ -1469,7 +1469,7 @@ class STMcmc(object):
         if 0:
             for chNum in range(self.nChains):
                 ch = self.chains[chNum]
-                print "chain %i ==================" % chNum
+                print("chain %i ==================" % chNum)
                 ch.curTree.summarizeModelThingsNNodes()
         # the Stm object does not pickle, and this commented-out bit does not fix it.  
         savedStms = []
@@ -1492,7 +1492,7 @@ class STMcmc(object):
         # Pickle it.
         fName = "mcmc_checkPoint_%i.%i" % (self.runNum, self.gen + 1)
         f = file(fName, 'w')
-        cPickle.dump(theCopy, f, 1)
+        pickle.dump(theCopy, f, 1)
         f.close()
 
         if self.usingP4stmModule:
@@ -1512,7 +1512,7 @@ class STMcmc(object):
 
         nProposals = len(self.proposals)
         if not nProposals:
-            print "STMcmc.writeProposalProbs().  No proposals (yet?)."
+            print("STMcmc.writeProposalProbs().  No proposals (yet?).")
             return
         #intended = self.propWeights[:]
         #for i in range(len(intended)):
@@ -1527,8 +1527,8 @@ class STMcmc(object):
             nAccepted[i] = self.proposals[i].nAcceptances[0]
         sumAttained = float(sum(nAttained)) # should be zero or nGen
         if not sumAttained:
-            print "STMcmc.writeProposalProbs().  No proposals have been made."
-            print "Possibly, due to it being a checkPoint interval, nProposals have all been set to zero."
+            print("STMcmc.writeProposalProbs().  No proposals have been made.")
+            print("Possibly, due to it being a checkPoint interval, nProposals have all been set to zero.")
             return
         #assert int(sumAttained) == self.gen + 1, "sumAttained is %i, should be gen+1, %i." % (
         #    int(sumAttained), self.gen + 1)
@@ -1536,42 +1536,42 @@ class STMcmc(object):
         for i in range(len(nAttained)):
             probAttained.append(100.0 * float(nAttained[i]) / sumAttained)
         if math.fabs(sum(probAttained) - 100.0 > 1e-13):
-            raise Glitch, 'bad sum of attained proposal probs. %s' % sum(probAttained)
+            raise Glitch('bad sum of attained proposal probs. %s' % sum(probAttained))
 
         spacer = ' ' * 4
-        print "\nProposal probabilities (%)"
+        print("\nProposal probabilities (%)")
         #print "There are %i proposals" % len(self.proposals)
-        print "For %i gens, from gens %i to %i, inclusive." % (
-            (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen)
-        print "%2s %11s %11s  %11s %10s %18s %5s %5s" % ('', 'nProposals', 'proposed(%)',
-                                                    'accepted(%)', 'tuning', 'proposal', 'part', 'num')
+        print("For %i gens, from gens %i to %i, inclusive." % (
+            (self.gen - self.startMinusOne), self.startMinusOne + 1, self.gen))
+        print("%2s %11s %11s  %11s %10s %18s %5s %5s" % ('', 'nProposals', 'proposed(%)',
+                                                    'accepted(%)', 'tuning', 'proposal', 'part', 'num'))
         for i in range(len(self.proposals)):
-            print "%2i" % i,
+            print("%2i" % i, end=' ')
             p = self.proposals[i]
-            print "   %7i " % self.proposals[i].nProposals[0],
-            print "   %5.1f    " % probAttained[i],
+            print("   %7i " % self.proposals[i].nProposals[0], end=' ')
+            print("   %5.1f    " % probAttained[i], end=' ')
             if nAttained[i]:
-                print "   %5.1f   " % (100.0 * float(nAccepted[i]) / float(nAttained[i])),
+                print("   %5.1f   " % (100.0 * float(nAccepted[i]) / float(nAttained[i])), end=' ')
             else:
-                print "       -   ",
+                print("       -   ", end=' ')
 
             if p.tuning == None:
-                print "       -    ",
+                print("       -    ", end=' ')
             elif p.tuning < 2.0:
-                print "   %7.3f  " % p.tuning,
+                print("   %7.3f  " % p.tuning, end=' ')
             else:
-                print "   %7.1f  " % p.tuning,
+                print("   %7.1f  " % p.tuning, end=' ')
 
-            print " %15s" % p.name,
+            print(" %15s" % p.name, end=' ')
             if p.pNum != -1:
-                print " %3i " % p.pNum,
+                print(" %3i " % p.pNum, end=' ')
             else:
-                print "   - ",
+                print("   - ", end=' ')
             if p.mtNum != -1:
-                print " %3i " % p.mtNum,
+                print(" %3i " % p.mtNum, end=' ')
             else:
-                print "   - ",
-            print
+                print("   - ", end=' ')
+            print()
 
 
     def writeProposalIntendedProbs(self):
@@ -1580,33 +1580,33 @@ class STMcmc(object):
 
         nProposals = len(self.proposals)
         if not nProposals:
-            print "STMcmc.writeProposalIntendedProbs().  No proposals (yet?)."
+            print("STMcmc.writeProposalIntendedProbs().  No proposals (yet?).")
             return
         intended = self.propWeights[:]
         for i in range(len(intended)):
             intended[i] /= self.totalPropWeights
         if math.fabs(sum(intended) - 1.0 > 1e-14):
-            raise Glitch, 'bad sum of intended proposal probs. %s' % sum(intended)
+            raise Glitch('bad sum of intended proposal probs. %s' % sum(intended))
 
         spacer = ' ' * 4
-        print "\nIntended proposal probabilities (%)"
+        print("\nIntended proposal probabilities (%)")
         #print "There are %i proposals" % len(self.proposals)
-        print "%2s %11s %18s %5s %5s" % ('', 'intended(%)', 'proposal', 'part', 'num')
+        print("%2s %11s %18s %5s %5s" % ('', 'intended(%)', 'proposal', 'part', 'num'))
         for i in range(len(self.proposals)):
-            print "%2i" % i,
+            print("%2i" % i, end=' ')
             p = self.proposals[i]
-            print "   %6.2f    " % (100. * intended[i]),
+            print("   %6.2f    " % (100. * intended[i]), end=' ')
 
-            print " %15s" % p.name,
+            print(" %15s" % p.name, end=' ')
             if p.pNum != -1:
-                print " %3i " % p.pNum,
+                print(" %3i " % p.pNum, end=' ')
             else:
-                print "   - ",
+                print("   - ", end=' ')
             if p.mtNum != -1:
-                print " %3i " % p.mtNum,
+                print(" %3i " % p.mtNum, end=' ')
             else:
-                print "   - ",
-            print
+                print("   - ", end=' ')
+            print()
 
 class STMcmcCheckPointReader(object):
     """Read in and display mcmc_checkPoint files.
@@ -1664,7 +1664,7 @@ class STMcmcCheckPointReader(object):
                      os.path.basename(fName).startswith("mcmc_checkPoint")]
             #print fList
             if not fList:
-                raise Glitch, "No checkpoints found in this directory."
+                raise Glitch("No checkpoints found in this directory.")
             if last:
                 # Find the most recent
                 mostRecent = os.path.getmtime(fList[0])
@@ -1676,7 +1676,7 @@ class STMcmcCheckPointReader(object):
                             mostRecent = mtime
                             mostRecentFileName = fName
                 f = file(mostRecentFileName)
-                m = cPickle.load(f)
+                m = pickle.load(f)
                 f.close()
                 self.mm.append(m)
                 
@@ -1684,7 +1684,7 @@ class STMcmcCheckPointReader(object):
                 # get all the files
                 for fName in fList:
                     f = file(fName)
-                    m = cPickle.load(f)
+                    m = pickle.load(f)
                     f.close()
                     self.mm.append(m)
 
@@ -1692,20 +1692,20 @@ class STMcmcCheckPointReader(object):
         else:
             # get the file by name
             f = file(fName)
-            m = cPickle.load(f)
+            m = pickle.load(f)
             f.close()
             self.mm.append(m)
         if verbose:
             self.dump()
 
     def dump(self):
-        print "STMcmcCheckPoints (%i checkPoints read)" % len(self.mm)
-        print "%12s %12s %12s %12s" % (" ", "index", "run", "gen+1")
-        print "%12s %12s %12s %12s" % (" ", "-----", "---", "-----")
+        print("STMcmcCheckPoints (%i checkPoints read)" % len(self.mm))
+        print("%12s %12s %12s %12s" % (" ", "index", "run", "gen+1"))
+        print("%12s %12s %12s %12s" % (" ", "-----", "---", "-----"))
         for i in range(len(self.mm)):
             m = self.mm[i]
             #print "    %2i    run %2i,  gen+1 %11i" % (i, m.runNum, m.gen+1)
-            print "%12s %12s %12s %12s" % (" ", i, m.runNum, m.gen+1)
+            print("%12s %12s %12s %12s" % (" ", i, m.runNum, m.gen+1))
             
 
     def compareSplits(self, mNum1, mNum2, verbose=True, minimumProportion=0.1):
@@ -1716,24 +1716,24 @@ class STMcmcCheckPointReader(object):
         tp2 = m2.treePartitions
         
         if verbose:
-            print "\nSTMcmcCheckPointReader.compareSplits(%i,%i)" % (mNum1, mNum2)
-            print "%12s %12s %12s %12s %12s" % ("mNum", "runNum", "start", "gen+1", "nTrees")
+            print("\nSTMcmcCheckPointReader.compareSplits(%i,%i)" % (mNum1, mNum2))
+            print("%12s %12s %12s %12s %12s" % ("mNum", "runNum", "start", "gen+1", "nTrees"))
             for i in range(5):
-                print "   ---------",
-            print
+                print("   ---------", end=' ')
+            print()
             for mNum in [mNum1, mNum2]:
-                print " %10i " % mNum,
+                print(" %10i " % mNum, end=' ')
                 m = self.mm[mNum]            
-                print " %10i " % m.runNum,
-                print " %10i " % (m.startMinusOne + 1),
-                print " %10i " % (m.gen + 1),
+                print(" %10i " % m.runNum, end=' ')
+                print(" %10i " % (m.startMinusOne + 1), end=' ')
+                print(" %10i " % (m.gen + 1), end=' ')
                 #for i in m.splitCompares:
                 #    print i
-                print " %10i " % m.treePartitions.nTrees
+                print(" %10i " % m.treePartitions.nTrees)
 
         asdos = self.compareSplitsBetweenTwoTreePartitions(tp1, tp2, minimumProportion, verbose=verbose)
         if asdos == None and verbose:
-                print "No splits > %s" % minimumProportion
+                print("No splits > %s" % minimumProportion)
         return asdos
 
         
@@ -1750,7 +1750,7 @@ class STMcmcCheckPointReader(object):
                     sumOfStdDevs += stdDev
                 if verbose:
                     #print "  %f " % sumOfStdDevs,
-                    print "     nSplits=%i, average of std devs of splits %.4f " % (nSplits, sumOfStdDevs/nSplits)
+                    print("     nSplits=%i, average of std devs of splits %.4f " % (nSplits, sumOfStdDevs/nSplits))
             return sumOfStdDevs/nSplits
         else:
             return None
@@ -1774,16 +1774,16 @@ class STMcmcCheckPointReader(object):
                 vect[vCounter] = ret
                 vCounter += 1
                 if 0:
-                    print " %10i " % mNum1,
-                    print " %10i " % mNum2,
-                    print "%.3f" % ret
-        print results
+                    print(" %10i " % mNum1, end=' ')
+                    print(" %10i " % mNum2, end=' ')
+                    print("%.3f" % ret)
+        print(results)
         
-        print "For the %i values in one triangle," % nItems
-        print "max =  ", vect.max()
-        print "min =  ", vect.min()
-        print "mean = ", vect.mean()
-        print "var =  ", vect.var()
+        print("For the %i values in one triangle," % nItems)
+        print("max =  ", vect.max())
+        print("min =  ", vect.min())
+        print("mean = ", vect.mean())
+        print("var =  ", vect.var())
             
         
     def writeProposalAcceptances(self):

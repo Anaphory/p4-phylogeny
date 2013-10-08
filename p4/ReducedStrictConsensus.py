@@ -1,8 +1,8 @@
-from Tree import Tree
-from Node import Node
-from func import read
-from Var import var
-from Glitch import Glitch
+from .Tree import Tree
+from .Node import Node
+from .func import read
+from .Var import var
+from .Glitch import Glitch
 
 import sys, csv, operator, time
 
@@ -15,12 +15,12 @@ try:
     multiProcessing = True
 except ImportError:
     from threading import Thread as Process
-    from Queue import Queue
+    from queue import Queue
     
 
 def printVerticalNumbers(noOfNumbers):
     if noOfNumbers > 99999:
-        print 'Ops, to many taxa in the tree, more than 99999 of them'
+        print('Ops, to many taxa in the tree, more than 99999 of them')
         return
     Tens = Hundreds = Thousands = Tenthousands = False
     base = ''
@@ -80,14 +80,14 @@ def printVerticalNumbers(noOfNumbers):
                         tenthousandsIndex = 0
                 tenthousands += str(tenthousandsIndex) 
     if Tenthousands:
-        print tenthousands
+        print(tenthousands)
     if Thousands:
-        print thousands
+        print(thousands)
     if Hundreds:
-        print hundreds
+        print(hundreds)
     if Tens:
-        print tens                        
-    print base
+        print(tens)                        
+    print(base)
         
 
 #
@@ -138,8 +138,8 @@ class ConcurrentIntersections(Process):
                         t = (i[0] ^ s[0]) & i[0], (i[0] ^ (~s[0] &((self.bitkeys[-1] << 1) -1))) | i[0] | s[0]
                         dict[t] = i[2]
             
-            for i,j in dict.items():
-                self.addAndUpdate(long(i[0]),long(i[1]), self.weights[q], j)
+            for i,j in list(dict.items()):
+                self.addAndUpdate(int(i[0]),int(i[1]), self.weights[q], j)
             
             for s in self.listOfSplits[q]:
                 self.add(s[0], s[1], self.weights[q]) 
@@ -160,13 +160,13 @@ class ConcurrentIntersections(Process):
     def filteredList(self, remaining):
         list = []
         newDict = {}
-        for key,value in self.dict.items():
+        for key,value in list(self.dict.items()):
             dict = {}
-            for k,v in value.items():
+            for k,v in list(value.items()):
                 if remaining + v >= self.cutoff and self.enoughTaxa(k):
                     list.append([key,k,v])
                     dict[k] = v
-            if len(dict.values()) > 0:
+            if len(list(dict.values())) > 0:
                 newDict[key] = dict
         self.dict = newDict
         return list
@@ -259,8 +259,8 @@ class ConcurrentCombineIntersectionDicts(Process):
     def run(self):
 #        print 'Started thread: ', self.getName()
         list = []
-        for key, value in self.dict2.items():
-            for k,v in value.items():
+        for key, value in list(self.dict2.items()):
+            for k,v in list(value.items()):
                 list.append([key,k,v])
                 
         self.dict = self.dict1
@@ -273,24 +273,24 @@ class ConcurrentCombineIntersectionDicts(Process):
             completeList = self.filteredList(self.weightedNoTrees - weightSoFar)
             for i in completeList:    
                 t = i[0] & list[q][0], (i[0] ^ list[q][0]) | i[1] | list[q][1]
-                if dict.has_key(t):
+                if t in dict:
                     if dict[t] < i[2]:
                         dict[t] = i[2]
                 else:
                     dict[t] = i[2]
                 if not self.rooted:
                     t = (i[0] ^ list[q][0]) & i[0], (i[0] ^ (~list[q][0] &((self.bitkeys[-1] << 1) -1))) | i[0] | list[q][0]
-                    if dict.has_key(t):
+                    if t in dict:
                         if dict[t] < i[2]:
                             dict[t] =  i[2]
                     else:
                         dict[t] =  i[2]
             if q + 1 % sampler == 0:
-                print 'Thread %s processed %s combinations' % (self.getName(), q +1)
+                print('Thread %s processed %s combinations' % (self.getName(), q +1))
                 sys.stdout.flush()
                 
-        for i,j in dict.iteritems():
-            self.addAndUpdate(long(i[0]),long(i[1]), j, list[q][2])
+        for i,j in dict.items():
+            self.addAndUpdate(int(i[0]),int(i[1]), j, list[q][2])
         
         for q in range(len(list)):
             self.add(list[q][0], list[q][1], list[q][2])
@@ -354,9 +354,9 @@ class ConcurrentCombineIntersectionDicts(Process):
     def filteredList(self, remaining):
         list = []
         newDict = {}
-        for key,value in self.dict.items():
+        for key,value in list(self.dict.items()):
             dict = {}
-            for k,v in value.items():
+            for k,v in list(value.items()):
 #                if remaining + v >= self.cutoff:
                 list.append([key,k, v])
                 dict[k] = v
@@ -364,16 +364,16 @@ class ConcurrentCombineIntersectionDicts(Process):
 #                    print 'Cut: ', self.cutoff
 #                    print 'Rem + v: ', remaining +v
 #                    print 'DOOOOOOOGH'
-            if len(dict.values()) > 0:
+            if len(list(dict.values())) > 0:
                 newDict[key] = dict
         self.dict = newDict
         return list
     
     def printDict(self, dict):
         
-        for k, v in dict.items():
-            for key, value in v.items():
-                print '%s, %s, %s ' % (k, key, value)
+        for k, v in list(dict.items()):
+            for key, value in list(v.items()):
+                print('%s, %s, %s ' % (k, key, value))
                 
     
     def combine(self):
@@ -381,8 +381,8 @@ class ConcurrentCombineIntersectionDicts(Process):
         self.dict = self.dict1
         
         list = []
-        for k, v in self.dict2.items():
-            for k2, v2 in v.items():
+        for k, v in list(self.dict2.items()):
+            for k2, v2 in list(v.items()):
                 list.append([k,k2,v2])
                 
         return list
@@ -430,7 +430,7 @@ class SimpleIntersections(object):
         self.rooted = rooted
         self.cutoff = sum(self.weights) * self.minProp
         self.weightedNoTrees = sum(self.weights)
-        self.allOnes = 2L**(len(self.bitkeys)) - 1
+        self.allOnes = 2**(len(self.bitkeys)) - 1
         
         
     def createIntersections(self):
@@ -458,8 +458,8 @@ class SimpleIntersections(object):
                         t = (i[0] ^ s[0]) & i[0], (i[0] ^ (~s[0] &((self.bitkeys[-1] << 1) -1))) | i[0] | s[0]
                         dict[t] = i[2]
             
-            for i,j in dict.items():
-                self.addAndUpdate(long(i[0]),long(i[1]), self.weights[q], j)
+            for i,j in list(dict.items()):
+                self.addAndUpdate(int(i[0]),int(i[1]), self.weights[q], j)
             
             for s in self.listOfSplits[q]:
                 self.add(s[0], s[1], self.weights[q]) 
@@ -491,13 +491,13 @@ class BuildIntersections(object):
         self.rooted = rooted
         self.cutoff = sum(self.weights) * self.minProp
         self.weightedNoTrees = sum(self.weights)
-        self.allOnes = 2L**(len(self.bitkeys)) - 1
+        self.allOnes = 2**(len(self.bitkeys)) - 1
 #        print 'self.weightedNoTrees:', self.weightedNoTrees
         
     def buildIntersections(self, verbose=1):
         
         if multiProcessing and False:
-            print 'Starting dual cpu computations'
+            print('Starting dual cpu computations')
             queue = Queue()
 #            print 'CPUS: ', cpu_count
             threads = []
@@ -558,9 +558,9 @@ class BuildIntersections(object):
             results.append(queue.get())
             thread1.join()
             dict1 = results[0][0]
-            print dict1
+            print(dict1)
             weight1 = results[0][1]     
-            print 'weight1: ', weight1
+            print('weight1: ', weight1)
             self.dict = dict1 
             
             
@@ -571,9 +571,9 @@ class BuildIntersections(object):
             thread2.join()
             
             dict2 = results[0][0]
-            print dict2
+            print(dict2)
             weight2 = results[1][1]
-            print 'weight2: ', weight2
+            print('weight2: ', weight2)
             self.dict = dict2
 #        
             combine = ConcurrentCombineIntersectionDicts(self.bitkeys, self.minProp, dict1, dict2, self.rooted, self.weights, weight1+weight2, queue)
@@ -589,7 +589,7 @@ class BuildIntersections(object):
             self.dict = queue.get()
 #            self.dict = dict2
             
-            print 'self.dict: ', self.dict        
+            print('self.dict: ', self.dict)        
         
         else:
 #            print 'Starting single cpu computations'
@@ -635,7 +635,7 @@ class BuildIntersections(object):
             completeList.extend(list)
         
         list = []
-        for key in newlyAdded.keys():
+        for key in list(newlyAdded.keys()):
             list.extend(self._getInformativeList(newlyAdded[key],key))
      
         list = self._sortByLeafSet(list)
@@ -778,7 +778,7 @@ class BuildIntersections(object):
                         list[j].hits = 0
         
         if self.verbose:
-            print 'Splits'
+            print('Splits')
         for intersection in list:
             if intersection.hits > 0:
                 nonRedundantList.append(intersection)
@@ -893,8 +893,8 @@ class BuildIntersections(object):
         self._remove()
         
         list = []
-        for key, value in self.dict.items():
-            for k,v in value.items():
+        for key, value in list(self.dict.items()):
+            for k,v in list(value.items()):
                 if v >= self.cutoff:
                     list.append(Intersection(key,k,v))
         
@@ -939,7 +939,7 @@ class BuildIntersections(object):
                         list[j].hits = 0
         
         if self.verbose:
-            print 'Splits'
+            print('Splits')
         for intersection in list:
             if intersection.hits > 0:
                 nonRedundantList.append(intersection)
@@ -1047,8 +1047,8 @@ class BuildIntersections(object):
         self._remove()
         
         list = []
-        for key, value in self.dict.items():
-            for k,v in value.items():
+        for key, value in list(self.dict.items()):
+            for k,v in list(value.items()):
                 list.append(Intersection(key,k,v))
         
         for i in range(0,len(list)-1):
@@ -1093,7 +1093,7 @@ class BuildIntersections(object):
                             list[j] = temp
                         
         
-        print 'Splits'
+        print('Splits')
         printVerticalNumbers(len(self.bitkeys))
         for i in list:
             i.printIntersection(self.bitkeys)
@@ -1108,7 +1108,7 @@ class BuildIntersections(object):
         oldList = smallestList
         added = {}
         for intersection in remainder:
-            if not added.has_key(intersection.right):
+            if intersection.right not in added:
                 temp = []
                 addable = self._addable2List(intersection, oldList)
                 if addable == 2:
@@ -1168,7 +1168,7 @@ class BuildIntersections(object):
         for list in lists:
             for i in list:
                 i.printIntersection(self.bitkeys)
-            print ''
+            print('')
         
         return lists
         
@@ -1200,24 +1200,24 @@ class BuildIntersections(object):
                         c.frequency = copy.frequency
 #                    if first:
 #                        first = False
-                    if dict.has_key(c.left):
+                    if c.left in dict:
                         if c.frequency > dict[c.left].frequency:
                             dict[c.left] = c
                     else:
                         dict[c.left] = c
                 else:
-                    if dict.has_key(c.left):
+                    if c.left in dict:
                         if c.frequency > dict[c.left].frequency:
                             dict[c.left] = c
                     else:
                         dict[c.left] = c
                 
-        return dict.values()
+        return list(dict.values())
     
     def _add2ListWithRestraint(self, intersection, intersections):
         for i in intersections:
             if intersection.left == i.left:
-                print 'Adding identical intersection to list'
+                print('Adding identical intersection to list')
         intersections.append(intersection)
     
     def _add2List(self, intersection, intersections):
@@ -1232,7 +1232,7 @@ class BuildIntersections(object):
             temp.left = (i.left & jointExcluded) ^ i.left
             temp.right = jointExcluded
             if self._popcount(temp.left) > 1:
-                if dict.has_key(temp.left):
+                if temp.left in dict:
                     if dict[temp.left].frequency < temp.frequency:
                         if temp.left == copy.left and temp.frequency >= copy.frequency:
                             add = False
@@ -1243,7 +1243,7 @@ class BuildIntersections(object):
                         add = False
 #                    list.append(temp)
                     dict[temp.left] = temp
-        list = dict.values()
+        list = list(dict.values())
         if add:
             list.append(copy)
         return list
@@ -1333,7 +1333,7 @@ class BuildIntersections(object):
         return list
         
     def _smallestList(self, list):
-        smallest = sys.maxint
+        smallest = sys.maxsize
         smallestList = []
         remainder = []
         for intersection in list:
@@ -1352,15 +1352,15 @@ class BuildIntersections(object):
     def _remove(self):
         
         dict = {}
-        for key, value in self.dict.items():
+        for key, value in list(self.dict.items()):
             temp = {}        
-            for v in value.values():
+            for v in list(value.values()):
                 temp[v] = 1
             tempDict = {}
-            for k in temp.keys():
+            for k in list(temp.keys()):
                 list = []
-                smallest = sys.maxint
-                for ke, v in value.items():
+                smallest = sys.maxsize
+                for ke, v in list(value.items()):
                     if v == k:
                         list.append((ke,v))
                         pop = self._popcount(ke)
@@ -1380,11 +1380,11 @@ class BuildIntersections(object):
         
         leafsets = {}
         
-        for d1 in self.dict.keys():
-            for k,v in self.dict[d1].items():
+        for d1 in list(self.dict.keys()):
+            for k,v in list(self.dict[d1].items()):
                 leafset = d1 | k
-                if leafsets.has_key(leafset):
-                    if leafsets[leafset].has_key(v):
+                if leafset in leafsets:
+                    if v in leafsets[leafset]:
                         leafsets[leafset][v].append((d1,k))
                     else:
                         leafsets[leafset][v] = [(d1,k)]
@@ -1393,8 +1393,8 @@ class BuildIntersections(object):
                     leafsets[leafset][v] = [(d1,k)]
  
         dict = {}
-        for k,v in leafsets.items():
-            for hits, list in v.items():
+        for k,v in list(leafsets.items()):
+            for hits, list in list(v.items()):
                 biggestList = []
                 biggest = 0
                 for i in range(len(list)):
@@ -1417,15 +1417,15 @@ class BuildIntersections(object):
     def _getInformativeList(self, dict, left):
         
         freqDict = {}
-        for v in dict.keys():
+        for v in list(dict.keys()):
             if dict[v] >= self.cutoff:
-                if freqDict.has_key(dict[v]):
+                if dict[v] in freqDict:
                     freqDict[dict[v]].append(v)
                 else:
                     freqDict[dict[v]] = [v]
         
         informativeList = []
-        for v in freqDict.keys():
+        for v in list(freqDict.keys()):
             for i in self._getMostInformative(freqDict[v]):
 #                print 'v:', v
 #                print 'self.weightedNoTrees: ', self.weightedNoTrees
@@ -1466,12 +1466,12 @@ class BuildIntersections(object):
     def _sortByLeafSet(self, list):
         leafDict = {}
         for i in list:
-            if leafDict.has_key(i[1]):
+            if i[1] in leafDict:
                 leafDict[i[1]].append(i)
             else:
                 leafDict[i[1]] = [i]
         list = []
-        for v in leafDict.values():
+        for v in list(leafDict.values()):
             list.append(v)
         return list
 
@@ -1491,7 +1491,7 @@ class BuildIntersections(object):
             if lenght > 0:
                 unconflictingLists, unresolved = self._unconflictingList(unconflictingLists, unresolved, True)
                 if len(unresolved) > 0:
-                    print 'Damn, unconlictingList creation gone wrong'
+                    print('Damn, unconlictingList creation gone wrong')
     
         return unconflictingLists
     
@@ -1572,25 +1572,25 @@ class TreeHandler(object):
 
         if not inThing:
             gm.append("No input?")
-            raise Glitch, gm
+            raise Glitch(gm)
         #print "inThing = %s, type %s" % (inThing, type(inThing))
         if type(inThing) == type('string'):
             var.trees = []
             read(inThing)
             if len(var.trees) < 1:
                 gm.append('Sorry, at least one tree must be supplied as input tree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.trees = var.trees
 #            self.tfl = TreeFileLite(inThing)
         elif type(inThing) == type([]):
             for t in inThing:
                 if not isinstance(t, Tree):
                     gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             self.trees = inThing
         else:
             gm.append("Sorry-- I can't grok your input.  What is '%s'?" % inThing)
-            raise Glitch, gm
+            raise Glitch(gm)
   
     def _printSplitList(self, list):
         for split in list:
@@ -1603,13 +1603,13 @@ class TreeHandler(object):
                     intersection = intersection + '?'
                 else:
                     intersection = intersection + '*'
-            print 'Split: %s' % (intersection)
-        print ' '
+            print('Split: %s' % (intersection))
+        print(' ')
  
     
     def buildTreesFromIntersections(self, intersections,minimumSplitsToBuildTree, treeLabel):
     
-        print treeLabel
+        print(treeLabel)
 #        print 'Taxnumber to taxname translation: '
 #        for i in range(0, len(self.taxNames)):
 #            print '%s,%s' % ( i+1, self.taxNames[i])
@@ -1625,14 +1625,14 @@ class TreeHandler(object):
                 for j in l[0].excluded:
                     ex += self.taxNames[j] +', '
                 if len(l[0].excluded) > 0:
-                    print ex[0:len(ex)-2]
+                    print(ex[0:len(ex)-2])
                 else:
-                    print ex + 'None'
+                    print(ex + 'None')
 #                sp = 'Included splits: '
                 
                     
                 t.draw(showInternalNodeNames=1, addToBrLen=0.2, width=None, showNodeNums=0, partNum=0, model=None)  
-                print ''  
+                print('')  
                 conTrees.append(t)
         
 #        for i in range(len(conTrees)):
@@ -1649,7 +1649,7 @@ class TreeHandler(object):
 #                print ''     
  
         if len(conTrees) == 0:
-            print 'No trees where produced'
+            print('No trees where produced')
             return []
         else:
             return conTrees
@@ -1662,8 +1662,8 @@ class TreeHandler(object):
         dict = {}
         self.bitkeys = []
         for i in range(len(contree.taxNames)):
-            self.bitkeys.append(1L << i)
-            dict[contree.taxNames[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            dict[contree.taxNames[i]] = 1 << i 
         
         self.taxNames = contree.taxNames
         
@@ -1674,7 +1674,7 @@ class TreeHandler(object):
         list = []
         
         if self.verbose:
-            print 'Processing input trees'
+            print('Processing input trees')
             sys.stdout.flush()
         
             sampler = int(float(len(trees)/20))
@@ -1688,8 +1688,8 @@ class TreeHandler(object):
         dict = {}
         self.bitkeys = []
         for i in range(len(t.taxNames)):
-            self.bitkeys.append(1L << i)
-            dict[t.taxNames[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            dict[t.taxNames[i]] = 1 << i 
         
         self.taxNames = t.taxNames
         
@@ -1731,7 +1731,7 @@ class TreeHandler(object):
     def commonLeafSet(self, tfl):
         list = []
         
-        print 'Processing input trees'
+        print('Processing input trees')
         sys.stdout.flush()
         
         sampler = int(float(tfl.nSamples)/20)
@@ -1745,8 +1745,8 @@ class TreeHandler(object):
         dict = {}
         self.bitkeys = []
         for i in range(len(t.taxNames)):
-            self.bitkeys.append(1L << i)
-            dict[t.taxNames[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            dict[t.taxNames[i]] = 1 << i 
         
         self.taxNames = t.taxNames
         
@@ -1787,7 +1787,7 @@ class TreeHandler(object):
     def updateToCommonLeafSet(self, tfl):
         uniqueSet = set()
         
-        print 'Processing input trees'
+        print('Processing input trees')
         
         sampler = int(float(tfl.nSamples)/20)
         if sampler < 1:
@@ -1816,8 +1816,8 @@ class TreeHandler(object):
         dict = {}
         self.bitkeys = []
         for i in range(len(self.list)):
-            self.bitkeys.append(1L << i)
-            dict[self.list[i]] = 1L << i 
+            self.bitkeys.append(1 << i)
+            dict[self.list[i]] = 1 << i 
         
         self.taxNames = self.list
 
@@ -1835,7 +1835,7 @@ class TreeHandler(object):
             treeNames.append(t.name)
             if not t._taxNames:
                 t._setTaxNamesFromLeaves()
-            t.missingTaxa = 0L
+            t.missingTaxa = 0
             for name in self.list:
                 if not t.taxNames.count(name):
                     t.missingTaxa = t.missingTaxa | dict[name]
@@ -1874,7 +1874,7 @@ class TreeHandler(object):
         """
         
         if len(trees) == 0:
-            print 'No trees created, can not write to file'
+            print('No trees created, can not write to file')
             return
         
         for i in range(len(trees)):
@@ -1911,12 +1911,12 @@ class TreeHandler(object):
         for row in csvReader:
 #            print row
             for name in row:
-                if not taxa2bitkey.has_key(name):
-                    print 'Taxname not in any tree: ', name
+                if name not in taxa2bitkey:
+                    print('Taxname not in any tree: ', name)
                     return
             if len(row) > 1:
                 reduce2 = taxa2bitkey[row[0]]
-                substitute = 0L
+                substitute = 0
                 for i in range(1,len(row)):
                     excludedTaxa.append(taxa2bitkey[row[i]])
                     substitute = substitute | taxa2bitkey[row[i]]
@@ -1940,7 +1940,7 @@ class TreeHandler(object):
 #                            Intersection(split[0], split[1]).printIntersection(self.bitkeys)
 #                        sys.exit()
                             
-        excluded = 0L
+        excluded = 0
         for bitkey in excludedTaxa:
             excluded = excluded | bitkey
         return excluded
@@ -1960,12 +1960,12 @@ class TreeHandler(object):
         for row in csvReader:
 #            print row
             for name in row:
-                if not taxa2bitkey.has_key(name):
-                    print 'Taxname not in any tree: ', name
+                if name not in taxa2bitkey:
+                    print('Taxname not in any tree: ', name)
                     return
             if len(row) > 1:
                 reduce2 = taxa2bitkey[row[0]]
-                substitute = 0L
+                substitute = 0
                 for i in range(1,len(row)):
                     excludedTaxa.append(taxa2bitkey[row[i]])
                     substitute = substitute | taxa2bitkey[row[i]]
@@ -1989,7 +1989,7 @@ class TreeHandler(object):
 #                            Intersection(split[0], split[1]).printIntersection(self.bitkeys)
 #                        sys.exit()
                             
-        excluded = 0L
+        excluded = 0
         for bitkey in excludedTaxa:
             excluded = excluded | bitkey
         return excluded
@@ -2048,19 +2048,19 @@ class SemiStrictSuperTree(TreeHandler):
         
             excludedTaxa = self._reduceSplits(csvReader, self.splits)
         else:
-            excludedTaxa = 0L
+            excludedTaxa = 0
 #        print 'Excluded taxa: ', excludedTaxa
         
         noSplitSets = len(self.splits)
         
 #        Found no splits, exiting    
         if len(self.splits) < 1:
-            print 'No splits found'
+            print('No splits found')
             return
         
 #       Found only one set of splits, as the set is from a single tree it is assumed to be compatible 
         elif len(self.splits) == 1:
-            print 'Only one set of splits'
+            print('Only one set of splits')
             treeBuilder = TreeBuilderFromSplits(self.bitkeys, self.taxNames)
             intersections = []
             self._printSplitList(self.splits[0])
@@ -2070,21 +2070,21 @@ class SemiStrictSuperTree(TreeHandler):
 #            print self.splits[0]
             mrc = treeBuilder.buildTreeFromInformativeList(intersections)
             mrc.draw()
-            print ' '
+            print(' ')
             return
         
-        print 'Creating compatible split set, collapsing where necessary'
+        print('Creating compatible split set, collapsing where necessary')
         
         set = []
         for t in range(0,len(self.splits)):
             for split in self.splits[t]:
                 set.append(split)
-        print 'Initial splits'
+        print('Initial splits')
         self._printSplitList(set)
         
         overlappingLists = self._buildOverlappingLists(set)
         
-        print 'Overlapping lists: ', len(overlappingLists)
+        print('Overlapping lists: ', len(overlappingLists))
         for list in overlappingLists:
             self._printSplitList(list)
         
@@ -2092,7 +2092,7 @@ class SemiStrictSuperTree(TreeHandler):
         for list in overlappingLists:
             combinedLists.append(self._combineList(list))
         
-        print 'Combined overlapping lists'
+        print('Combined overlapping lists')
         for list in combinedLists:
             self._printSplitList(list)    
         
@@ -2105,18 +2105,18 @@ class SemiStrictSuperTree(TreeHandler):
         
         uniqueSet = {}
         for split in compatibleSplits:
-            if not uniqueSet.has_key((split[0],split[1])):
+            if (split[0],split[1]) not in uniqueSet:
                 uniqueSet[(split[0],split[1])] = 1
         
 #        self._isListCompatible(uniqueSet.keys())
         
         compatibleSplits = []
-        for split in uniqueSet.keys():
+        for split in list(uniqueSet.keys()):
             compatibleSplits.append([split[0], split[1]])
         
         compatibleSplits = self._sortCompatibleSplits(compatibleSplits)
         
-        print 'Sorted compatible splits'
+        print('Sorted compatible splits')
         self._printSplitList(compatibleSplits)
         
                 
@@ -2133,16 +2133,16 @@ class SemiStrictSuperTree(TreeHandler):
                 compatibleIntersections.append(i)
                 
             if False:
-                print 'List of unique splits'
+                print('List of unique splits')
                 for s in compatibleSplits:
                     self._printSplitList([s])
             
-            print 'Building tree'
+            print('Building tree')
             treeBuilder = TreeBuilderFromSplits(self.bitkeys, self.taxNames)
             mrc = treeBuilder.buildTreeFromInformativeList(compatibleIntersections, excluded=excludedTaxa)
 #            mrc.dump()
             mrc.draw()
-            print ' '
+            print(' ')
             self.treesBuilt = True
             self.conTrees.append(mrc)
             return mrc
@@ -2191,17 +2191,17 @@ class SemiStrictSuperTree(TreeHandler):
 #            self._printSplitList([split2])
             return False
         
-        print 'Defaults to true, not good'
-        print split1
-        print split2
-        print ' ' 
+        print('Defaults to true, not good')
+        print(split1)
+        print(split2)
+        print(' ') 
         return True 
     
     def _isListCompatible(self, list):
         for i in range(0, len(list)-1):
             for j in range(i+1, len(list)):
                 if not self._compatible(list[i], list[j]):
-                    print 'incompatible'
+                    print('incompatible')
                     self._printSplitList([list[i]])
                     self._printSplitList([list[j]])
     
@@ -2242,19 +2242,19 @@ class SemiStrictSuperTree(TreeHandler):
         
     def _combineList(self, list):
         
-        allOnes = 2L**(len(self.bitkeys)) - 1    
+        allOnes = 2**(len(self.bitkeys)) - 1    
         
         
 #        zero will hold the unknown taxa off all splits in list
-        zero = 0L
+        zero = 0
         for split in list:
             zero = zero | split[1]
 #        print 'Zero: '
-        self._printSplitList([[zero,0L]])
+        self._printSplitList([[zero,0]])
             
         xor = zero ^ allOnes
 #        print 'Xor: '
-        self._printSplitList([[xor, 0L]])
+        self._printSplitList([[xor, 0]])
         
         includeSplit = []
         if len(list) > 2:
@@ -2283,13 +2283,13 @@ class SemiStrictSuperTree(TreeHandler):
                     if self.popcount(list[i][0] | list[i][1]) >= self.popcount(list[j][0] | list[j][1]):
 #                        list[i][0] = combined
 #                        list[i][1] = list[i][1] & xor
-                        if includesCombined.has_key(list[i][0]):
+                        if list[i][0] in includesCombined:
                             includesCombined[list[i][0]] = -1
                         includesCombined[combined] = list[i][1] & xor
                     else:
 #                        list[j][0] = combined
 #                        list[j][1] = list[j][1] & xor
-                        if includesCombined.has_key(list[j][0]):
+                        if list[j][0] in includesCombined:
                             includesCombined[list[j][0]] = -1
                         
                         includesCombined[combined] = list[j][1] & xor
@@ -2313,7 +2313,7 @@ class SemiStrictSuperTree(TreeHandler):
                 newList.append(list[i])
         
 #        print includesCombined
-        for i in includesCombined.keys():
+        for i in list(includesCombined.keys()):
             if includesCombined[i] >= 0:
                 newList.append([i, includesCombined[i]])
         
@@ -2343,7 +2343,7 @@ class CompatibleTreePairs(TreeHandler):
                 name = str(row[0])
                 for i in range(startYear, stopYear+1):
                     if name.rfind(str(i)) >=0 and name.rfind('SCC') < 0:
-                        if yearDict.has_key(i):
+                        if i in yearDict:
                             added += 1
                             yearDict[i].append([index, row])
                         else:
@@ -2361,7 +2361,7 @@ class CompatibleTreePairs(TreeHandler):
 #            print 'Range: %s, %s ' % (index, index+4)
             studies = []
             for i in range(index, index+5):
-                if yearDict.has_key(i):
+                if i in yearDict:
                     studies.extend(yearDict[i])
                 
 #            for studie in studies:
@@ -2376,12 +2376,12 @@ class CompatibleTreePairs(TreeHandler):
         outputRows = []
         for dataset in ranges:
             row = [dataset[0], dataset[1]]
-            print '%s, %s' % (dataset[0], dataset[1])
+            print('%s, %s' % (dataset[0], dataset[1]))
             indecies = []
-            print dataset
+            print(dataset)
             for data in dataset[2]:
                 indecies.append(data[0])
-            print indecies
+            print(indecies)
            
             
             sum = 0.0
@@ -2395,12 +2395,12 @@ class CompatibleTreePairs(TreeHandler):
                             sum += float(data[1][data1[0]])/maxDistance
             if sum == 0:
                 row.append(0)
-                print 'Mean: ', 0
-                print ''
+                print('Mean: ', 0)
+                print('')
             else:
                 row.append(sum/index)
-                print 'Mean: ', sum/index
-                print ''
+                print('Mean: ', sum/index)
+                print('')
                 
 
             outputRows.append(row)
@@ -2430,7 +2430,7 @@ class CompatibleTreePairs(TreeHandler):
             if first:
                 first = False
             else:
-                print data[index][0:index]
+                print(data[index][0:index])
                 line = ''
                 for datapoint in data[index][0:index]:
                     if datapoint == '*':
@@ -2441,7 +2441,7 @@ class CompatibleTreePairs(TreeHandler):
                 if index == len(data)-1:
                     line += ';'
                 line += '\n'
-                print line
+                print(line)
                 writer.write(line)
                 
         writer.write('end;\n')
@@ -2487,11 +2487,11 @@ class CompatibleTreePairs(TreeHandler):
 #        print interGroups.keys()
 
         for index in range(1,len(data)):
-            if interGroups.has_key(data[index][0]):
+            if data[index][0] in interGroups:
                 interGroups[data[index][0]] = index
 #                print 'Inter: %s, %s ' % (data[index][0], index)
             else:
-                if intraGroups.has_key(data[index][0]):
+                if data[index][0] in intraGroups:
 #                    print 'data[index][0]:', data[index][0]
 #                    print 'data[index][1]:', data[index][1]
 #                    print 'intraGroups[data[index][0]]:',intraGroups[data[index][0]] 
@@ -2512,7 +2512,7 @@ class CompatibleTreePairs(TreeHandler):
                         if start > 0:
                             substring = data[index][0].partition('SCC')[0]
 #                    print 'Created substring:', substring
-                    if intraGroups.has_key(substring):
+                    if substring in intraGroups:
                         if index < intraGroups[substring][0]:
                             intraGroups[substring] = [index,intraGroups[substring][1]]
 #                        print 'Intra1: %s, %s - %s ' % (substring, index, intraGroups[substring][1])
@@ -2520,7 +2520,7 @@ class CompatibleTreePairs(TreeHandler):
                             intraGroups[substring] = [intraGroups[substring][0],index]
 #                        print 'Intra2: %s, %s - %s ' % (substring, intraGroups[substring][0], index ) 
                     else:
-                        print 'Found nowhere to put: ', data[index][0]
+                        print('Found nowhere to put: ', data[index][0])
                     
         writer = csv.writer(open(csvOutFile, "wb"))
         outputRows = []
@@ -2533,7 +2533,7 @@ class CompatibleTreePairs(TreeHandler):
 #            print ''
             return int(x[0][len(x[0])-4:len(x[0])]) - int(y[0][len(y[0])-4:len(y[0])]) 
 
-        items = intraGroups.items()
+        items = list(intraGroups.items())
         items.sort(cmp = compareStudyYear)
 #        print items
         for k,v in items:
@@ -2543,7 +2543,7 @@ class CompatibleTreePairs(TreeHandler):
         
         outputRows.append([' '])
         outputRows.append(['Real trees inter group distances, normalized, mean distance'])
-        items = intraGroups.items()
+        items = list(intraGroups.items())
         items.sort(cmp = compareStudyYear)
 #        print 'Study: max, min, mean'
         row = ['']
@@ -2561,7 +2561,7 @@ class CompatibleTreePairs(TreeHandler):
 #            print '%s: %s, %s, %s' % (k, max, min, mean)
         
         
-        items = interGroups.items()
+        items = list(interGroups.items())
         items.sort(cmp = compareStudyYear)
         outputRows.append([' '])
         outputRows.append(['Expertograms intra tree distances, normalized, distance'])
@@ -2582,7 +2582,7 @@ class CompatibleTreePairs(TreeHandler):
             outputRows.append(row)
         
         
-        intraItems = intraGroups.items()
+        intraItems = list(intraGroups.items())
         intraItems.sort(cmp = compareStudyYear)
         outputRows.append([' '])
         outputRows.append(['Expertograms to real trees inter group distances, normalized, mean distance'])
@@ -2708,7 +2708,7 @@ class CompatibleTreePairs(TreeHandler):
             
     def createCompatibleTreePairs(self, readCSV=True, csvInFile='clades.csv', writeCSV=False, csvOutFile='treeMatrix.csv', writeNexus=True, nexusFilename='compatiblePair', calcDistances = False, distanceMeasure = 'sd'):
         
-        from Trees import Trees
+        from .Trees import Trees
         
         self.splits, treeNames = self.updateToCommonLeafSet(self.tfl)
         
@@ -2755,11 +2755,11 @@ class CompatibleTreePairs(TreeHandler):
             sum = 0.0
             distances = 0
             if distanceMeasure not in ['sd', 'triplet', 'quartet']:
-                print 'No such distance measure: ', distanceMeasure
-                print 'Defaulting to Symmetric Difference'
+                print('No such distance measure: ', distanceMeasure)
+                print('Defaulting to Symmetric Difference')
                 distanceMeasure = 'sd'
                 
-            print 'Distance measure: ', distanceMeasure
+            print('Distance measure: ', distanceMeasure)
 
         dict = {}
         nonUnique = {}
@@ -2778,11 +2778,11 @@ class CompatibleTreePairs(TreeHandler):
                             
                             uniqueSet = {}
                             for split in set1:
-                                if not uniqueSet.has_key((split[0],split[1])):
+                                if (split[0],split[1]) not in uniqueSet:
                                     uniqueSet[(split[0],split[1])] = 1
                     
                             list = []
-                            for s in uniqueSet.keys():
+                            for s in list(uniqueSet.keys()):
                                 list.append([s[0],s[1]])
                         
                             list = self._sortCompatibleSplits(list)
@@ -2796,11 +2796,11 @@ class CompatibleTreePairs(TreeHandler):
                             mrc.taxNames = taxnames
                             uniqueSet = {}
                             for split in set2:
-                                if not uniqueSet.has_key((split[0],split[1])):
+                                if (split[0],split[1]) not in uniqueSet:
                                     uniqueSet[(split[0],split[1])] = 1
                     
                             list = []
-                            for s in uniqueSet.keys():
+                            for s in list(uniqueSet.keys()):
                                 list.append([s[0],s[1]])
                             
                             list = self._sortCompatibleSplits(list)
@@ -2838,8 +2838,8 @@ class CompatibleTreePairs(TreeHandler):
                                 if dist == 0.0:
                                     study = 'Clark2004'
                                     if mrc.name.startswith(study) and mrc2.name.startswith(study): 
-                                        print '%s, %s: %s' % (mrc.name, mrc2.name, dist)
-                                        print
+                                        print('%s, %s: %s' % (mrc.name, mrc2.name, dist))
+                                        print()
                                 
                                 if writeCSV:
                                     row.append(dist)
@@ -2865,23 +2865,23 @@ class CompatibleTreePairs(TreeHandler):
             if writeCSV:
                 csvOut.append(row)
                         
-        print ' '
+        print(' ')
         
         if calcDistances: 
-            print 'Max: ', max
-            print 'Min: ', min
-            print 'Mean: ', sum/distances
+            print('Max: ', max)
+            print('Min: ', min)
+            print('Mean: ', sum/distances)
             
         if writeCSV:
             writer.writerows(csvOut)
-            print 'Wrote csv-data to file: ', csvOutFile
+            print('Wrote csv-data to file: ', csvOutFile)
             
         
         if writeNexus: 
-            print 'Wrote tree data to nexus files on format %s ' % (nexusFilename + '#' + '.nex')
+            print('Wrote tree data to nexus files on format %s ' % (nexusFilename + '#' + '.nex'))
         
             
-        nonUniquetrees = nonUnique.keys()
+        nonUniquetrees = list(nonUnique.keys())
         
 #        print sorted(nonUniquetrees)
         
@@ -2909,14 +2909,14 @@ class CompatibleTreePairs(TreeHandler):
             splits1, splits2 = self._reduceSplitsPair(splits1, splits2)
         
         
-        included1 = 2L**(len(self.bitkeys)) - 1
+        included1 = 2**(len(self.bitkeys)) - 1
         included1 = included1 ^ splits1[0][1]
             
-        included2 = 2L**(len(self.bitkeys)) - 1
+        included2 = 2**(len(self.bitkeys)) - 1
         included2 = included2 ^ splits2[0][1]
 
         combined = included1 & included2
-        excluded = 2L**(len(self.bitkeys)) - 1 ^ combined
+        excluded = 2**(len(self.bitkeys)) - 1 ^ combined
         
         set1 = []
         set2 = []
@@ -2930,17 +2930,17 @@ class CompatibleTreePairs(TreeHandler):
             
             temp = {}
             for split in splits1:
-                if self.popcount(split[0] & combined) > 1 and ((split[0] & combined) ^ (split[1] | excluded)) ^ (2L**(len(self.bitkeys)) - 1) !=0:
+                if self.popcount(split[0] & combined) > 1 and ((split[0] & combined) ^ (split[1] | excluded)) ^ (2**(len(self.bitkeys)) - 1) !=0:
                     temp[(split[0] & combined, split[1] | excluded)] = 1
 
-            for i in temp.keys():
+            for i in list(temp.keys()):
                 set1.append([i[0],i[1]])
             temp = {}
             for split in splits2:
-                if self.popcount(split[0] & combined) > 1 and ((split[0] & combined) ^ (split[1] | excluded)) ^ (2L**(len(self.bitkeys)) - 1) !=0:
+                if self.popcount(split[0] & combined) > 1 and ((split[0] & combined) ^ (split[1] | excluded)) ^ (2**(len(self.bitkeys)) - 1) !=0:
                     temp[(split[0] & combined, split[1] | excluded)] = 1
 
-            for i in temp.keys():    
+            for i in list(temp.keys()):    
                 set2.append([i[0], i[1]])
             
         return set1,set2, taxnames, excluded
@@ -2962,14 +2962,14 @@ class CompatibleTreePairs(TreeHandler):
         for row in self.reduceRules:
             present = []
             for name in row:
-                if self.taxa2bitkey.has_key(name):
+                if name in self.taxa2bitkey:
                     present.append(name)
 #                else:
 #                    print 'Taxname not in any tree: ', name
 
             if len(present) > 1:
                 reduce2 = self.taxa2bitkey[present[0]]
-                substitute = 0L
+                substitute = 0
                 for i in range(1,len(present)):
                     excludedTaxa.append(self.taxa2bitkey[present[i]])
                     substitute = substitute | self.taxa2bitkey[present[i]]
@@ -2983,7 +2983,7 @@ class CompatibleTreePairs(TreeHandler):
                             split[1] = split[1] ^ reduce2
                         split[1] = split[1] | substitute
                             
-        excluded = 0L
+        excluded = 0
         for bitkey in excludedTaxa:
             excluded = excluded | bitkey
 #        return excluded
@@ -2994,11 +2994,11 @@ class CompatibleTreePairs(TreeHandler):
         treeBuilder = TreeBuilderFromSplits(self.bitkeys, self.taxNames, internalNames=False)
         uniqueSet = {}
         for split in set1:
-            if not uniqueSet.has_key((split[0],split[1])):
+            if (split[0],split[1]) not in uniqueSet:
                 uniqueSet[(split[0],split[1])] = 1
                     
         list = []
-        for s in uniqueSet.keys():
+        for s in list(uniqueSet.keys()):
             list.append([s[0],s[1]])
                         
         list = self._sortCompatibleSplits(list)
@@ -3118,28 +3118,28 @@ class Reduced(TreeHandler):
         nRootChildren = theTree.root.getNChildren()
         if not nRootChildren:
             gm.append("Root has no children.")
-            raise Glitch, gm
+            raise Glitch(gm)
         elif nRootChildren == 1:
             gm.append("Tree is rooted on a terminal node.  No workee.")
-            raise Glitch, gm
+            raise Glitch(gm)
         elif nRootChildren == 2:
             if self.isBiRoot == None:
-                print 'Found bifurcating root'
+                print('Found bifurcating root')
                 self.isBiRoot = 1
         else:
             if self.isBiRoot == None:
-                print 'Found multifurcating root'
+                print('Found multifurcating root')
                 self.isBiRoot = 0
             elif self.isBiRoot == 0:
                 pass
             else:
                 gm.append("Self.isBiRoot has been previously turned on, but now we have a non-biRoot tree.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
     def writeIntersections(self, filename='rcIntersections'):
         
         if len(self.intersections) == 0:
-            print 'No splits created, can not write splits to file'
+            print('No splits created, can not write splits to file')
             return
         
         fileHandle = open ( filename, 'w' )
@@ -3200,7 +3200,7 @@ class Reduced(TreeHandler):
                 
             fileHandle.close()
         else:
-            print 'No splits in the extended profile'
+            print('No splits in the extended profile')
         
         
         
@@ -3213,7 +3213,7 @@ class Reduced(TreeHandler):
     def _rule1(self, compatibleSplits):
         highestbitkey = (self.bitkeys[-1] << 1) -1
         
-        print 'HighestBitkey: %s' % (str(highestbitkey))
+        print('HighestBitkey: %s' % (str(highestbitkey)))
         
         split2Parents = {}
     
@@ -3224,7 +3224,7 @@ class Reduced(TreeHandler):
 #               Rule 1 
                 if compatibleSplits[i][0] & compatibleSplits[j][0] != 0 and compatibleSplits[i][0] & (compatibleSplits[j][0] | compatibleSplits[j][1]) == 0 and compatibleSplits[j][0] & (compatibleSplits[i][0] | compatibleSplits[i][1]) == 0:
                     split1 = [compatibleSplits[i][0] & compatibleSplits[j][0],((compatibleSplits[j][0] | compatibleSplits[j][1]) | highestbitkey) | ((compatibleSplits[i][0] | compatibleSplits[i][1]) | highestbitkey)]
-                    if split2Parent.has_key((split1[0],split1[1])):
+                    if (split1[0],split1[1]) in split2Parent:
                         split2Parent[(split1[0],split1[1])][i] = 1
                         split2Parent[(split1[0],split1[1])][j] = 1
                     else:
@@ -3248,8 +3248,8 @@ class Reduced(TreeHandler):
                     intersection = intersection + '?'
                 else:
                     intersection = intersection + '*'
-            print 'Split: %s, %s' % (intersection, str(float(split[2])/noSplitSets))
-        print ' '
+            print('Split: %s, %s' % (intersection, str(float(split[2])/noSplitSets)))
+        print(' ')
             
     def _findSmallestSet(self, bk, compatibleSplits):
         smallest = 0
@@ -3271,13 +3271,13 @@ class Reduced(TreeHandler):
 #        print str(unknown)
         for split in compatibleSplits:
             if split[0] & smallest != 0:
-                print '11'
+                print('11')
                 self._printSplitList([split])
                 split[0] = split[0] | unknown
                 split[1] = split[1] ^ unknown
                 self._printSplitList([split])
             if split[1] & unknown:
-                print '22'
+                print('22')
                 self._printSplitList([split])
                 split[1] = split[1] ^ unknown
                 self._printSplitList([split])
@@ -3317,9 +3317,9 @@ class Reduced(TreeHandler):
                     used[set[j]] = 1
                     
                 else:
-                    if not used.has_key(set[i]):
+                    if set[i] not in used:
                         newSet.add(set[i])
-                    if not used.has_key(set[j]):
+                    if set[j] not in used:
                         newSet.add(set[j])
                     
                     
@@ -3391,7 +3391,7 @@ class Reduced(TreeHandler):
 #            
             return
         
-        print 'default, not good at all'
+        print('default, not good at all')
 #        self._printSplitList([split1])
 #        self._printSplitList([split2])
 
@@ -3414,14 +3414,14 @@ class Reduced(TreeHandler):
         
         self.splits, treeNames = self.updateToCommonLeafSet(self.tfl)
         
-        print 'Building intersectionlist'
-        print time.ctime(time.time())
+        print('Building intersectionlist')
+        print(time.ctime(time.time()))
         
         intersectionList = BuildIntersections(self.bitkeys, minimumProportion, self.weights, self.splits, not treatMultifurcatingRootsAsUnrooted)
         splitData = intersectionList.buildIntersections()
 
-        print 'Build intersectionlist'
-        print time.ctime(time.time())
+        print('Build intersectionlist')
+        print(time.ctime(time.time()))
         
         intersections = []
         for list in splitData:
@@ -3431,7 +3431,7 @@ class Reduced(TreeHandler):
             intersections.append(tempList)
             
         for il in intersections:
-            print ''
+            print('')
             for i in il:
                 i.printIntersection(self.bitkeys)
         return intersections
@@ -3472,7 +3472,7 @@ class Reduced(TreeHandler):
     def reducedMemQuick(self):
         
         from p4.LeafSupport import TreeSubsets
-        print 'Running divide and conquer to speed things up'
+        print('Running divide and conquer to speed things up')
         sys.stdout.flush()
         ts = TreeSubsets(self.trees)
         self.trees = None
@@ -3481,10 +3481,10 @@ class Reduced(TreeHandler):
         subtreeDicts, taxNames, taxonSets, cherries = ts.getSubTreesAndTaxonSetsFromInputTrees(verbose=True)
         
         ts = None
-        if len(subtreeDicts[0].keys()) == 1: 
-            print 'No subdivisions possible, solving whole tree'
+        if len(list(subtreeDicts[0].keys())) == 1: 
+            print('No subdivisions possible, solving whole tree')
         else:
-            print 'Got %s subproblems to solve' % (len(cherries) + len(subtreeDicts[0].keys()))
+            print('Got %s subproblems to solve' % (len(cherries) + len(list(subtreeDicts[0].keys()))))
         sys.stdout.flush()
         
         allTaxa = self.taxNames[:]
@@ -3494,8 +3494,8 @@ class Reduced(TreeHandler):
             taxa2bitkey[allTaxa[index]] = allBitkeys[index] 
 
         self.verbose = 0
-        print 'Building intersectionlists, divide and conquer style'
-        print time.ctime(time.time())
+        print('Building intersectionlists, divide and conquer style')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         
         weight = 0.0
@@ -3521,8 +3521,8 @@ class Reduced(TreeHandler):
                         names.append(t)
                         bitkeys.append(self.bitkeys[index])
                         
-                left = 0L
-                right = 0L
+                left = 0
+                right = 0
                 for i in range(0,len(allTaxa)):
                     if allTaxa[i] in names:
                         left = left ^ allBitkeys[i]
@@ -3540,10 +3540,10 @@ class Reduced(TreeHandler):
                 intersectionList.buildIntersections()
             
                 for split in intersectionList.fullList:
-                    left = 0L
-                    right = 0L
+                    left = 0
+                    right = 0
                     for i in range(0,len(allTaxa)):
-                        if taxon2bitkey.has_key(allTaxa[i]):
+                        if allTaxa[i] in taxon2bitkey:
                             if taxon2bitkey[allTaxa[i]] & split.left:
                                 left = left ^ allBitkeys[i]
                             elif taxon2bitkey[allTaxa[i]] & split.right:
@@ -3558,23 +3558,23 @@ class Reduced(TreeHandler):
                 for name in set.split(':'):
                     names[name] = 1
                     
-            left = 0L
-            right = 0L
+            left = 0
+            right = 0
             for i in range(0,len(allTaxa)):
-                if names.has_key(allTaxa[i]):
+                if allTaxa[i] in names:
                     left = left ^ allBitkeys[i]
                     
             i = Intersection(left, right, weight)    
 #            i.printIntersection(allBitkeys)
             splits.append(i)
 
-        print 'Built intersectionlists'
-        print time.ctime(time.time())
+        print('Built intersectionlists')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         
-        print 'Taxnumber to taxname translation: '
+        print('Taxnumber to taxname translation: ')
         for i in range(0, len(allTaxa)):
-            print('%s,%s' % ( i+1, allTaxa[i]))
+            print(('%s,%s' % ( i+1, allTaxa[i])))
         
         intersectionList.verbose = True
         
@@ -3610,16 +3610,16 @@ class Reduced(TreeHandler):
 #        translate partial splits into full splits using taxonSet2taxonNames and taxname2bitkey
 
         from p4.LeafSupport import TreeSubsets
-        print 'Running divide and conquer to speed things up'
+        print('Running divide and conquer to speed things up')
         sys.stdout.flush()
         ts = TreeSubsets(self.trees)
         subtreeDicts, taxNames, taxonSets = ts.getSubTreesAndTaxonSetsFromInputTrees(verbose=False)
         self.buildConsensusTreeHash(ts.getConsensusTree())
         ts = None
-        if len(subtreeDicts[0].keys()) == 1: 
-            print 'No subdivisions possible, solving whole tree'
+        if len(list(subtreeDicts[0].keys())) == 1: 
+            print('No subdivisions possible, solving whole tree')
         else:
-            print 'Got %s subproblems to solve' % (len(subtreeDicts[0].keys()))
+            print('Got %s subproblems to solve' % (len(list(subtreeDicts[0].keys()))))
         sys.stdout.flush()
         
         allTaxa = self.taxNames[:]
@@ -3636,8 +3636,8 @@ class Reduced(TreeHandler):
         taxname2taxonNames = {}
         
         self.verbose = 0
-        print 'Building intersectionlists, divide and conquer style'
-        print time.ctime(time.time())
+        print('Building intersectionlists, divide and conquer style')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         
         for i in range(0,len(taxNames)):
@@ -3659,8 +3659,8 @@ class Reduced(TreeHandler):
 
         
         weight = sum(self.weights)
-        print 'Built intersectionlists'
-        print time.ctime(time.time())
+        print('Built intersectionlists')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         
         splits = []
@@ -3680,10 +3680,10 @@ class Reduced(TreeHandler):
             for index2 in range(0,len(names)):
                 taxon2bitkey[names[index2]] = bitkeys[index2]
             
-            left = 0L
-            right = 0L
+            left = 0
+            right = 0
             for i in range(0,len(allTaxa)):
-                if taxon2bitkey.has_key(allTaxa[i]):
+                if allTaxa[i] in taxon2bitkey:
                     left = left ^ allBitkeys[i]
 
             i = Intersection(left, right, weight)
@@ -3695,11 +3695,11 @@ class Reduced(TreeHandler):
             else:
                 for split in taxname2splitList[name]:
 #                    split.printIntersection(bitkeys)
-                    left = 0L
-                    right = 0L
+                    left = 0
+                    right = 0
                     for i in range(0,len(allTaxa)):
 #                        print allTaxa[i]
-                        if taxon2bitkey.has_key(allTaxa[i]):
+                        if allTaxa[i] in taxon2bitkey:
 #                            print '1'
                             if taxon2bitkey[allTaxa[i]] & split.left:
 #                                print '2'
@@ -3759,15 +3759,15 @@ class Reduced(TreeHandler):
         
 #        self.splits, treeNames = self.updateToCommonLeafSet(self.tfl)
 
-        print 'Building intersectionlist'
-        print time.ctime(time.time())
+        print('Building intersectionlist')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         intersectionList = BuildIntersections(self.bitkeys, self.minimumProportion, self.minNoOfTaxa, self.weights, self.splits, not self.treatMultifurcatingRootsAsUnrooted, self.sortByNoSplits)
         
         self.intersections = intersectionList.buildIntersections()
 
-        print 'Done'
-        print time.ctime(time.time())
+        print('Done')
+        print(time.ctime(time.time()))
         sys.stdout.flush()
         
         self.extendedIntersections = []
@@ -3797,7 +3797,7 @@ class TreeBuilderFromSplits(object):
         self.bitkeys = bitKeys
         self.internalNames = internalNames
     
-    def buildTreeFromInformativeList(self, list, treeName='conTreeName', excluded=0L):
+    def buildTreeFromInformativeList(self, list, treeName='conTreeName', excluded=0):
         informativeBits = ((self.bitkeys[-1] << 1) -1) ^ list[0].right
 ##        print 'informative: ',informativeBits
 #        print 'Excluded: ', excluded
@@ -3817,7 +3817,7 @@ class TreeBuilderFromSplits(object):
         index = 0
         leafNo = 1
         first = True
-        rootBitkey = 0L
+        rootBitkey = 0
         n = Node()
         previous = n
         for bk in self.bitkeys:
@@ -3969,7 +3969,7 @@ class TreeBuilderFromSplits(object):
     
 class Intersection(object):
     
-    def __init__(self, bitKey, bright=0L, bhits=0, bfrequency=0):
+    def __init__(self, bitKey, bright=0, bhits=0, bfrequency=0):
 #        print 'Frequency: ', bhits
         self.left = bitKey
         self.right = bright
@@ -4053,7 +4053,7 @@ class Intersection(object):
         return 0
         
     def dump(self):
-        print "%s %s, %6s %s, %6s %s, %6s %s  " % ('L:', self.left, 'R:', self.right, 'F:', self.frequency, 'H:', self.hits)
+        print("%s %s, %6s %s, %6s %s, %6s %s  " % ('L:', self.left, 'R:', self.right, 'F:', self.frequency, 'H:', self.hits))
 
     def printIntersection(self, bitkeys, weight=1.0):
         intersection = ''
@@ -4065,13 +4065,13 @@ class Intersection(object):
             else:
                 intersection = intersection + '.'
         if self.name != None:
-            print '%s  %s' % (intersection, self.name)
+            print('%s  %s' % (intersection, self.name))
         else:
             f = self.frequency/weight
             if f <= 1:
                 f = f *100
             f = int(f)
-            print '%s  %s' % (intersection, f)
+            print('%s  %s' % (intersection, f))
 
     def intersectionToString(self, bitkeys):
         intersection = ''
@@ -4085,7 +4085,7 @@ class Intersection(object):
         return intersection +', ' +str(self.frequency*100)
 
     def addSplit(self, bitkey):
-        newSplit = Intersection(0L)
+        newSplit = Intersection(0)
         newSplit.left = self.left & bitkey
         newSplit.right = (self.left ^ bitkey) | self.right
 #        print 'Creating new intersection: '
@@ -4093,19 +4093,19 @@ class Intersection(object):
         return newSplit 
     
     def addReverseSplit(self, bitkey, highestBitkey):    
-        newSplit = Intersection(0L)
+        newSplit = Intersection(0)
         newSplit.left = (self.left ^ bitkey) & self.left
         newSplit.right = (self.left ^ (~bitkey & ((highestBitkey << 1) -1))) | self.right
         return newSplit    
     
     def intersection(self, other):
-        newSplit = Intersection(0L)
+        newSplit = Intersection(0)
         newSplit.left = self.left & other.left
         newSplit.right = (self.left ^ other.left) | self.right | other.right
         return newSplit
     
     def reverseIntersection(self, other, highestBitkey):
-        newSplit = Intersection(0L)
+        newSplit = Intersection(0)
         newSplit.left = (self.left ^ other.left) & self.left
         newSplit.right = (self.left ^ (~other.left & ((highestBitkey << 1) -1))) | self.right | other.right
         return newSplit

@@ -1,8 +1,8 @@
-from Glitch import Glitch
-from TreePartitions import TreePartitions
-from Tree import Tree
-from Trees import Trees
-from func import read, var
+from .Glitch import Glitch
+from .TreePartitions import TreePartitions
+from .Tree import Tree
+from .Trees import Trees
+from .func import read, var
 import sys, csv, random
 from math import log, factorial, floor
 
@@ -19,23 +19,23 @@ class TreeSubsets(object):
                 for t in inputTrees:
                     if not isinstance(t, Tree):
                         gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     else:
                         trees.append(t)
                 if len(inputTrees) < 1:
                     gm.append('Sorry, at least one tree must be supplied as input tree')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 self.inputTrees = trees
             elif type(inputTrees) == type(""):
                 var.trees = []
                 read(inputTrees)
                 if len(var.trees) < 1:
                     gm.append('Sorry, at least one tree must be supplied as input tree')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 self.inputTrees = var.trees
             else:
                 gm.append("Input trees are neither a list of p4 Tree objects nor a valid filename.")
-                raise Glitch, gm
+                raise Glitch(gm)
         
             self.nonUnrootedTrees = []
             for t in self.inputTrees:
@@ -224,23 +224,23 @@ class CherryRemover(object):
             for t in inputTrees:
                 if not isinstance(t, Tree):
                     gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 else:
                     trees.append(t.dupe())
             if len(inputTrees) < 1:
                 gm.append('Sorry, at least one tree must be supplied as input tree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.inputTrees = trees
         elif type(inputTrees) == type(""):
             var.trees = []
             read(inputTrees)
             if len(var.trees) < 1:
                 gm.append('Sorry, at least one tree must be supplied as input tree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.inputTrees = var.trees
         else:
             gm.append("Input trees are neither a list of p4 Tree objects nor a valid filename.")
-            raise Glitch, gm
+            raise Glitch(gm)
     
         #print 'Got %s trees' % (len(self.inputTrees))
     
@@ -446,18 +446,18 @@ class LeafSupport(object):
             for t in inputTrees:
                 if not isinstance(t, Tree):
                     gm.append("Input trees should be a list of p4 Tree objects. Got %s" % t)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             self.inputTrees = inputTrees
         elif type(inputTrees) == type(""):
             var.trees = []
             read(inputTrees)
             if len(var.trees) < 1:
                 gm.append('Sorry, at least one tree must be supplied as input tree')
-                raise Glitch, gm
+                raise Glitch(gm)
             self.inputTrees = var.trees
         else:
             gm.append("Input trees are neither a list of p4 Tree objects nor a valid filename.")
-            raise Glitch, gm
+            raise Glitch(gm)
         
         self.groups = []
         self.clades = []
@@ -501,9 +501,9 @@ class LeafSupport(object):
         for i in range(len(taxnames)):
             self.taxa2IndexDict[taxnames[i]] = i 
             self.index2TaxaDict[i] = taxnames[i]
-            self.bitkeys.append(1L << i)
+            self.bitkeys.append(1 << i)
 
-            self.bitkey2Index[1L << i] = i
+            self.bitkey2Index[1 << i] = i
 
         st = SplitStripper()
         for t in self.inputTrees:
@@ -515,9 +515,9 @@ class LeafSupport(object):
     def printTaxnames(self):
         
         index = 0 
-        print 'Index, taxname'
+        print('Index, taxname')
         for name in self.taxnames:
-            print '%s, %s' % (index, name)
+            print('%s, %s' % (index, name))
             index = index + 1
             
     
@@ -527,18 +527,18 @@ class LeafSupport(object):
         gm = ['defineGroup.(list))']
         if type(list) != type([]):
             gm.append('Input must be a list of taxnames and/or taxnumbers')
-            raise Glitch, gm
+            raise Glitch(gm)
         group = []
         for i in list:
-            if self.taxa2IndexDict.has_key(i):
+            if i in self.taxa2IndexDict:
         ##        print 'Taxname: %s, %s' % (i, self.taxa2IndexDict[i])
                 group.append(self.taxa2IndexDict[i])
-            elif self.index2TaxaDict.has_key(i):
+            elif i in self.index2TaxaDict:
         #        print 'Index: %s, %s' % (self.index2TaxaDict[i], i)
                 group.append(i)
             else:
                 gm.append('%s is not a tax name or number.' % (i))
-                raise Glitch, gm
+                raise Glitch(gm)
 
         #    print ''
         #print group
@@ -554,18 +554,18 @@ class LeafSupport(object):
         gm = ['defineTaxSet.(list))']
         if type(list) != type([]):
             gm.append('Input must be a list of taxnames and/or taxnumbers')
-            raise Glitch, gm
+            raise Glitch(gm)
         taxSet = []
         for i in list:
-            if self.taxa2IndexDict.has_key(i):
+            if i in self.taxa2IndexDict:
         #        print 'Taxname: %s, %s' % (i, self.taxa2IndexDict[i])
                 taxSet.append(self.taxa2IndexDict[i])
-            elif self.index2TaxaDict.has_key(i):
+            elif i in self.index2TaxaDict:
         #        print 'Index: %s, %s' % (self.index2TaxaDict[i], i)
                 taxSet.append(i)
             else:
                 gm.append('%s is not a tax name or number' % (i))
-                raise Glitch, gm
+                raise Glitch(gm)
         #    print ''
         #print group
         taxSet.sort()
@@ -580,18 +580,18 @@ class LeafSupport(object):
         gm = ['defineClade.(list))']
         if type(list) != type([]):
             gm.append('Input must be a list of taxnames and/or taxnumbers')
-            raise Glitch, gm
+            raise Glitch(gm)
         clade = []
         for i in list:
-            if self.taxa2IndexDict.has_key(i):
+            if i in self.taxa2IndexDict:
         #        print 'Taxname: %s, %s' % (i, self.taxa2IndexDict[i])
                 clade.append(i)
-            elif self.index2TaxaDict.has_key(i):
+            elif i in self.index2TaxaDict:
         #        print 'Index: %s, %s' % (self.index2TaxaDict[i], i)
                 clade.append(self.index2TaxaDict[i])
             else:
                 gm.append('%s is not a tax name or number' % (i))
-                raise Glitch, gm
+                raise Glitch(gm)
 
         #    print ''
         #print clade
@@ -627,7 +627,7 @@ class LeafSupport(object):
             
             quartetsToUse = int(noOfPossibleQuartets*self.noQuartetsToUse)
             
-            print 'Using %s quartets out of %s possible' % (quartetsToUse, noOfPossibleQuartets)
+            print('Using %s quartets out of %s possible' % (quartetsToUse, noOfPossibleQuartets))
 #            print 'Quartets to use: ', quartetsToUse
 #            print 'Number of taxa:  ',noTaxnames
             
@@ -646,7 +646,7 @@ class LeafSupport(object):
                             taxa[1] = random.randint(index+1, noTaxnames-1)
                         taxa.sort()
                         tuple += (self.bitkeys[taxa[0]],self.bitkeys[taxa[1]])
-                        if not quartetDict.has_key(tuple):
+                        if tuple not in quartetDict:
                             quartetDict[tuple] = 1
                             self.sortedQuartets.append(tuple)
                             i += 1
@@ -668,7 +668,7 @@ class LeafSupport(object):
                             taxa[2] = random.randint(index+1, noTaxnames-1)
                         taxa.sort()
                         tuple += (self.bitkeys[taxa[0]],self.bitkeys[taxa[1]], self.bitkeys[taxa[2]])
-                        if not quartetDict.has_key(tuple):
+                        if tuple not in quartetDict:
                             self.sortedQuartets.append(tuple)
                             i += 1
 
@@ -882,8 +882,8 @@ class LeafSupport(object):
 #        print quartet
 #        print quartetType
         
-        if self.sorted2QuartetType.has_key(sortedQuartet):
-            if self.sorted2QuartetType[sortedQuartet].has_key(quartetType):
+        if sortedQuartet in self.sorted2QuartetType:
+            if quartetType in self.sorted2QuartetType[sortedQuartet]:
 #                print '   1'
                 self.sorted2QuartetType[sortedQuartet][quartetType] = self.sorted2QuartetType[sortedQuartet][quartetType] + weight
             else:
@@ -908,7 +908,7 @@ class LeafSupport(object):
         
         #print 'Leaf stabilites for trees from %s' % (filename) 
         #print 'Processing trees'
-        print 'Calculating leaf support'
+        print('Calculating leaf support')
         sys.stdout.flush()
         
         quartet2index = {}
@@ -951,7 +951,7 @@ class LeafSupport(object):
                 cladeStripper.reset()
                 for clade in cladeStripper.getCladesFromTree(t):
                     if len(clade) > 3:
-                        if cladeDict.has_key(clade):
+                        if clade in cladeDict:
                             cladeDict[clade] = cladeDict[clade] + weight
                         else:
                             cladeDict[clade] = weight
@@ -976,7 +976,7 @@ class LeafSupport(object):
      
         if self.exploreClades:
             omnipresentClades = []
-            for clade, hits in cladeDict.items():
+            for clade, hits in list(cladeDict.items()):
                 if hits >= self.sumOfWeights * self.cladePercentage/100.0 :
                     tuple = ()
                     for name in clade:
@@ -985,7 +985,7 @@ class LeafSupport(object):
                     omnipresentClades.append([tuple,(hits/float(self.sumOfWeights))*100])
         
             if len(omnipresentClades) == 0:
-                print 'Sorry, no clades matching the %s proportion found in the input trees' % (self.cladePercentage)
+                print('Sorry, no clades matching the %s proportion found in the input trees' % (self.cladePercentage))
       
             omnipresentClades = sorted(omnipresentClades, self._hitsCmp)
         
@@ -1000,14 +1000,14 @@ class LeafSupport(object):
         if len(self.clades) > 0:
             for clade in self.clades:
                 hits = 0.0
-                if cladeDict.has_key(clade):
+                if clade in cladeDict:
                     hits = (cladeDict[clade]/float(self.sumOfWeights))*100
                 translatedClade = ()
                 for name in clade:
                     translatedClade = translatedClade +(self.taxa2IndexDict[name],)
                 
                 scoreDict = self.calcLimitedSetScores(self.sorted2QuartetType, index2Quartet, self.treatUnresolvedAsValid, self.equalDistUnresolved, translatedClade)
-                if len(scoreDict.keys()) > 0:
+                if len(list(scoreDict.keys())) > 0:
                     resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning = self.formatResults(scoreDict, self.index2TaxaDict)  
                     results.append([resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning, translatedClade, hits])
         
@@ -1016,7 +1016,7 @@ class LeafSupport(object):
                 scoreDict = self.calcLimitedSetScores(self.sorted2QuartetType, index2Quartet, self.treatUnresolvedAsValid, self.equalDistUnresolved, taxSet)
 #                scoreDict = self.calcMemberScores(taxa2index, index2Quartet, taxSet)
             
-                if len(scoreDict.keys()) > 0:
+                if len(list(scoreDict.keys())) > 0:
                     resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning = self.formatResults(scoreDict, self.index2TaxaDict)  
                     results.append([resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning, taxSet, 0.0])
         
@@ -1025,10 +1025,10 @@ class LeafSupport(object):
             for group in self.groups:
                 scoreDict = self.calcMemberScores(self.sorted2QuartetType, index2Quartet, group)
                 
-                if len(scoreDict.keys()) > 0:
+                if len(list(scoreDict.keys())) > 0:
                     member = {}
                     nonMember = {}
-                    for i,j in scoreDict.items():
+                    for i,j in list(scoreDict.items()):
 #                        print '%s, %s' % (self.index2TaxaDict[i],j)
                         if i in group:
                             member[i] = j
@@ -1042,7 +1042,7 @@ class LeafSupport(object):
                     groupResults.append([[resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning, group, 0.0],[nMresultList, nMmaxAverage, nMdiffAverage, nMentAverage, nMdiffWarning, nMentWarning, 0.0]])
 #                    results.append([resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning, group, 0.0])
                 else:
-                    print 'Zero length'
+                    print('Zero length')
         if self.writeCsv:
             writer = csv.writer(open(self.csvFilename, "wb"))
             list = []
@@ -1077,21 +1077,21 @@ class LeafSupport(object):
         for result in results:        
 ##            self.printSupportTable(result[0],result[1], result[2], result[3], result[4], result[5])
             if len(result) == 6:
-                print 'All taxa'
+                print('All taxa')
                 self.printSupportTable(result[0],result[1], result[2], result[3], result[4], result[5])
-                print ''
+                print('')
             else:
                 if result[7] > 0.0:
-                    print 'Clade appears in %s percent of the trees ' % (result[7])
+                    print('Clade appears in %s percent of the trees ' % (result[7]))
                 else:
-                    print 'Taxon set'
+                    print('Taxon set')
                 self.printSupportTable(result[0],result[1], result[2], result[3], result[4], result[5])
-                print ''
+                print('')
         
         for result in groupResults:
-            print 'Group membership'
+            print('Group membership')
             self.printGroupSupportTable(result)
-            print ''
+            print('')
             
             
     def _hitsCmp(self, one, other):
@@ -1099,14 +1099,14 @@ class LeafSupport(object):
         
     def calcLimitedSetScores(self, taxa2index, index2Quartet, treatUnresolvedAsValid, equalDistUnresolved, clade):
         scoreDict = {}
-        for sortedQuartet, dict in taxa2index.items():
+        for sortedQuartet, dict in list(taxa2index.items()):
             firstTaxon = -1
             if not self.rooted:
                 firstTaxon = self.bitkey2Index[sortedQuartet[0]]
             if self._isCladeContainingQuartet(clade, (firstTaxon,self.bitkey2Index[sortedQuartet[1]],
                                                       self.bitkey2Index[sortedQuartet[2]],self.bitkey2Index[sortedQuartet[3]])):
                 quartets = []
-                for index, no in dict.items():
+                for index, no in list(dict.items()):
                     quartets.append(self.buildQuartet(index, no, sortedQuartet))
 
                 if len(quartets) > 0:
@@ -1116,7 +1116,7 @@ class LeafSupport(object):
                     for taxon in sortedQuartet:
                         if taxon >= 0:
                             taxa = self.bitkey2Index[taxon]
-                            if scoreDict.has_key(taxa):
+                            if taxa in scoreDict:
                                 list = scoreDict[taxa]
                                 scoreDict[taxa] = [list[0]+max, list[1]+diff, list[2]+ent, list[3]+1]
                             else:
@@ -1137,14 +1137,14 @@ class LeafSupport(object):
             
     def calcMemberScores(self, taxa2index, index2Quartet, group):
         scoreDict = {}
-        for sortedQuartet, dict in self.sorted2QuartetType.items():
+        for sortedQuartet, dict in list(self.sorted2QuartetType.items()):
             firstTaxon = -1
             if not self.rooted:
                 firstTaxon = self.bitkey2Index[sortedQuartet[0]]
             if self._isCladeContainingHalfQuartet(group,(firstTaxon,self.bitkey2Index[sortedQuartet[1]],
                                                          self.bitkey2Index[sortedQuartet[2]],self.bitkey2Index[sortedQuartet[3]])):
                 quartets = []
-                for index, no in dict.items():
+                for index, no in list(dict.items()):
                     q = self.buildQuartet(index, no, sortedQuartet)
                     if self._isGroupHalfQuartet(group, q[0]):
                         quartets.append(q)
@@ -1154,7 +1154,7 @@ class LeafSupport(object):
                     for taxon in sortedQuartet:
                         if taxon >= 0:
                             taxa = self.bitkey2Index[taxon]
-                            if scoreDict.has_key(taxa):
+                            if taxa in scoreDict:
                                 list = scoreDict[taxa]
                                 scoreDict[taxa] = [list[0]+max, list[1]+diff, list[2]+ent, list[3]+1]
                             else:
@@ -1233,12 +1233,12 @@ class LeafSupport(object):
     def calcQuickScores(self, taxa2index, treatUnresolvedAsValid, equalDistUnresolved):
         
         scoreDict = {}
-        for sortedQuartet, dict in taxa2index.items():
+        for sortedQuartet, dict in list(taxa2index.items()):
 #            print ((self.index2TaxaDict[self.bitkey2Index[sortedQuartet[0]]],self.index2TaxaDict[self.bitkey2Index[sortedQuartet[1]]]),
 #                                      (self.index2TaxaDict[self.bitkey2Index[sortedQuartet[2]]],self.index2TaxaDict[self.bitkey2Index[sortedQuartet[3]]]))
 #            print dict
             quartets = []
-            for index, no in dict.items():
+            for index, no in list(dict.items()):
                 
                 quartets.append(self.buildQuartet(index, no, sortedQuartet))
                 
@@ -1248,7 +1248,7 @@ class LeafSupport(object):
                 for taxon in sortedQuartet:
                     if taxon >= 0:
                         taxa = self.bitkey2Index[taxon]
-                        if scoreDict.has_key(taxa):
+                        if taxa in scoreDict:
                             list = scoreDict[taxa]
                             scoreDict[taxa] = [list[0]+max, list[1]+diff, list[2]+ent, list[3]+1]
                         else:
@@ -1257,11 +1257,11 @@ class LeafSupport(object):
     
     def calcScores(self, taxa2index, index2Quartet, treatUnresolvedAsValid, equalDistUnresolved):
         scoreDict = {}
-        for sortedQuartet, dict in taxa2index.items():
+        for sortedQuartet, dict in list(taxa2index.items()):
 #            print sortedQuartet
 #            print dict
             quartets = []
-            for index, no in dict.items():
+            for index, no in list(dict.items()):
 
                 quartets.append((index2Quartet[index],no))
 
@@ -1271,7 +1271,7 @@ class LeafSupport(object):
 
                 for taxa in sortedQuartet:
                     if taxa >= 0:
-                        if scoreDict.has_key(taxa):
+                        if taxa in scoreDict:
                             list = scoreDict[taxa]
                             scoreDict[taxa] = [list[0]+max, list[1]+diff, list[2]+ent, list[3]+1]
                         else:
@@ -1283,7 +1283,7 @@ class LeafSupport(object):
         resultList = []
         
 #       Retrive the results from scoreDict 
-        for taxa in scoreDict.keys():
+        for taxa in list(scoreDict.keys()):
             list = scoreDict[taxa]
             list = [round(list[0]/list[3],8),round(list[1]/list[3],8),round(list[2]/list[3],8),list[3]]
             list.append(index2TaxaDict[taxa])
@@ -1430,82 +1430,82 @@ class LeafSupport(object):
         for i in range(max+64):
             line += '-'
         printedAverage = False
-        print line
-        print '| Members'.ljust(max+2),
-        print '| Maximum'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '| Difference'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '| Entropy'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '|'
-        print line
+        print(line)
+        print('| Members'.ljust(max+2), end=' ')
+        print('| Maximum'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('| Difference'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('| Entropy'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('|')
+        print(line)
         for result in resultList:
             if maxAverage > result[0] and not printedAverage:
                 printedAverage = True
-                print line
-                print '|',
-                print 'Average'.ljust(max),
-                print '|',
-                print str(maxAverage).ljust(10)[:10],
-                print '|      |',
-                print str(diffAverage).ljust(10)[:10],
-                print '|      |',
-                print str(entAverage).ljust(10)[:10],
-                print '|      |'
-                print line
-            print '|',
-            print str(result[4]).ljust(max),
-            print '|',
-            print str(result[0]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|',
-            print str(result[1]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|',
-            print str(result[2]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|'
-        print line    
-        print '| Non members'.ljust(max+62),
-        print '|'
-        print line
+                print(line)
+                print('|', end=' ')
+                print('Average'.ljust(max), end=' ')
+                print('|', end=' ')
+                print(str(maxAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(diffAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(entAverage).ljust(10)[:10], end=' ')
+                print('|      |')
+                print(line)
+            print('|', end=' ')
+            print(str(result[4]).ljust(max), end=' ')
+            print('|', end=' ')
+            print(str(result[0]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[1]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[2]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|')
+        print(line)    
+        print('| Non members'.ljust(max+62), end=' ')
+        print('|')
+        print(line)
         
         printedAverage = False
         for result in nMresultList:
             if nMmaxAverage > result[0] and not printedAverage:
                 printedAverage = True
-                print line
-                print '|',
-                print 'Average'.ljust(max),
-                print '|',
-                print str(nMmaxAverage).ljust(10)[:10],
-                print '|      |',
-                print str(nMdiffAverage).ljust(10)[:10],
-                print '|      |',
-                print str(nMentAverage).ljust(10)[:10],
-                print '|      |'
-                print line
-            print '|',
-            print str(result[4]).ljust(max),
-            print '|',
-            print str(result[0]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|',
-            print str(result[1]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|',
-            print str(result[2]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|'
+                print(line)
+                print('|', end=' ')
+                print('Average'.ljust(max), end=' ')
+                print('|', end=' ')
+                print(str(nMmaxAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(nMdiffAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(nMentAverage).ljust(10)[:10], end=' ')
+                print('|      |')
+                print(line)
+            print('|', end=' ')
+            print(str(result[4]).ljust(max), end=' ')
+            print('|', end=' ')
+            print(str(result[0]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[1]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[2]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|')
             
-        print line
+        print(line)
     
     def printSupportTable(self, resultList, maxAverage, diffAverage, entAverage, diffWarning, entWarning):
         max = 0
@@ -1518,51 +1518,51 @@ class LeafSupport(object):
         for i in range(max+64):
             line += '-'
         printedAverage = False
-        print line
-        print '| Taxa'.ljust(max+2),
-        print '| Maximum'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '| Difference'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '| Entropy'.ljust(12),
-        print '| Rank'.ljust(6),
-        print '|'
-        print line
+        print(line)
+        print('| Taxa'.ljust(max+2), end=' ')
+        print('| Maximum'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('| Difference'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('| Entropy'.ljust(12), end=' ')
+        print('| Rank'.ljust(6), end=' ')
+        print('|')
+        print(line)
         for result in resultList:
             if maxAverage > result[0] and not printedAverage:
                 printedAverage = True
-                print line
-                print '|',
-                print 'Average'.ljust(max),
-                print '|',
-                print str(maxAverage).ljust(10)[:10],
-                print '|      |',
-                print str(diffAverage).ljust(10)[:10],
-                print '|      |',
-                print str(entAverage).ljust(10)[:10],
-                print '|      |'
-                print line
-            print '|',
-            print str(result[4]).ljust(max),
-            print '|',
-            print str(result[0]).ljust(10)[:10],
-            print '|',
-            print str(result[5]).ljust(4)[:4],
-            print '|',
-            print str(result[1]).ljust(10)[:10],
-            print '|',
-            print str(result[6]).ljust(4)[:4],
-            print '|',
-            print str(result[2]).ljust(10)[:10],
-            print '|',
-            print str(result[7]).ljust(4)[:4],
-            print '|'
-        print line
-        print 'Results sorted by Maximum column'
+                print(line)
+                print('|', end=' ')
+                print('Average'.ljust(max), end=' ')
+                print('|', end=' ')
+                print(str(maxAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(diffAverage).ljust(10)[:10], end=' ')
+                print('|      |', end=' ')
+                print(str(entAverage).ljust(10)[:10], end=' ')
+                print('|      |')
+                print(line)
+            print('|', end=' ')
+            print(str(result[4]).ljust(max), end=' ')
+            print('|', end=' ')
+            print(str(result[0]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[5]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[1]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[6]).ljust(4)[:4], end=' ')
+            print('|', end=' ')
+            print(str(result[2]).ljust(10)[:10], end=' ')
+            print('|', end=' ')
+            print(str(result[7]).ljust(4)[:4], end=' ')
+            print('|')
+        print(line)
+        print('Results sorted by Maximum column')
         if diffWarning:
-            print '* Note that the sorting in the Difference column differs from the Maximum column'
+            print('* Note that the sorting in the Difference column differs from the Maximum column')
         if entWarning:
-            print '** Note that the sorting in the Entropy column differs from the Maximum column'
+            print('** Note that the sorting in the Entropy column differs from the Maximum column')
        
     def getSortedQuartetTuple(self, quartet):
         list = []
@@ -1589,7 +1589,7 @@ class LeafSupport(object):
 #            print qW
             weight += qW[1]
             if len(qW[0]) > 1:
-                if quartetTypes.has_key(qW[0]):
+                if qW[0] in quartetTypes:
                     quartetTypes[qW[0]] = quartetTypes[qW[0]] + qW[1]
                 else:
                     quartetTypes[qW[0]] = qW[1]
@@ -1602,13 +1602,13 @@ class LeafSupport(object):
 #        print 'Found: ', found
 #        print ''
         
-        if len(quartetTypes.values()) > 4:
-            print 'Found more than four kinds of quartets for 4 taxa, not good'
+        if len(list(quartetTypes.values())) > 4:
+            print('Found more than four kinds of quartets for 4 taxa, not good')
 #            print quartetTypes.values()
 #            print quartetTypes.keys()
             return 0.0, 0.0, 0.0
         
-        if unresolved == 0 and len(quartetTypes.values()) == 1:
+        if unresolved == 0 and len(list(quartetTypes.values())) == 1:
 #            print 'One kind of quartet'
 #            print quartetTypes.values()
 #            print ''
@@ -1631,7 +1631,7 @@ class LeafSupport(object):
 #                print ''
                 return max, med, ent
         
-        if unresolved > 0 and len(quartetTypes.values()) == 0:
+        if unresolved > 0 and len(list(quartetTypes.values())) == 0:
 #            print 'Only unresolved quartets'
 #            for qW in quartetList:
 #                print qW
@@ -1662,7 +1662,7 @@ class LeafSupport(object):
         
         val = []
         index = 0
-        for i in quartetTypes.values():
+        for i in list(quartetTypes.values()):
             index += 1
             val.append(i)
         for i in range(index, 3):
@@ -1777,18 +1777,18 @@ class TreeStripper(object):
         self.index = 0
     
     def printSet(self):
-        print 'Added: %s' % (self.added)
-        print 'Set.len: %s' % (len(self.set))
-        print 'Set'
+        print('Added: %s' % (self.added))
+        print('Set.len: %s' % (len(self.set)))
+        print('Set')
         for t in self.set:
-            print t
-        print 'Translation table'
-        for i,j in self.taxa2id.items():
-            print 'Item: %s, Value: %s' % (i,j)
+            print(t)
+        print('Translation table')
+        for i,j in list(self.taxa2id.items()):
+            print('Item: %s, Value: %s' % (i,j))
         if self.translatedSet:
-            print 'Translated set'
+            print('Translated set')
             for t in self.translatedSet:
-                print t    
+                print(t)    
                 
     def getTranslatedSet(self):
         if self.translatedSet == None:
@@ -1877,12 +1877,12 @@ class TreeStripper(object):
         while sibling:
 #            list2.extend(tree.getNodeNumsAbove(sibling, 1))
             if sibling.isLeaf:
-                print '22'
-                print sibling.name
+                print('22')
+                print(sibling.name)
                 siblings.append(sibling.name)
             else:
-                print '33'
-                print tree.getAllLeafNames(sibling)
+                print('33')
+                print(tree.getAllLeafNames(sibling))
                 list2.extend(tree.getAllLeafNames(sibling))
             sibling = sibling.sibling           
         return list1, list2, siblings
@@ -2008,7 +2008,7 @@ class TripletStripper(TreeStripper):
         if dict:
             dict[ROOT_NODE_NAME] =-1
         if len(list) < 3:
-            print 'Unresolved list to short'
+            print('Unresolved list to short')
         for i in range(0, len(list)-2):
             for j in range(i+1,len(list)-1):
                 for k in range(j+1, len(list)):
@@ -2300,7 +2300,7 @@ class QuartetStripper(TreeStripper):
     
     def buildQuartetsFromUnresolvedTaxa(self, unresolved, allTaxa):
         if len(unresolved) < 3:
-            print 'Not a happy camper, less than four taxa in unresolved'
+            print('Not a happy camper, less than four taxa in unresolved')
         
 #        print unresolved
         unique = []
@@ -2365,16 +2365,16 @@ class QuartetStripper(TreeStripper):
 #                print unresolved
                 if len(unresolved) <= 2:
                     names.extend(unresolved)
-                    print 'Names: '
-                    print names
+                    print('Names: ')
+                    print(names)
                     tuples = self.buildQuartetsFromLists(names, dict)
                 else:
-                    print 'Names: '
-                    print names
+                    print('Names: ')
+                    print(names)
                     tuples = self.buildQuartetsFromLists(names, dict)
 #                    print 'Building triplets from unresolved'
-                    print 'Unresolved: '
-                    print unresolved
+                    print('Unresolved: ')
+                    print(unresolved)
                     tuples.extend(self.buildQuartetsFromUnresolved(unresolved, dict))
             else:
                 if not node.isLeaf:
@@ -2384,16 +2384,16 @@ class QuartetStripper(TreeStripper):
 #                    print unresolved
                     if len(unresolved) <= 2:
                         names.extend(unresolved)
-                        print 'Names: '
-                        print names
+                        print('Names: ')
+                        print(names)
                         tuples = self.buildQuartetsFromLists(names, dict)
                     else:
-                        print 'Names: '
-                        print names
+                        print('Names: ')
+                        print(names)
                         tuples = self.buildQuartetsFromLists(names, dict)
 #                        print 'Building triplets from unresolved'
-                        print 'Unresolved: '
-                        print unresolved
+                        print('Unresolved: ')
+                        print(unresolved)
                         tuples.extend(self.buildQuartetsFromUnresolved(unresolved, dict))
 #                tuples = self.buildTripletsFromLists(names)
             self.added += len(tuples)
@@ -2412,13 +2412,13 @@ class QuartetStripper(TreeStripper):
                 possibles1 = self._allPossiblePairs(list[i])
                 possibles2 = self._allPossiblePairs(list[j])
                 quartets.extend(self._combineLists(possibles1, possibles2))
-        print quartets
+        print(quartets)
         return quartets
     
     def buildQuartetsFromUnresolved(self, list, dict):
         quartets = []
         if len(list) < 4:
-            print 'Unresolved list to short'
+            print('Unresolved list to short')
         for i in range(0, len(list)-2):
             for j in range(i+1,len(list)-1):
                 for k in range(j+1, len(list)):
@@ -2430,7 +2430,7 @@ class QuartetStripper(TreeStripper):
                         list.append(dict[list[l]])
                         list.sort()
                         quartets.append(((list[0], list[1], list[2], list[3]),))
-        print quartets
+        print(quartets)
         return quartets
     
     def combineLists(self, list1, list2, dict):
@@ -2472,7 +2472,7 @@ class QuartetStripper(TreeStripper):
         
     def _allPossiblePairs(self, list):
         if len(list) < 2:
-            print 'No possible pairs, uninformative split'
+            print('No possible pairs, uninformative split')
         if len(list) ==2:
             return [(list[0], list[1])]
         possibles = []
@@ -2572,9 +2572,9 @@ class SplitStripper(TreeStripper):
         rdict = {}
         self.bitkeys = []
         for i in range(len(list)):
-            self.bitkeys.append(1L << i)
-            dict[list[i]] = 1L << i 
-            rdict[1L << i] = list[i]
+            self.bitkeys.append(1 << i)
+            dict[list[i]] = 1 << i 
+            rdict[1 << i] = list[i]
             
         for n in tree.iterLeavesNoRoot():
             n.br.rc = dict[n.name]
@@ -2609,9 +2609,9 @@ class SplitStripper(TreeStripper):
         rdict = {}
         self.bitkeys = []
         for i in range(len(taxnames)):
-            self.bitkeys.append(1L << i)
-            dict[taxnames[i]] = 1L << i 
-            rdict[1L << i] = taxnames[i]
+            self.bitkeys.append(1 << i)
+            dict[taxnames[i]] = 1 << i 
+            rdict[1 << i] = taxnames[i]
             
         for n in tree.iterLeavesNoRoot():
             n.br.rc = dict[n.name]
@@ -2634,7 +2634,7 @@ class SplitStripper(TreeStripper):
                 splits.append(tuple1)
         
             for i in splits:
-                print i
+                print(i)
 
         
             return splits

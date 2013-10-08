@@ -1,14 +1,14 @@
-import types,string,cStringIO,sys,os
-from Tree import Tree
-from Node import Node,NodePart,NodeBranchPart
-from Trees import Trees
-from Nexus import Nexus,NexusData
-from Glitch import Glitch
+import types,string,io,sys,os
+from .Tree import Tree
+from .Node import Node,NodePart,NodeBranchPart
+from .Trees import Trees
+from .Nexus import Nexus,NexusData
+from .Glitch import Glitch
 #from NexusToken import nextTok,safeNextTok,nexusSkipPastNextSemiColon
-import NexusToken   # needed for cStrings
+from . import NexusToken   # needed for cStrings
 #import NexusToken2  # Faster, in c
-import func
-from Var import var
+from . import func
+from .Var import var
 
 longMessage1 = """
 This table shows, for splits that were used in the cons tree (ie not
@@ -34,7 +34,7 @@ class SplitModelUsage(object):
         if not isinstance(TPMI, TreePartitionsModelInfo):
             gm = ["SplitModelUsage init."]
             gm.append("Expecting a TreePartitionsModelInfo instance.")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.nParts = TPMI.nParts
         self.parts = []
         for i in range(self.nParts):
@@ -45,12 +45,12 @@ class SplitModelUsage(object):
             self.parts.append(SMTP)
 
     def dump(self):
-        print "                modelUsage nParts=%s" % self.nParts
+        print("                modelUsage nParts=%s" % self.nParts)
         for pNum in range(self.nParts):
-            print "                    part %s" % pNum
-            print "%35s = %s" % ('compCounts', self.parts[pNum].compCounts)
-            print "%35s = %s" % ('rMatrixCounts', self.parts[pNum].rMatrixCounts)
-            print "%35s = %s" % ('gdasrvCounts', self.parts[pNum].gdasrvCounts)
+            print("                    part %s" % pNum)
+            print("%35s = %s" % ('compCounts', self.parts[pNum].compCounts))
+            print("%35s = %s" % ('rMatrixCounts', self.parts[pNum].rMatrixCounts))
+            print("%35s = %s" % ('gdasrvCounts', self.parts[pNum].gdasrvCounts))
 
     def zero(self):
         for p in self.parts:
@@ -95,22 +95,22 @@ class Split(object):
         self.rootModelUsage = None
 
     def dump(self):
-        print "    Split dump:"
-        print "%25s = %s" % ('set', self.set)
-        print "%25s = %s" % ('key', self.key)
-        print "%25s = %s" % ('string', self.string)
-        print "%25s = %s" % ('count', self.count)
-        print "%25s = %s" % ('rootCount', self.rootCount)
-        print "%25s = %s" % ('proportion', self.proportion)
-        print "%25s = %s" % ('cumBrLen', self.cumBrLen)
+        print("    Split dump:")
+        print("%25s = %s" % ('set', self.set))
+        print("%25s = %s" % ('key', self.key))
+        print("%25s = %s" % ('string', self.string))
+        print("%25s = %s" % ('count', self.count))
+        print("%25s = %s" % ('rootCount', self.rootCount))
+        print("%25s = %s" % ('proportion', self.proportion))
+        print("%25s = %s" % ('cumBrLen', self.cumBrLen))
         if self.modelUsage:
             self.modelUsage.dump()
         if self.rootModelUsage:
-            print "                rootModelUsage.dump()"
+            print("                rootModelUsage.dump()")
             #self.rootModelUsage.dump()
             for pNum in range(self.rootModelUsage.nParts):
-                print "                    part %s" % pNum
-                print "%35s = %s" % ('compCounts', self.rootModelUsage.parts[pNum].compCounts)
+                print("                    part %s" % pNum)
+                print("%35s = %s" % ('compCounts', self.rootModelUsage.parts[pNum].compCounts))
 
     def combineWith(self, otherSplitObject):
         # no need to do proportion -- that is handled by _finishSplits()
@@ -135,7 +135,7 @@ class TreePartitionsModelInfo(object):
         self.parts = []  # TreePartitionsModelInfoPart objects
 
     def dump(self):
-        print "TreePartitionsModelInfo.dump()  nParts=%s" % self.nParts
+        print("TreePartitionsModelInfo.dump()  nParts=%s" % self.nParts)
         for i in range(self.nParts):
             self.parts[i].dump()
 
@@ -143,29 +143,29 @@ class TreePartitionsModelInfo(object):
         gm = ['TreePartitionsModelInfo.check()']
         if self.nParts < 1:
             gm.append("No parts.")
-            raise Glitch, gm
+            raise Glitch(gm)
         isHetero = 0
         for pNum in range(self.nParts):
             p = self.parts[pNum]
             if p.partNum != pNum:
                 self.dump()
                 gm.append("partNum is wrong.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if p.nComps < 1:
                 gm.append("Incomplete model info.  Part %s, no nComps." % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
             elif p.nComps > 1:
                 isHetero = 1
 
             if p.nRMatrices < 1:
                 gm.append("Incomplete model info.  Part %s, no nRMatrices." % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
             elif p.nRMatrices > 1:
                 isHetero = 1
 
             if p.nGdasrvs < 0:
                 gm.append("Incomplete model info.  Part %s, nGdasrvs not specified." % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
             elif p.nGdasrvs > 1:
                 isHetero = 1
         if isHetero:
@@ -184,10 +184,10 @@ class TreePartitionsModelInfoPart(object):
 
     def dump(self):
         #print "    TreePartitionsModelInfoPart.dump  partNum=%s" % self.partNum
-        print "    partNum=%s" % self.partNum
-        print "        nComps     = %s" % self.nComps
-        print "        nRMatrices = %s" % self.nRMatrices
-        print "        nGdasrvs   = %s" % self.nGdasrvs
+        print("    partNum=%s" % self.partNum)
+        print("        nComps     = %s" % self.nComps)
+        print("        nRMatrices = %s" % self.nRMatrices)
+        print("        nGdasrvs   = %s" % self.nGdasrvs)
 
 
 
@@ -197,24 +197,24 @@ def _getModelInfo(theComment):
     # or [&&p4 models p2 c0.2 r0.2 g0.1 c1.1 r1.1 g1.1]
     gm = ['TreePartitions._getModelInfo()']
     #print "_getModelInfo(), from theComment = %s" % theComment
-    flob = cStringIO.StringIO(theComment)
+    flob = io.StringIO(theComment)
     flob.seek(1, 0) # past the [
 
     tok = NexusToken.nextTok(flob)
     if not tok or tok != '&&p4':
-        print "a got tok=%s" % tok
+        print("a got tok=%s" % tok)
         flob.close()
         return  # not an error, just the wrong kind of comment
     tok = NexusToken.nextTok(flob)
     if not tok or tok != 'models':
-        print "b got tok=%s" % tok
+        print("b got tok=%s" % tok)
         flob.close()
         gm.append("Expecting 'models'.  Got %s" % tok)
-        raise Glitch, gm
+        raise Glitch(gm)
     tok = NexusToken.nextTok(flob)
     if tok[0] != 'p':
         gm.append("Expecting 'pN'.  Got %s" % tok)
-        raise Glitch, gm
+        raise Glitch(gm)
     try:
         nParts = int(tok[1:])
 
@@ -229,7 +229,7 @@ def _getModelInfo(theComment):
             theModelInfo = None
     except ValueError:
         gm.append("Failed to parse model comment.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     tok = NexusToken.safeNextTok(flob)
     while 1:
@@ -245,7 +245,7 @@ def _getModelInfo(theComment):
                 secondNum = int(splitEnding[1])
             except ValueError:
                 gm.append("Failed to parse numbers in model comment.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if tok[0] == 'c':
                 theModelInfo.parts[firstNum].nComps = secondNum
             elif tok[0] == 'r':
@@ -254,7 +254,7 @@ def _getModelInfo(theComment):
                 theModelInfo.parts[firstNum].nGdasrvs = secondNum
         else:
             gm.append("Bad token %s")
-            raise Glitch, gm
+            raise Glitch(gm)
         tok = NexusToken.safeNextTok(flob)
 
     #theModelInfo.dump()
@@ -380,7 +380,7 @@ something like this::
 
         if not inThing:
             gm.append("No input?")
-            raise Glitch, gm
+            raise Glitch(gm)
         #print "inThing = %s, type %s" % (inThing, type(inThing))
         if self.taxNames:
             if taxNames:
@@ -393,7 +393,7 @@ something like this::
         if type(inThing) == type('string'):
             if not os.path.isfile(inThing):
                 gm.append("The inThing is a string, but does not appear to be a file name.")
-                raise Glitch, gm
+                raise Glitch(gm)
             assumeIsPhylip = None
             f = file(inThing)
             c = ' '
@@ -407,28 +407,28 @@ something like this::
                     gm.append("File inThing %s" % inThing)
                     gm.append("assumed to be a phylip tree file.")
                     gm.append("Needs arg taxNames-- an ordered taxNames list.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 self._readPhylipTreeFile(inThing,skip,max,taxNames)
             else:
                 self._readNexusFile(inThing, skip, max)
         elif isinstance(inThing, Tree):
             if skip or max:
                 gm.append("Args skip and and max only come into play when reading from files.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if not inThing.taxNames:
                 gm.append("If inThing is a Tree object, it needs taxNames.")
-                raise Glitch, gm
+                raise Glitch(gm)
             self.taxNames = inThing.taxNames
             self.nTax = len(self.taxNames)
             self._getSplitsFromTree(inThing)
         elif isinstance(inThing, Trees):
             if skip or max:
                 gm.append("Args skip and and max only come into play when reading from files.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if not inThing.taxNames:
                 gm.append("If inThing is a Trees object, it needs a taxNames attached.")
                 gm.append("(Try 'theTrees.setTaxNames()')")
-                raise Glitch, gm
+                raise Glitch(gm)
             self.taxNames = inThing.taxNames
             self.nTax = len(self.taxNames)
             if hasattr(inThing.trees[0], "modelInfo"):
@@ -438,7 +438,7 @@ something like this::
                 self._getSplitsFromTree(t)
         else:
             gm.append("Sorry-- I can't grok your input.  What is '%s'?" % inThing)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         self._finishSplits()
 
@@ -449,11 +449,11 @@ something like this::
 
         #print 'TreePartitions._readPhylipTreeFile().  var.nexus_doFastNextTok=%s' % var.nexus_doFastNextTok
         if var.nexus_doFastNextTok:
-            from NexusToken2 import nextTok,safeNextTok,nexusSkipPastNextSemiColon
-            from NexusToken2 import checkLineLengths
+            from .NexusToken2 import nextTok,safeNextTok,nexusSkipPastNextSemiColon
+            from .NexusToken2 import checkLineLengths
             checkLineLengths(f)
         else:
-            from NexusToken import nextTok,safeNextTok,nexusSkipPastNextSemiColon
+            from .NexusToken import nextTok,safeNextTok,nexusSkipPastNextSemiColon
 
         # Skip over trees
         if skip:
@@ -472,8 +472,8 @@ something like this::
             t.initFinish()
             t.taxNames = taxNames
             if 0:
-                print t
-                print "got tree:",
+                print(t)
+                print("got tree:", end=' ')
                 t.write()
             self._getSplitsFromTree(t)
             # The line above increments self.nTrees by the weight.
@@ -491,11 +491,11 @@ something like this::
 
         #print 'TreePartitions._readNexusFile().  var.nexus_doFastNextTok=%s' % var.nexus_doFastNextTok
         if var.nexus_doFastNextTok:
-            from NexusToken2 import nextTok,safeNextTok,nexusSkipPastNextSemiColon
-            from NexusToken2 import checkLineLengths
+            from .NexusToken2 import nextTok,safeNextTok,nexusSkipPastNextSemiColon
+            from .NexusToken2 import checkLineLengths
             checkLineLengths(f)
         else:
-            from NexusToken import nextTok,safeNextTok,nexusSkipPastNextSemiColon
+            from .NexusToken import nextTok,safeNextTok,nexusSkipPastNextSemiColon
 
         
         nf = Nexus()  # provides nf.readBlock(), nf.readTranslateCommand()
@@ -506,11 +506,11 @@ something like this::
             lowTok = string.lower(tok)
         else:
             gm.append("Empty file?!?")
-            raise Glitch, gm
+            raise Glitch(gm)
         if lowTok != '#nexus':
             gm.append("Hmmm..., this doesn't appear to be a nexus file. ")
             gm.append("The first token is not '#NEXUS'.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
         # Get everything before the trees block.
@@ -521,7 +521,7 @@ something like this::
             if not inBlock:
                 if lowTok != 'begin':
                     gm.append("Expecting the 'begin' of a nexus block.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 inBlock = 1
             else:
                 if lowTok == 'trees':
@@ -539,7 +539,7 @@ something like this::
                     inBlock = 0
                 else:
                     gm.append("Unexpected '%s' block." % tok)    # Can't I just skip un-usable blocks?
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         # At this point we have read the 'trees' token in the 'begin trees;' line.
         translationHash = None
@@ -562,7 +562,7 @@ something like this::
                     gm.append("However, the keys of the translation do not appear to be numbers from 1 to nTax.")
                     gm.append("I am easily confused, and I don't want to make taxNames in an arbitrary order.")
                     gm.append("So you should supply a taxNames list when you invoke a TreePartitions object.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 self.nTax = len(self.taxNames)
 
             # We might expect a p4 command comment if there has been a
@@ -591,16 +591,16 @@ something like this::
             gm.append("No taxa block or translation command.")
             gm.append("This file is not suitable for file input.")
             gm.append("(Maybe input it as a Trees object.)")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # At this point, lowTok should be 'tree'
         if lowTok != 'tree':
             if lowTok in ['end', 'endblock']:
                 gm.append("Got %s, expecting 'tree' command.  No trees in %s?" % (tok, fName))
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 gm.append("I can't grok %s.  I was expecting a 'trees' command." % tok)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Skip over trees
         if skip:
@@ -631,7 +631,7 @@ something like this::
                     t.taxNames = self.taxNames
                 if not t.taxNames:
                     gm.append('Input tree does not have a taxNames list.  Fix me.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #t.dump(tree=True)
                 self._getSplitsFromTree(t)
 
@@ -644,7 +644,7 @@ something like this::
             else:
                 gm.append("I don't understand (lowercased) token '%s'" % lowTok)
                 gm.append("I was expecting 'tree' or 'end'.")
-                raise Glitch, gm
+                raise Glitch(gm)
             tok = safeNextTok(f)
             lowTok = string.lower(tok)
             #print "xx got tok %s" % tok
@@ -661,7 +661,7 @@ something like this::
 
         if self.doModelComments and theTree.recipWeight and theTree.recipWeight != 1:
             gm.append("doModelComments is set, but the tree has a weight-- should not have both.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         theWeight = 1.0
         if theTree.recipWeight:
@@ -676,23 +676,23 @@ something like this::
         nRootChildren = theTree.root.getNChildren()
         if not nRootChildren:
             gm.append("Root has no children.")
-            raise Glitch, gm
+            raise Glitch(gm)
         elif nRootChildren == 1:
             gm.append("Tree is rooted on a terminal node.  No workee.")
-            raise Glitch, gm
+            raise Glitch(gm)
         elif nRootChildren == 2:
             if self.isBiRoot == None:
                 if 0:
                     gm.append("Got a tree with a bifurcating root.")
                     gm.append("TreePartitions for bi-rooted trees is not working yet.")
                     gm.append("Maybe you could use the Tree.removeRoot() method.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 self.isBiRoot = 1
             elif self.isBiRoot == 1:
                 pass
             else:
                 gm.append("Self.isBiRoot has been previously turned off, but now we have a biRoot tree.")
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             if self.isBiRoot == None:
                 self.isBiRoot = 0
@@ -700,7 +700,7 @@ something like this::
                 pass
             else:
                 gm.append("Self.isBiRoot has been previously turned on, but now we have a non-biRoot tree.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # This next method call, makeSplitKeys(), checks whether any
         # internal nodes have exactly 1 child.  That would be bad cuz
@@ -715,7 +715,7 @@ something like this::
             # case we get it from self.splitsHash, or we have to
             # make a new one.
 
-            if self.splitsHash.has_key(theSKey):
+            if theSKey in self.splitsHash:
                 theSplit = self.splitsHash[theSKey]
             else:
                 theSplit = Split()
@@ -739,7 +739,7 @@ something like this::
                     if 1 & n.br.rawSplitKey:
                         theSplit.count += theWeight
 
-                    if self.biSplitsHash.has_key(theSKey):
+                    if theSKey in self.biSplitsHash:
                         theBiSplit = self.biSplitsHash[theSKey]
                     else:
                         theBiSplit = Split()
@@ -962,65 +962,65 @@ something like this::
         #    tH = tH[:30] + ' ...'
         #print "%25s = %s' % ('translationHash", tH)
         if 1:
-            print "%25s = %s" % ('nTax', self.nTax)
-            print "%25s = %s" % ('nTrees', self.nTrees)
-            print "%25s = %s" % ('number of splits', len(self.splits))
-            print "%25s = %s" % ('isBiRoot', self.isBiRoot)
+            print("%25s = %s" % ('nTax', self.nTax))
+            print("%25s = %s" % ('nTrees', self.nTrees))
+            print("%25s = %s" % ('number of splits', len(self.splits)))
+            print("%25s = %s" % ('isBiRoot', self.isBiRoot))
         #print "%25s = %s' % ('nParts", self.nParts)
         #print "%25s = %s' % ('modelNames", self.modelNames)
         if 0:
             for s in self.splits:
                 s.dump()
         if 0:
-            print
-            print "%12s %12s %12s %12s %12s %12s %12s" % (
-                'string', 'key', 'count', 'rootCount', 'rootCount2', 'cumBrLen', 'biRtCumBrLen')
+            print()
+            print("%12s %12s %12s %12s %12s %12s %12s" % (
+                'string', 'key', 'count', 'rootCount', 'rootCount2', 'cumBrLen', 'biRtCumBrLen'))
             for s in self.splits:
-                print "%12s %12s %12s %12s %12s %12s %12s" % (
-                    s.string, s.key, s.count, s.rootCount, s.rootCount2, s.cumBrLen, '-')
+                print("%12s %12s %12s %12s %12s %12s %12s" % (
+                    s.string, s.key, s.count, s.rootCount, s.rootCount2, s.cumBrLen, '-'))
             if len(self.biSplits):
-                print "biSplits"
+                print("biSplits")
                 for s in self.biSplits:
-                    print "%12s %12s %12s %12s %12s %12s %12s" % (
-                        s.string, s.key, s.count, s.rootCount, s.rootCount2, s.cumBrLen, s.biRootCumBrLen)
+                    print("%12s %12s %12s %12s %12s %12s %12s" % (
+                        s.string, s.key, s.count, s.rootCount, s.rootCount2, s.cumBrLen, s.biRootCumBrLen))
 
         if 1:
-            print
-            print "%12s %12s %12s %12s %12s %12s" % (
-                'string', 'key', 'count', 'modelUsage', 'biRtMdlUsg', 'rtModelUsage')
+            print()
+            print("%12s %12s %12s %12s %12s %12s" % (
+                'string', 'key', 'count', 'modelUsage', 'biRtMdlUsg', 'rtModelUsage'))
             for s in self.splits:
-                print "%12s %12s %12s" % (
-                    s.string, s.key, s.count),
+                print("%12s %12s %12s" % (
+                    s.string, s.key, s.count), end=' ')
                 if s.modelUsage:
-                    print "%12s" % s.modelUsage.nParts,
+                    print("%12s" % s.modelUsage.nParts, end=' ')
                 else:
-                    print "%12s" % "None",
+                    print("%12s" % "None", end=' ')
                 if s.biRootModelUsage:
-                    print "%12s" % s.biRootModelUsage.nParts,
+                    print("%12s" % s.biRootModelUsage.nParts, end=' ')
                 else:
-                    print "%12s" % "None",
+                    print("%12s" % "None", end=' ')
                 if s.rootModelUsage:
-                    print "%12s" % s.rootModelUsage.nParts
+                    print("%12s" % s.rootModelUsage.nParts)
                 else:
-                    print "%12s" % "None"
+                    print("%12s" % "None")
                     
             if len(self.biSplits):
-                print "biSplits"
+                print("biSplits")
                 for s in self.biSplits:
-                    print "%12s %12s %12s" % (
-                        s.string, s.key, s.count),
+                    print("%12s %12s %12s" % (
+                        s.string, s.key, s.count), end=' ')
                     if s.modelUsage:
-                        print "%12s" % s.modelUsage.nParts,
+                        print("%12s" % s.modelUsage.nParts, end=' ')
                     else:
-                        print "%12s" % "None",
+                        print("%12s" % "None", end=' ')
                     if s.biRootModelUsage:
-                        print "%12s" % s.biRootModelUsage.nParts,
+                        print("%12s" % s.biRootModelUsage.nParts, end=' ')
                     else:
-                        print "%12s" % "None",
+                        print("%12s" % "None", end=' ')
                     if s.rootModelUsage:
-                        print "%12s" % s.rootModelUsage.nParts
+                        print("%12s" % s.rootModelUsage.nParts)
                     else:
-                        print "%12s" % "None"
+                        print("%12s" % "None")
 
         
 
@@ -1055,7 +1055,7 @@ something like this::
                     p = self.splits[i]
                     f.write(firstColSig % p.string)
                     f.write("%9.3f    %5.3f   %5.3f\n" % (p.count, p.proportion, (p.cumBrLen/p.count)))
-                print "-" * 50
+                print("-" * 50)
             for i in range(nSplits):
                 p = self.splits[i]
                 if not doLeaves:
@@ -1110,7 +1110,7 @@ something like this::
                         else:
                             #f.write("no modelUsage for this split.")
                             pass
-                        print
+                        print()
                 else:
                     f.write("part %i is tree-homogeneous\n" % pNum)
                 f.write('\n')
@@ -1160,12 +1160,12 @@ something like this::
         
         if self.nTax != otherTP.nTax:
             gm.append("Mismatched taxa.")
-            raise Glitch, gm
+            raise Glitch(gm)
             
         for i in range(len(self.taxNames)):
             if self.taxNames[i] != otherTP.taxNames[i]:
                 gm.append("Mismatched taxa.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         if 0:
             self.writeSplits(minimumProportion=minimumProportion, doLeaves=False)
@@ -1183,7 +1183,7 @@ something like this::
             theKey = s.key
             prop1 = s.proportion
             
-            if otherTP.splitsHash.has_key(theKey):
+            if theKey in otherTP.splitsHash:
                 prop2 = otherTP.splitsHash[theKey].proportion
             else:
                 prop2 = 0.0
@@ -1208,7 +1208,7 @@ something like this::
                 if theStarCount == 1 or theStarCount == self.nTax - 1:
                     continue
             theKey = s.key
-            if not self.splitsHash.has_key(theKey):
+            if theKey not in self.splitsHash:
                 prop1 = 0.0
                 prop2 = s.proportion
                 if bothMustMeetMinimum:
@@ -1280,7 +1280,7 @@ something like this::
 
         if self.nTax <= 3:
             gm.append("Only %i taxa? -- too few to consider for a consensus" % self.nTax)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         #############################
         # Make a star tree
@@ -1328,9 +1328,9 @@ something like this::
             conTree.draw()
             for n in conTree.nodes:
                 if n != conTree.root:
-                    print "%3i  %s" % (n.nodeNum, n.br.splitKey)
+                    print("%3i  %s" % (n.nodeNum, n.br.splitKey))
                 else:
-                    print "%3i  root" % n.nodeNum
+                    print("%3i  root" % n.nodeNum)
             conTree.preOrder = None
             conTreePostOrder = None
             conTree.preAndPostOrderAreValid = 0
@@ -1419,7 +1419,7 @@ something like this::
                 if q.br.splitKey == spl.key:
                     gm.append("Candidate split is identical to an existing split.")
                     gm.append("This should never happen.  Programming error.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 # 2. spl is a subset of q, then choose a new p and q (as children of previous p and q) and try again
                 elif spl.set.issubset(qSet):
@@ -1449,14 +1449,14 @@ something like this::
 
                 else:
                     gm.append("xxx Why would this happen?")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             #print "a relationship is %s" % relationship
             if addThisNode:
                 #print "    Adding a new node. spl.string= %s" % spl.string
                 if not q:
                     gm.append("Programming error. q does not exist.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 n = Node()
                 n.nodeNum = len(conTree.nodes)
                 conTree.nodes.append(n)
@@ -1497,8 +1497,8 @@ something like this::
                     while s:
                         sSet = self.splitsHash[s.br.splitKey].set
                         if s.br.splitKey == spl.key:
-                            print "why would this ever happen?"
-                            raise Glitch, gm
+                            print("why would this ever happen?")
+                            raise Glitch(gm)
                         elif sSet.issubset(spl.set):
                             #print "here 3"
                             s.parent = n
@@ -1514,7 +1514,7 @@ something like this::
                     if tmp == q:
                         gm.append("Programming error.  This shouldn't happen.")
                         gm.append("No further subsets have been found.  A useless node has been added")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
         ###################################################
         ###################################################
@@ -1523,11 +1523,11 @@ something like this::
         # rooted on the first taxon.
         if 0:
             conTree.draw()
-            print "%12s %12s %12s %12s %12s %12s" % ('nodeNum', '', 'count', 'rootCount', 'rootCount2', 'cumBrLen')
+            print("%12s %12s %12s %12s %12s %12s" % ('nodeNum', '', 'count', 'rootCount', 'rootCount2', 'cumBrLen'))
             for n in conTree.iterNodesNoRoot():
                 s = self.splitsHash[n.br.splitKey]
-                print "%12s %12s %12s %12s %12s %12s" % (
-                    n.nodeNum, s.string, s.count, s.rootCount, s.rootCount2, s.cumBrLen)
+                print("%12s %12s %12s %12s %12s %12s" % (
+                    n.nodeNum, s.string, s.count, s.rootCount, s.rootCount2, s.cumBrLen))
             sys.exit()
 
         # For convenience, temporarily attach the split objects to
@@ -1559,7 +1559,7 @@ something like this::
                 # get the contribution of the root splits from the
                 # count from the biRootHash.
                 biRootCountContribution = 0.0
-                if self.biSplitsHash.has_key(n.br.split.key):
+                if n.br.split.key in self.biSplitsHash:
                     biRootCountContribution = self.biSplitsHash[n.br.split.key].count
                 theCount = n.br.split.count - biRootCountContribution
                 if theCount:
@@ -1578,7 +1578,7 @@ something like this::
         # Get rootCount and biRootCount
         if self.isBiRoot:
             for n in conTree.iterNodesNoRoot():
-                if self.biSplitsHash.has_key(n.br.split.key):
+                if n.br.split.key in self.biSplitsHash:
                     n.br.biRootCount = self.biSplitsHash[n.br.split.key].count
                 else:
                     n.br.biRootCount = 0.0
@@ -1593,11 +1593,11 @@ something like this::
         if 0:
             conTree.preAndPostOrderAreValid = 0
             conTree.draw()
-            print "%12s %12s %12s %12s %12s %12s" % (
-                'nodeNum', '', 'n.br.len', 'n.br.support', 'n.rootCount', 'n.br.biRtCnt')
+            print("%12s %12s %12s %12s %12s %12s" % (
+                'nodeNum', '', 'n.br.len', 'n.br.support', 'n.rootCount', 'n.br.biRtCnt'))
             for n in conTree.iterNodesNoRoot():
-                print "%12s %12s %12s %12s %12s %12s" % (
-                    n.nodeNum, n.br.split.string, n.br.len, n.br.support, n.rootCount, n.br.biRootCount)
+                print("%12s %12s %12s %12s %12s %12s" % (
+                    n.nodeNum, n.br.split.string, n.br.len, n.br.support, n.rootCount, n.br.biRootCount))
             #sys.exit()
 
         ######################
@@ -1613,7 +1613,7 @@ something like this::
             maxRootCount = 0
             for n in conTree.iterNodesNoRoot():
                 if 0:
-                    print "%3i   %i" % (n.nodeNum, n.br.biRootCount)
+                    print("%3i   %i" % (n.nodeNum, n.br.biRootCount))
                 if n.br.biRootCount > maxRootCount:
                     maxRootCount = n.br.biRootCount
             maxRootNodes = []
@@ -1621,13 +1621,13 @@ something like this::
                 if n.br.biRootCount == maxRootCount:
                     maxRootNodes.append(n)
             if 0:
-                print "maxRootNodes = ",
+                print("maxRootNodes = ", end=' ')
                 for n in maxRootNodes:
-                    print n.nodeNum,
-                print
+                    print(n.nodeNum, end=' ')
+                print()
 
             if 0 and showRootInfo:
-                print "There are %s maxRootNodes.  Choosing the first to root on." % len(maxRootNodes)
+                print("There are %s maxRootNodes.  Choosing the first to root on." % len(maxRootNodes))
             biRootChild = maxRootNodes[0]
             theBiSplit = self.biSplitsHash[biRootChild.br.splitKey]
             #print "    Max root node, ie biRootChild, is node %i" % biRootChild.nodeNum
@@ -1643,8 +1643,8 @@ something like this::
             biRootChild.br.split.modelUsage = theBiSplit.biRootModelUsage
 
             if 0:
-                print "biRootChild is node %i" % biRootChild.nodeNum
-                print "theBiRoot.rootModelUsage = %s" % theBiRoot.rootModelUsage
+                print("biRootChild is node %i" % biRootChild.nodeNum)
+                print("theBiRoot.rootModelUsage = %s" % theBiRoot.rootModelUsage)
                 sys.exit()
             conTree.reRoot(theBiRoot, moveInternalName=False)
             theBiRoot.rootModelUsage = theBiSplit.rootModelUsage # Might be None, if there was no model info
@@ -1653,7 +1653,7 @@ something like this::
             maxRootCount = 0
             for n in conTree.iterNodesNoRoot():
                 if 0:
-                    print "%3i   %i" % (n.nodeNum, n.br.split.rootCount)
+                    print("%3i   %i" % (n.nodeNum, n.br.split.rootCount))
                 if n.br.split.rootCount > maxRootCount:
                     maxRootCount = n.br.split.rootCount
             maxRootNodes = []
@@ -1662,9 +1662,9 @@ something like this::
                     maxRootNodes.append(n)
 
             if 0 and showRootInfo:
-                print gm[0]
+                print(gm[0])
                 if len(maxRootNodes) > 1:
-                    print "    There are %s maxRootNodes.  Choosing the first to root on." % len(maxRootNodes)
+                    print("    There are %s maxRootNodes.  Choosing the first to root on." % len(maxRootNodes))
             maxRootNodes[0].rootModelUsage = maxRootNodes[0].br.split.rootModelUsage
             conTree.reRoot(maxRootNodes[0], moveInternalName=False)
 
@@ -1684,58 +1684,58 @@ something like this::
         # Now tabulate model usage.
         if self.modelInfo:
             for pNum in range(self.modelInfo.nParts):
-                print "\nPartition %i" % pNum
+                print("\nPartition %i" % pNum)
 
                 if self.modelInfo.parts[pNum].nComps > 1:
-                    print "\nc%i.%i" % (pNum, self.modelInfo.parts[pNum].nComps)
-                    print "           Composition Numbers"
-                    print "%8s" % 'NodeNum',
+                    print("\nc%i.%i" % (pNum, self.modelInfo.parts[pNum].nComps))
+                    print("           Composition Numbers")
+                    print("%8s" % 'NodeNum', end=' ')
                     for cNum in range(self.modelInfo.parts[pNum].nComps):
-                        print "%4s " % cNum,
-                    print
-                    print "%8s" % '=======',
+                        print("%4s " % cNum, end=' ')
+                    print()
+                    print("%8s" % '=======', end=' ')
                     for cNum in range(self.modelInfo.parts[pNum].nComps):
-                        print " %4s" % '===',
-                    print
+                        print(" %4s" % '===', end=' ')
+                    print()
 
                     for n in conTree.nodes:
                         if n != conTree.root:
-                            print "%6i  " % n.nodeNum,
+                            print("%6i  " % n.nodeNum, end=' ')
                             theCompCounts = n.br.split.modelUsage.parts[pNum].compCounts
                             for cNum in range(self.modelInfo.parts[pNum].nComps):
-                                print "%4i " % theCompCounts[cNum],
-                            print
+                                print("%4i " % theCompCounts[cNum], end=' ')
+                            print()
                         else:
-                            print "%6i  " % n.nodeNum,
+                            print("%6i  " % n.nodeNum, end=' ')
                             #theCompCounts = maxRootNodes[0].br.split.rootModelUsage.parts[pNum].compCounts
                             theCompCounts = conTree.root.rootModelUsage.parts[pNum].compCounts
                             for cNum in range(self.modelInfo.parts[pNum].nComps):
-                                print "%4i " % theCompCounts[cNum],
-                            print
+                                print("%4i " % theCompCounts[cNum], end=' ')
+                            print()
                 else:
-                    print "Comps in this partition are homogeneous."
+                    print("Comps in this partition are homogeneous.")
 
                 if self.modelInfo.parts[pNum].nRMatrices > 1:
-                    print "\nr%i.%i" % (pNum, self.modelInfo.parts[pNum].nRMatrices)
-                    print "           rMatrix Numbers"
-                    print "%8s" % 'NodeNum',
+                    print("\nr%i.%i" % (pNum, self.modelInfo.parts[pNum].nRMatrices))
+                    print("           rMatrix Numbers")
+                    print("%8s" % 'NodeNum', end=' ')
                     for rNum in range(self.modelInfo.parts[pNum].nRMatrices):
-                        print "%4s " % rNum,
-                    print
-                    print "%8s" % '=======',
+                        print("%4s " % rNum, end=' ')
+                    print()
+                    print("%8s" % '=======', end=' ')
                     for rNum in range(self.modelInfo.parts[pNum].nRMatrices):
-                        print " %4s" % '===',
-                    print
+                        print(" %4s" % '===', end=' ')
+                    print()
 
                     for n in conTree.nodes:
                         if n != conTree.root:
-                            print "%6i  " % n.nodeNum,
+                            print("%6i  " % n.nodeNum, end=' ')
                             theRMatrixCounts = n.br.split.modelUsage.parts[pNum].rMatrixCounts
                             for rNum in range(self.modelInfo.parts[pNum].nRMatrices):
-                                print "%4i " % theRMatrixCounts[rNum],
-                            print
+                                print("%4i " % theRMatrixCounts[rNum], end=' ')
+                            print()
                 else:
-                    print "rMatrices in this partition are homogeneous."
+                    print("rMatrices in this partition are homogeneous.")
 
 
         # Find the majority compNum's and rMatrixNum's.
@@ -1745,7 +1745,7 @@ something like this::
             for n in conTree.nodes:
                 if n.parts:
                     gm.append('node already has parts.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 for pNum in range(self.modelInfo.nParts):
                     n.parts.append(NodePart())
                 if n != conTree.root:
@@ -1774,61 +1774,61 @@ something like this::
                     modelKeyHash = {}
                     for n in conTree.iterNodesNoRoot():
                         n.br.textDrawSymbol = var.modelSymbols[n.parts[pNum].compNum]
-                        if not modelKeyHash.has_key(n.parts[pNum].compNum):
+                        if n.parts[pNum].compNum not in modelKeyHash:
                             modelKeyHash[n.parts[pNum].compNum] = n.br.textDrawSymbol
-                    print
+                    print()
                     conTree.draw()
-                    print "\nThe drawing above shows majority comp numbers in partition %i" % pNum
-                    kk = modelKeyHash.keys()
+                    print("\nThe drawing above shows majority comp numbers in partition %i" % pNum)
+                    kk = list(modelKeyHash.keys())
                     kk.sort()
                     for k in kk:
-                        print "    comp %2i - %s" % (k, modelKeyHash[k])
-                    print "    Root has comp %i" % conTree.root.parts[pNum].compNum
+                        print("    comp %2i - %s" % (k, modelKeyHash[k]))
+                    print("    Root has comp %i" % conTree.root.parts[pNum].compNum)
                 if self.modelInfo.parts[pNum].nRMatrices > 1:
                     modelKeyHash = {}
                     for n in conTree.iterNodesNoRoot():
                         n.br.textDrawSymbol = var.modelSymbols[n.br.parts[pNum].rMatrixNum]
-                        if not modelKeyHash.has_key(n.br.parts[pNum].rMatrixNum):
+                        if n.br.parts[pNum].rMatrixNum not in modelKeyHash:
                             modelKeyHash[n.br.parts[pNum].rMatrixNum] = n.br.textDrawSymbol
-                    print
+                    print()
                     conTree.draw()
-                    print "\nThe drawing above shows majority rMatrix numbers in partition %i" % pNum
-                    kk = modelKeyHash.keys()
+                    print("\nThe drawing above shows majority rMatrix numbers in partition %i" % pNum)
+                    kk = list(modelKeyHash.keys())
                     kk.sort()
                     for k in kk:
-                        print "    rMatrix %2i - %s" % (k, modelKeyHash[k])
-            print
+                        print("    rMatrix %2i - %s" % (k, modelKeyHash[k]))
+            print()
 
         if showRootInfo:
             # Print out a table showing what nodes or branches had the root.
             if self.isBiRoot:
                 if 0:
                     conTree.draw()
-                print gm[0]
-                print longMessage1 # see top of file
-                print "node  br.biRootCount"
+                print(gm[0])
+                print(longMessage1) # see top of file
+                print("node  br.biRootCount")
                 for n in conTree.iterNodesNoRoot():
                     if n.br.biRootCount == None:
                         pass
                     else:
                         if n == biRootChild:
                             # Point out that it has been rooted on that branch.
-                            print "%4i  %6.1f <==" % (n.nodeNum, n.br.biRootCount)
+                            print("%4i  %6.1f <==" % (n.nodeNum, n.br.biRootCount))
                         else:
-                            print "%4i  %6.1f" % (n.nodeNum, n.br.biRootCount)
+                            print("%4i  %6.1f" % (n.nodeNum, n.br.biRootCount))
             else:
-                print gm[0]
-                print longMessage2 # see top of file.
-                print "node  rootCount"
+                print(gm[0])
+                print(longMessage2) # see top of file.
+                print("node  rootCount")
                 for n in conTree.nodes:
                     if hasattr(n, 'rootCount'):
                         if n.rootCount == None:
                             pass
                         else:
                             if n == conTree.root:
-                                print "%4i  %6.1f  <==" % (n.nodeNum, n.rootCount)
+                                print("%4i  %6.1f  <==" % (n.nodeNum, n.rootCount))
                             else:
-                                print "%4i  %6.1f" % (n.nodeNum, n.rootCount)
+                                print("%4i  %6.1f" % (n.nodeNum, n.rootCount))
 
 
         # Attaching splits to node.br's was only temporary.
@@ -1862,18 +1862,18 @@ something like this::
         """
         
         gm = ['TreePartitions.makeTreeFromPartitions()']
-        if type(partitions) != types.ListType:
+        if type(partitions) != list:
             gm.append('The partitions should be a list of lists of ints.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         for it in partitions:
-            if type(it) != types.ListType:
+            if type(it) != list:
                 gm.append('The partitions should be a list of lists of ints.')
-                raise Glitch, gm
+                raise Glitch(gm)
             for it2 in it:
-                if type(it2) != types.IntType:
+                if type(it2) != int:
                     gm.append('The partitions should be a list of lists of ints.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         if zeroBasedNumbering:
             zbParts = partitions
@@ -1889,12 +1889,12 @@ something like this::
             self.taxNames = taxNames
         self.nTax = len(self.taxNames)
         self.nTrees = 1
-        allOnes = 2L**(self.nTax) - 1
+        allOnes = 2**(self.nTax) - 1
         txx = []
         for tNum in range(self.nTax):
             tName = self.taxNames[tNum]
             tx = TP_TinyTax(tName)
-            tx.rawSplitKey = 1L << tNum
+            tx.rawSplitKey = 1 << tNum
             txx.append(tx)
         for tx in txx:
             spl = Split()
@@ -1903,7 +1903,7 @@ something like this::
             spl.count = 1.0
     
         for zbPart in zbParts:
-            rsk = 0L
+            rsk = 0
             for it in zbPart:
                 rsk = rsk | txx[it].rawSplitKey
             spl = Split()
@@ -1943,7 +1943,7 @@ something like this::
             gm.append("But I got %i 'biSplits' -- should be 1." % len(self.biSplits))
             gm.append("Possibly a badly-formed matrix?")
             gm.append("Possibly a duplicated site?")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         self._finishSplits()
         #self.dump()
@@ -1973,21 +1973,21 @@ something like this::
         # Checks.
         if self.nTax != otp.nTax:
             gm.append("nTax differs.  self %i, other %i" % (self.nTax, otp.nTax))
-            raise Glitch, gm
+            raise Glitch(gm)
         for tNum in range(len(self.taxNames)):
             if self.taxNames[tNum] != otp.taxNames[tNum]:
                 gm.append("taxNames differ.")
-                raise Glitch, gm
+                raise Glitch(gm)
         if self.isBiRoot or otp.isBiRoot:
             gm.append("self.isBiRoot = %s, other.isBiRoot = %s" % (self.isBiRoot, otp.isBiRoot))
             gm.append("not tested yet for biRoots")
-            raise Glitch, gm
+            raise Glitch(gm)
         if self.doModelComments or otp.doModelComments:
             gm.append("self.doModelComments = %s, other.doModelComments = %s" % (self.doModelComments, otp.doModelComments))
-            raise Glitch, gm
+            raise Glitch(gm)
         if self.modelInfo:
             gm.append("self.modelInfo exists -- set it to None.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Combine.
         self.nTrees += otp.nTrees

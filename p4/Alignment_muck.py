@@ -1,12 +1,12 @@
 import re,sys,string,array,types,os
-import func
-from Var import var
-from Alignment import ExcludeDelete
-from DistanceMatrix import DistanceMatrix
-from SequenceList import Sequence
-from Glitch import Glitch
+from . import func
+from .Var import var
+from .Alignment import ExcludeDelete
+from .DistanceMatrix import DistanceMatrix
+from .SequenceList import Sequence
+from .Glitch import Glitch
 import numpy as np
-from NexusSets import CharSet
+from .NexusSets import CharSet
 import subprocess
 
 cListPat = re.compile('(\d+)-?(.+)?')
@@ -43,7 +43,7 @@ def simpleConstantMask(self, ignoreGapQ=True, invert=False):
     sense to me.  Best to strip out all-gap sites first.
     
     """
-    nTaxRange = range(self.nTax)
+    nTaxRange = list(range(self.nTax))
     mask = array.array('c', self.length * '0')
     for seqPos in range(self.length):
         theSlice = self.sequenceSlice(seqPos)
@@ -56,7 +56,7 @@ def simpleConstantMask(self, ignoreGapQ=True, invert=False):
             gm = ["Alignment.simpleConstantMask()"]
             gm.append("All-gap site, position %i." % seqPos)
             gm.append("Get rid of it.")
-            raise Glitch, gm
+            raise Glitch(gm)
         elif nGapMiss and not ignoreGapQ:
             mask[seqPos] = '0'
         else:
@@ -159,7 +159,7 @@ def constantMask(self, invert=None):
                     if aChar in self.symbols:
                         symbolsSlice[nSymbolChars] = aChar
                         nSymbolChars += 1
-                    elif self.equates.has_key(aChar):
+                    elif aChar in self.equates:
                         equatesSlice[nEquateChars] = aChar
                         nEquateChars += 1
 
@@ -344,7 +344,7 @@ def getLikelihoodTopologyInformativeSitesMask(self):
     assert self.nTax > 2
     mask = ['0'] * len(self)
     if self.equates:
-        equateKeys = self.equates.keys()
+        equateKeys = list(self.equates.keys())
     else:
         equateKeys = []
     counts = [0] * self.dim # re-zero every loop
@@ -366,7 +366,7 @@ def getLikelihoodTopologyInformativeSitesMask(self):
             elif c in equateKeys:  # not n or x -- they have been done.
                 nAmbigs += 1
             else:
-                raise Glitch, "can't deal with character '%s' at pos %i tax %i" % (c, sPos, tNum)
+                raise Glitch("can't deal with character '%s' at pos %i tax %i" % (c, sPos, tNum))
 
         if not nAmbigs and not nGaps:  # The simple, common case
             assert sum(counts) == self.nTax
@@ -377,7 +377,7 @@ def getLikelihoodTopologyInformativeSitesMask(self):
                     hits[chNum] = 1
             nDifferentChars = sum(hits)
             if nDifferentChars == 0:
-                raise Glitch, "no nDifferentChars.  This should not happen."
+                raise Glitch("no nDifferentChars.  This should not happen.")
             elif nDifferentChars == 1:
                 # constant, mask stays as zero
                 pass
@@ -401,7 +401,7 @@ def getLikelihoodTopologyInformativeSitesMask(self):
                             hits[chNum] = 1
                     nDifferentChars = sum(hits)
                     if nDifferentChars == 0:
-                        raise Glitch, "no nDifferentChars.  This should not happen."
+                        raise Glitch("no nDifferentChars.  This should not happen.")
                     elif nDifferentChars == 1:
                         # constant + gaps, mask stays as zero
                         pass
@@ -426,7 +426,7 @@ def getLikelihoodTopologyInformativeSitesMask(self):
                             hits[chNum] = 1
                     nDifferentChars = sum(hits)
                     if nDifferentChars == 0:
-                        raise Glitch, "no nDifferentChars.  This should not happen."
+                        raise Glitch("no nDifferentChars.  This should not happen.")
                     elif nDifferentChars == 1:
                         # constant + 1 ambig, mask stays as zero
                         #print "site %i, got constant + 1 ambig-- not topologically informative." % sPos
@@ -504,13 +504,13 @@ def orMasks(self, maskA, maskB):
     # check for silliness
     if type(maskA) != type('str'):
         gm.append("Alignment: orMasks(). Masks must be strings.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if type(maskB) != type('str'):
         gm.append("Alignment: orMasks(). Masks must be strings.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if len(maskA) != self.length or len(maskB) != self.length:
         gm.append("Masks must be the same length as the alignment.")
-        raise Glitch, gm
+        raise Glitch(gm)
     l = self.length
     import array
     orMask = array.array('c', self.length * '0')
@@ -522,10 +522,10 @@ def orMasks(self, maskA, maskB):
             iB = int(maskB[i])
         except ValueError:
             gm.append("All mask characters must be convertable to integers")
-            raise Glitch, gm
+            raise Glitch(gm)
         if iA not in [0, 1] or iB not in [0,1]:
             gm.append("All mask characters must be zero or 1")
-            raise Glitch, gm
+            raise Glitch(gm)
         if iA or iB:
             orMask[i] = '1'
     return orMask.tostring()
@@ -545,13 +545,13 @@ def andMasks(self, maskA, maskB):
     # check for silliness
     if type(maskA) != type('str'):
         gm.append("Masks must be strings.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if type(maskB) != type('str'):
         gm.append("Masks must be strings.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if len(maskA) != self.length or len(maskB) != self.length:
         gm.append("Masks must be the same length as the alignment.")
-        raise Glitch, gm
+        raise Glitch(gm)
     l = self.length
     import array
     andMask = array.array('c', self.length * '0')
@@ -563,10 +563,10 @@ def andMasks(self, maskA, maskB):
             iB = int(maskB[i])
         except ValueError:
             gm.append("All mask characters must be convertable to integers")
-            raise Glitch, gm
+            raise Glitch(gm)
         if iA not in [0, 1] or iB not in [0,1]:
             gm.append("All mask characters must be zero or 1")
-            raise Glitch, gm
+            raise Glitch(gm)
         if iA and iB:
             andMask[i] = '1'
     return andMask.tostring()
@@ -583,7 +583,7 @@ def sequenceSlice(self, pos):
             # return string.join(sList, '')
             return sList
         else:
-            raise Glitch, "Alignment.sequenceSlice().  pos out of range"
+            raise Glitch("Alignment.sequenceSlice().  pos out of range")
 
 
 
@@ -595,30 +595,30 @@ def bluntEndLigate(self, alig, allowDifferentDataTypes=False):
     """
 
     gm = ['Alignment.bluntEndLigate()']
-    from Alignment import Alignment
+    from .Alignment import Alignment
     if not isinstance(alig, Alignment):
         gm.append("Arg must be an Alignment instance")
-        raise Glitch, gm
+        raise Glitch(gm)
     if len(self.sequences) != len(alig.sequences):
         gm.append("Unequal number of sequences in the two alignments")
-        raise Glitch, gm
+        raise Glitch(gm)
     elif self.length > 0 and alig.length == None:
         gm.append("self has sequence, but arg does not")
-        raise Glitch, gm
+        raise Glitch(gm)
     elif self.length == None and alig.length > 0:
         gm.append("Arg has sequence, but self does not")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not allowDifferentDataTypes:
         if self.dataType != alig.dataType:
             gm.append("Arg and self dataTypes are different. (%s and %s)" % (alig.dataType, self.dataType))
             gm.append("(If you really want this, you can set the arg allowDifferentDataTypes to True.)")
-            raise Glitch, gm
+            raise Glitch(gm)
     for i in range(len(self.sequences)):
         if self.sequences[i].name != alig.sequences[i].name:
             gm.append("Name mismatch at zero-based sequence %i:" % i)
             gm.append("'%s' and '%s' don't match." % \
                   (self.sequences[i].name, alig.sequences[i].name))
-            raise Glitch, gm
+            raise Glitch(gm)
     if self.parts and len(self.parts):
         self.resetSequencesFromParts()
         self.parts = []
@@ -664,7 +664,7 @@ def constantSitesCount(self):
         if not constCS:
             gm = ['Alignment.constantSitesCount()']
             gm.append("Could not find the charSet 'constant'.  Fix me.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if not constCS.mask:
             constCS.setMask(self.nexusSets, self)
@@ -683,7 +683,7 @@ def noGapsOrAmbiguitiesCopy(self):
     
     dbug = 0
     seqCount = len(self.sequences)
-    from Alignment import Alignment
+    from .Alignment import Alignment
     newAlig = Alignment()
     newAlig.dataType = self.dataType
     newAlig.symbols = self.symbols
@@ -705,7 +705,7 @@ def noGapsOrAmbiguitiesCopy(self):
             for j in theSlice:
                 if j not in 'acgt':
                     if dbug:
-                        print j
+                        print(j)
                     useIt = 0
                     if not dbug:
                         break
@@ -716,7 +716,7 @@ def noGapsOrAmbiguitiesCopy(self):
             for j in theSlice:
                 if j not in 'acdefghiklmnpqrstvwy':
                     if dbug:
-                        print j
+                        print(j)
                     useIt = 0
                     if not dbug:
                         break
@@ -727,7 +727,7 @@ def noGapsOrAmbiguitiesCopy(self):
             for j in theSlice:
                 if j not in self.symbols:
                     if dbug:
-                        print j
+                        print(j)
                     useIt = 0
                     if not dbug:
                         break
@@ -744,7 +744,7 @@ def noGapsOrAmbiguitiesCopy(self):
 def hasGapsOrAmbiguities(self):
     """Asks whether self has any gaps or ambiguities."""
 
-    ambigs = self.equates.keys()
+    ambigs = list(self.equates.keys())
     ambigs.append('-')
     ambigs = string.join(ambigs, '')
     #print "got ambigs = '%s'" % ambigs
@@ -771,7 +771,7 @@ def bootstrap(self):
         pass
     elif self.nexusSets.charPartition and len(self.nexusSets.charPartition.subsets) > 1: # its partitioned.  Bad.
         gm.append("This only works with Alignments having only one data partition.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     import copy
     a = copy.deepcopy(self)  # although we will be replacing the sequences...
@@ -804,7 +804,7 @@ def compositionEuclideanDistanceMatrix(self):
     the frequencies.
     """
 
-    from DistanceMatrix import DistanceMatrix
+    from .DistanceMatrix import DistanceMatrix
     import math
     d = DistanceMatrix()
     d.setDim(len(self.sequences))
@@ -845,7 +845,7 @@ def covarionStats(self, listA, listB, verbose=True):
     # listA and listB should be lists
     if type(listA) != type([1,2]) or type(listB) != type([1,2]):
         gm.append("The args should be lists of sequences numbers or names")
-        raise Glitch, gm
+        raise Glitch(gm)
     lstA = []
     lstB = []
     for i in listA:
@@ -856,13 +856,13 @@ def covarionStats(self, listA, listB, verbose=True):
                     it = s
             if it == None:
                 gm.append("Name '%s' is not in self." % i)
-                raise Glitch, gm
+                raise Glitch(gm)
             lstA.append(it)
         elif type(i) == type(1) and i >= 0 and i < len(self.sequences):
             lstA.append(i)
         else:
             gm.append("The args should be lists of sequences numbers or names")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for i in listB:
         if type(i) == type('string'):
@@ -872,22 +872,22 @@ def covarionStats(self, listA, listB, verbose=True):
                     it = s
             if it == None:
                 gm.append("Name '%s' is not in self." % i)
-                raise Glitch, gm
+                raise Glitch(gm)
             lstB.append(it)
         elif type(i) == type(1) and i >= 0 and i < len(self.sequences):
             lstB.append(i)
         else:
             gm.append("The args should be lists of sequences numbers or names")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for i in lstA:
         if i in lstB:
             gm.append("The arg lists overlap: sequence %i appears in both" % i)
-            raise Glitch, gm
+            raise Glitch(gm)
     for i in lstB:
         if i in lstA:
             gm.append("The arg lists overlap: sequence %i appears in both" % i)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     # c1 = sames overall
     # c2 = sames in a, sames in b, but a is not the same as b
@@ -922,12 +922,12 @@ def covarionStats(self, listA, listB, verbose=True):
 
     if verbose:
         format = '%45s %i'
-        print "\nCovarion stats"
-        print format % ('each group has sames, with the same char', c1)
-        print format % ('each group has sames, but a different char', c2)
-        print format % ('sames in A, differents in B', c3)
-        print format % ('differents in A, sames in B', c4)
-        print format % ('differents in both groups', c5)
+        print("\nCovarion stats")
+        print(format % ('each group has sames, with the same char', c1))
+        print(format % ('each group has sames, but a different char', c2))
+        print(format % ('sames in A, differents in B', c3))
+        print(format % ('differents in A, sames in B', c4))
+        print(format % ('differents in both groups', c5))
 
     return (c1, c2, c3, c4, c5)
 
@@ -957,7 +957,7 @@ def pDistances(self, ignoreGaps=True, divideByNPositionsCompared=True):
     If divideByNPositionsCompared is turned off, then the number of
     differences is divided by the length of the alignment.  """
 
-    from DistanceMatrix import DistanceMatrix
+    from .DistanceMatrix import DistanceMatrix
     d = DistanceMatrix()
     d.setDim(len(self.sequences))
     d.names = []
@@ -980,7 +980,7 @@ def pDistances(self, ignoreGaps=True, divideByNPositionsCompared=True):
                         nDiffs += 1
             if divideByNPositionsCompared:
                 if not nPositions:
-                    print "No shared positions between (zero-based) seqs %i and %i.  Setting to 1.0" % (i, j)
+                    print("No shared positions between (zero-based) seqs %i and %i.  Setting to 1.0" % (i, j))
                     fDiffs = 1.0
                 else:
                     fDiffs = float(nDiffs)/float(nPositions)
@@ -1015,7 +1015,7 @@ def recodeDayhoff(self, firstLetter=False):
     gm = ['Alignment.recodeDayhoff()']
     if self.dataType != 'protein':
         gm.append("This is only for protein alignments.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for s in self.sequences:
         s.dataType = 'standard'
@@ -1057,7 +1057,7 @@ def recodeDayhoff(self, firstLetter=False):
             elif c == 'x':
                 s.sequence[i] = '-'
             else:
-                print "skipping character '%s'" % c  # Maybe this should raise a Glitch?
+                print("skipping character '%s'" % c)  # Maybe this should raise a Glitch?
         s.sequence = string.join(s.sequence, '')
     self.dataType = 'standard'
     self.equates = {}
@@ -1086,14 +1086,14 @@ def recodeProteinIntoGroups(self, groups, firstLetter=False):
     gm = ['Alignment.recodeProteinIntoGroups()']
     if self.dataType != 'protein':
         gm.append("This is only for protein alignments.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
-    assert type(groups) == types.ListType
+    assert type(groups) == list
     nGroups = len(groups)
     assert nGroups > 1
     assert nGroups < 20
     for gr in groups:
-        assert type(gr) == types.StringType
+        assert type(gr) == bytes
     myGroups = [gr.lower() for gr in groups]
     theseSymbols = ''.join(myGroups)
     assert len(theseSymbols) == 20
@@ -1124,7 +1124,7 @@ def recodeProteinIntoGroups(self, groups, firstLetter=False):
                 elif c == 'x':
                     s.sequence[i] = '-'
                 else:
-                    print "skipping character '%s'" % c  # Maybe this should raise a Glitch?
+                    print("skipping character '%s'" % c)  # Maybe this should raise a Glitch?
         s.sequence = ''.join(s.sequence)
     self.dataType = 'standard'
     self.equates = {}
@@ -1156,7 +1156,7 @@ def recodeRY(self, ambigsBecomeGaps=True):
     gm = ['Alignment.recodeRY()']
     if self.dataType != 'dna':
         gm.append("This is only for dna alignments.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for s in self.sequences:
         s.dataType = 'standard'
@@ -1219,40 +1219,40 @@ def checkTranslation(self, theProteinAlignment, transl_table=1, checkStarts=Fals
     gm = ['Alignment.checkTranslation()']
     if self.dataType != 'dna':
         gm.append("Self should be a DNA alignment.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not theProteinAlignment or \
            type(theProteinAlignment) != type(self) or \
            theProteinAlignment.dataType != 'protein':
         gm.append("Something wrong with theProteinAlignment")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if len(self.sequences) != len(theProteinAlignment.sequences):
         gm.append("Self and theProteinAlignment have different numbers of sequences")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for seqNum in range(len(self.sequences)):
         s1 = self.sequences[seqNum]
         s2 = theProteinAlignment.sequences[seqNum]
         if s1.name != s2.name:
             gm.append("The sequence names of self and theProteinAlignment are not the same")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     if self.length != (3 * theProteinAlignment.length):
         gm.append("The length of the DNA alignment should be 3 times that of theProteinAlignment")
         gm.append("DNA alignment (self):  %i"  % self.length)
         gm.append("Protein alignment:     %i  ( * 3 = %i)" % \
               (theProteinAlignment.length, (3 * theProteinAlignment.length)))
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
-    from GeneticCode import GeneticCode
+    from .GeneticCode import GeneticCode
     gc = GeneticCode(transl_table)
 
     pLen = theProteinAlignment.length
     for i in range(len(self.sequences)):
         s1 = self.sequences[i]
         s2 = theProteinAlignment.sequences[i]
-        print "Checking %s ..." % s1.name
+        print("Checking %s ..." % s1.name)
         crimes = 0
         for j in range(pLen):
             theCodon = s1.sequence[(3 * j) + 0] + \
@@ -1260,10 +1260,10 @@ def checkTranslation(self, theProteinAlignment, transl_table=1, checkStarts=Fals
                        s1.sequence[(3 * j) + 2]
             if theCodon == '---':
                 if s2.sequence[j] != '-':
-                    print "    position %4i, codon '---' is '%s', should be '-'" % (j, s2.sequence[j])
+                    print("    position %4i, codon '---' is '%s', should be '-'" % (j, s2.sequence[j]))
                     crimes += 1
             elif theCodon.count('-'):
-                print "    position %4i, codon '%s' is incomplete" % (j, theCodon)
+                print("    position %4i, codon '%s' is incomplete" % (j, theCodon))
                 crimes += 1
             # elif gc.code.has_key(theCodon):
             #     if gc.code[theCodon] != s2.sequence[j]:
@@ -1276,21 +1276,21 @@ def checkTranslation(self, theProteinAlignment, transl_table=1, checkStarts=Fals
             else:
                 tr = gc.translate(theCodon)
                 if tr != s2.sequence[j]:
-                    print "    position %4i, codon '%s' is '%s', should be '%s'" % (
-                        j, theCodon, s2.sequence[j], gc.code[theCodon])
+                    print("    position %4i, codon '%s' is '%s', should be '%s'" % (
+                        j, theCodon, s2.sequence[j], gc.code[theCodon]))
                     crimes += 1
                     
                 # If arg checkStarts is turned on -- Is the first
                 # codon a start?  -- if not, it is not a crime
                 if checkStarts and j == 0:
                     if theCodon in gc.startList:
-                        print "    Seq %i (%s). The first codon, '%s', is a start codon" % (i, s1.name, theCodon)
+                        print("    Seq %i (%s). The first codon, '%s', is a start codon" % (i, s1.name, theCodon))
                     else:
-                        print "    Seq %i (%s). The first codon, '%s', is not a start codon" % (i, s1.name, theCodon)
+                        print("    Seq %i (%s). The first codon, '%s', is not a start codon" % (i, s1.name, theCodon))
             if crimes > 6:
                 break
         if crimes > 6:
-            print "    ... and possibly others, skipped."
+            print("    ... and possibly others, skipped.")
         
 
 
@@ -1334,11 +1334,11 @@ def translate(self, transl_table=1, checkStarts=False, nnn_is_gap=False):
     gm = ['Alignment.translate()']
     if self.dataType != 'dna':
         gm.append("Self should be a DNA alignment")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if self.length % 3 != 0:
         gm.append("The length of self should be a multiple of 3")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     a = self.dupe()
     a.dataType = 'protein'
@@ -1353,10 +1353,10 @@ def translate(self, transl_table=1, checkStarts=False, nnn_is_gap=False):
         s.sequence = ['-'] * a.length
         s.dataType = 'protein'
 
-    from GeneticCode import GeneticCode
+    from .GeneticCode import GeneticCode
     gc = GeneticCode(transl_table)
 
-    dnaEquates = self.equates.keys()
+    dnaEquates = list(self.equates.keys())
     #print dnaEquates  # ['b', 'd', 'h', 'k', 'm', 'n', 's', 'r', 'w', 'v', 'y']
 
     for i in range(len(self.sequences)):
@@ -1369,10 +1369,10 @@ def translate(self, transl_table=1, checkStarts=False, nnn_is_gap=False):
             if theCodon == '---':
                 protSeq[j] = '-'
             elif theCodon.count('-'):
-                print "    seq %i, position %4i, dnaSeq %4i, codon '%s' is incomplete" % (i, j, (j*3), theCodon)
+                print("    seq %i, position %4i, dnaSeq %4i, codon '%s' is incomplete" % (i, j, (j*3), theCodon))
             elif theCodon == 'nnn':
                 if nnn_is_gap:
-                    print "    seq %i, position %4i, dnaSeq %4i, codon '%s' translating to a gap ('-')" % (i, j, (j*3), theCodon)
+                    print("    seq %i, position %4i, dnaSeq %4i, codon '%s' translating to a gap ('-')" % (i, j, (j*3), theCodon))
                     protSeq[j] = '-'
                 else:
                     protSeq[j] = 'x'
@@ -1382,11 +1382,11 @@ def translate(self, transl_table=1, checkStarts=False, nnn_is_gap=False):
                 #protSeq[j] = 'x'
                 if checkStarts and j == 0:
                     if theCodon in gc.startList:
-                        print "    Seq %i (%s). The first codon, '%s', is a start codon" % (
-                            i, self.sequences[i].name, theCodon)
+                        print("    Seq %i (%s). The first codon, '%s', is a start codon" % (
+                            i, self.sequences[i].name, theCodon))
                     else:
-                        print "    Seq %i (%s). The first codon, '%s', is not a start codon" % (
-                            i, self.sequences[i].name, theCodon)
+                        print("    Seq %i (%s). The first codon, '%s', is not a start codon" % (
+                            i, self.sequences[i].name, theCodon))
 
     for s in a.sequences:
         s.sequence = string.join(s.sequence, '')
@@ -1412,7 +1412,7 @@ def excludeCharSet(self, theCharSetName):
     else:
         if not len(self.nexusSets.charSets):
             gm.append("This alignment has no non-pre-defined charSets")
-            raise Glitch, gm
+            raise Glitch(gm)
         for cs in self.nexusSets.charSets:
             if cs.lowName == lowName:
                 theCS = cs
@@ -1420,7 +1420,7 @@ def excludeCharSet(self, theCharSetName):
 
     if theCS == None:
         gm.append("This alignment has no charset named '%s'" % theCharSetName)
-        raise Glitch, gm
+        raise Glitch(gm)
     if theCS.nChar == None:
         if self.excludeDelete:
             theCS.setNChar(self.excludeDelete.length)
@@ -1441,8 +1441,8 @@ def excludeCharSet(self, theCharSetName):
         self.excludeDelete.resetSequences()
         #self.excludeDelete.dump()
     else:
-        print gm[0]
-        print "    %s has already been excluded." % theCharSetName
+        print(gm[0])
+        print("    %s has already been excluded." % theCharSetName)
     self.parts = []
 
 
@@ -1484,24 +1484,24 @@ def putGaps(self, theDnaSequenceList):
     gm = ['Alignment.putGaps()']
     if self.dataType != 'protein':
         gm.append("self should be a protein alignment.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for s in theDnaSequenceList.sequences:
         if s.sequence.count('-'):
             gm.append("DNA sequence %s already has gaps." % s.name)
-            raise Glitch, gm
+            raise Glitch(gm)
         if len(s.sequence) % 3 != 0:
             gm.append("DNA sequence %s" % s.name)
             gm.append("Length %i is not evenly divisible by 3." % len(s.sequence))
-            raise Glitch, gm
+            raise Glitch(gm)
         if (len(s.sequence) / 3) > self.length:
             gm.append("DNA sequence %s" % s.name)
             gm.append("Length %i is more than 3 times the protein length %i." % (len(s.sequence), self.length))
-            raise Glitch, gm
+            raise Glitch(gm)
         if s.dataType != 'dna':
             gm.append("DNA(?!?) sequence %s" % s.name)
             gm.append("Appears to not be a DNA sequence.  DataType %s." % s.dataType)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for i in range(len(self.sequences)):
         dnaSeq = theDnaSequenceList.sequences[i]
@@ -1509,10 +1509,10 @@ def putGaps(self, theDnaSequenceList):
         if dnaSeq.name != protSeq.name:
             gm.append("Names for (zero-based) sequence %i don't match." % i)
             gm.append("Got protein %s, DNA %s." % (protSeq.name, dnaSeq.name))
-            raise Glitch, gm
+            raise Glitch(gm)
 
-    from Alignment import Alignment
-    from SequenceList import Sequence
+    from .Alignment import Alignment
+    from .SequenceList import Sequence
 
     a = Alignment()
     a.dataType = 'dna'
@@ -1634,14 +1634,14 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
     #if sequenceType == 'p':
     #    if self.dataType != 'protein':
     #        errors.append("Gblocks sequenceType is p, but this alignment is dataType %s" % self.dataType)
-    if isinstance(b1, types.NoneType):
-        if not isinstance(b2, types.NoneType):
+    if isinstance(b1, type(None)):
+        if not isinstance(b2, type(None)):
             errors.append("\tYou must set b1 and b2 together or not at all")
             errors.append("\tb1 = Minimum number of sequences for a conserved position")
             errors.append("\tb2 = Minimum number of sequences for a flank position")
         pass
     else:
-        if not isinstance(b1, types.IntType):
+        if not isinstance(b1, int):
             errors.append("\tb1 (Minimum number of sequences for a conserved position)")
             errors.append("\tmust be None or an integer")
         else:
@@ -1651,17 +1651,17 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
             elif b1 < self.nTax/2:
                 errors.append("\tb1 (Minimum number of sequences for a conserved position)")
                 errors.append("\tmust be > than the number of taxa in matrix /2")
-    if isinstance(b2, types.NoneType):
+    if isinstance(b2, type(None)):
         pass
     else:
-        if not isinstance(b2, types.IntType):
+        if not isinstance(b2, int):
             errors.append("\tb2 (Minimum number of sequences for a flank position)")
             errors.append("\tmust be None or an integer")
         elif b2 < b1:
             errors.append("\tb2 (Minimum number of sequences for a flank position) must be >= b1")
-    if not isinstance(b3, types.IntType):
+    if not isinstance(b3, int):
         errors.append("\tb3 (Maximum Number Of Contiguous Nonconserved Positions) must be an integer")
-    if not isinstance(b4, types.IntType):
+    if not isinstance(b4, int):
         errors.append("\tb4 (Minimum Length Of A Block) must be an integer")
     if b5 not in ['n', 'h', 'a']:
         errors.append("\tb5 (Allowed Gap Positions (None, With Half, All) n,h,a")
@@ -1674,7 +1674,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
     #        errors.append("\tSome site have all gaps. Deleted these before using Gblocks")
         
     if errors != []:
-        raise Glitch, gm + errors
+        raise Glitch(gm + errors)
 
     self.renameForPhylip()
 
@@ -1692,7 +1692,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
     cmdLine = cmd % (pathToGBlocks, fastaFileName,
                      b1 and "-b1=%i " % b1 or "", b2 and "-b2=%i" % b2 or "", b3, b4, b5)
     if verbose:
-        print cmdLine
+        print(cmdLine)
     if not verbose:
         cmdLine = cmdLine + " >/dev/null"
     os.system(cmdLine)
@@ -1709,10 +1709,10 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
         gm.append("\tUnable to read output from GBlocks")
         gm.append("\tCheck that Gblocks is in your $PATH or set 'pathToGBlocks'")
         os.remove(fastaFileName)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if verbose:
-        print fh.read()
+        print(fh.read())
     fh.close()
 
     theAllGapsMask = self.getAllGapsMask()
@@ -1730,7 +1730,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
     aLine = fLines[spot].rstrip()
     if not aLine.endswith("Gblocks"):
         gm.append("Something wrong with reading the mask file.  No Gblocks line.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # collect lines until the end of the fLines
     mStrings = []
@@ -1765,7 +1765,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
                 myMask.append('1')
             else:
                 gm.append("Programming error getting the mask. c2='%s'" % c2)
-                raise Glitch, gm
+                raise Glitch(gm)
             
     myMask = ''.join(myMask)
     #print myMask
@@ -1773,7 +1773,7 @@ def setGBlocksCharSet(self, b1=None, b2=None, b3=8, b4=10, b5='n', pathToGBlocks
 
     if len(myMask) !=  self.length:
         gm.append('mask length is %i.  self.length is %i.  Bad.' % (len(myMask), self.length))
-        raise Glitch, gm
+        raise Glitch(gm)
     
 
     if deleteFiles:
@@ -1869,7 +1869,7 @@ def meanNCharsPerSite(self, showDistribution=True):
                 counters[c] += 1
         #hits = 0
         hitsAtThisPos = 0
-        for k,v in counters.iteritems():
+        for k,v in counters.items():
             if v:
                 hitsAtThisPos += 1
                 counters[k] = 0
@@ -1877,27 +1877,27 @@ def meanNCharsPerSite(self, showDistribution=True):
             hits += hitsAtThisPos
             nPos += 1
         if showDistribution:
-            if distro.has_key(hitsAtThisPos):
+            if hitsAtThisPos in distro:
                 distro[hitsAtThisPos] += 1
             else:
                 distro[hitsAtThisPos] = 1
         #print pos, hits
     if showDistribution:
-        kk = distro.keys()
+        kk = list(distro.keys())
         kk.sort()
         theMin = kk[0]
         theMax = kk[-1]
-        print "\nnChars count"
-        print "------ -----"
+        print("\nnChars count")
+        print("------ -----")
         #for k in kk:
         #    print "%2i  %3i" % (k, distro[k])
         #print 
         for k in range(theMin, theMax+1):
             # Tom Williams 7 Feb 2011 bug report and fix (Thanks!). Was 'if distro[k]:' -- no workee if k is not a key.
             if k in distro:
-                print "%4i   %4i" % (k, distro[k])
+                print("%4i   %4i" % (k, distro[k]))
             else:
-                print "%4i   %4i" % (k, 0)
+                print("%4i   %4i" % (k, 0))
     return float(hits)/nPos
 
 
@@ -2089,14 +2089,14 @@ def _ababnehEtAlStatsAndProbs(bigF, dim, txNumA, txNumB, doProbs=True):
     try:
         VtoTheMinus1 = np.linalg.solve(V, np.identity(dim - 1))
     except np.linalg.LinAlgError:
-        print
-        print V
-        print 'Trying to invert the V matrix, printed out above.'
-        print 'txNumA = %i, txNumB = %i' % (txNumA, txNumB)
-        print 'bigF ='
-        print bigF
-        print 'sumOfColumns = ', sumOfColumns
-        print 'sumOfRows = ', sumOfRows
+        print()
+        print(V)
+        print('Trying to invert the V matrix, printed out above.')
+        print('txNumA = %i, txNumB = %i' % (txNumA, txNumB))
+        print('bigF =')
+        print(bigF)
+        print('sumOfColumns = ', sumOfColumns)
+        print('sumOfRows = ', sumOfRows)
         VtoTheMinus1 = np.linalg.solve(V, np.identity(dim - 1))
     #print VtoTheMinus1
     QS = np.dot(np.dot(d,VtoTheMinus1),d)
@@ -2269,7 +2269,7 @@ def getMinmaxChiSqGroups(self, percent_cutoff=0.05, min_bins=2, max_bins=20,
     #data in CAPITALS!?!
     if self.dataType != "protein":
         gm.append("The data are not protein.")
-        raise Glitch, gm
+        raise Glitch(gm)
     maxNameLen = max([len(s.name) for s in self.sequences])
     if maxNameLen > var.phylipDataMaxNameLength:
         gm.append('The longest name length in this alignment is %i' % maxNameLen)
@@ -2277,10 +2277,10 @@ def getMinmaxChiSqGroups(self, percent_cutoff=0.05, min_bins=2, max_bins=20,
         gm.append(arg)
         gm.append('Sequence names will be truncated.  Fix it.')
         gm.append("You may want to use the 'renameForPhylip()' method.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not func.which2("minmax-chisq"):
         gm.append("minmax-chisq is not in your path")
-        raise Glitch, gm
+        raise Glitch(gm)
     the_data = []
     the_data.append("%i %i" % (self.nTax, self.nChar))
     theFormat = "%-10s"
@@ -2293,16 +2293,16 @@ def getMinmaxChiSqGroups(self, percent_cutoff=0.05, min_bins=2, max_bins=20,
     stdout, stderr = child.communicate(data_file)
     if stderr != "":
         gm.append("Minmax-chisq returned an error: %s" % stderr)
-        raise Glitch, gm
-    results = zip(*[iter(stdout.split("\n"))] * 2)
+        raise Glitch(gm)
+    results = list(zip(*[iter(stdout.split("\n"))] * 2))
     #Need the binning before pvalue falls below percent_cutoff
     #They could be all <= 0.05 or all >= 0.05 because of the binning range
     pvalues = [float(bin[0].split()[1]) for bin in results]
     if not pvalues[0] >= percent_cutoff:
-        print "No p-value <= %s" % percent_cutoff
+        print("No p-value <= %s" % percent_cutoff)
         return None
     if not any(pv for pv in pvalues if pv >= percent_cutoff):
-        print "No p-value >= %s" % percent_cutoff
+        print("No p-value >= %s" % percent_cutoff)
         return None
     for i, bin_result in enumerate(results):
         nbins, pvalue = bin_result[0].split()
@@ -2312,17 +2312,17 @@ def getMinmaxChiSqGroups(self, percent_cutoff=0.05, min_bins=2, max_bins=20,
     nbins, pvalue = opt_bin[0].split()
     scores = opt_bin[1].split()
     amino_acid_order = "A R N D C Q E G H I L K M F P S T W Y V".lower().split()
-    c = zip(scores, amino_acid_order)
+    c = list(zip(scores, amino_acid_order))
     groups = {}
     for bin, amino in c:
         sbin = str(bin)
         groups[sbin] = groups.get(sbin, "") + amino
     if verbose:
-        print "\nminmax-chisq output:\n%s" % stdout
-        print "\nMaximum number of bins that maintains homogeneity: %s" % nbins
-        print "\nGroups: %s" % ", ".join(groups.values())
+        print("\nminmax-chisq output:\n%s" % stdout)
+        print("\nMaximum number of bins that maintains homogeneity: %s" % nbins)
+        print("\nGroups: %s" % ", ".join(list(groups.values())))
 
-    return groups.values()
+    return list(groups.values())
 
 def getKosiolAISGroups(self, tree, n_bins, remove_files=False, verbose=True):
     """An interface for Kosiol's program AIS, for grouping amino acids.
@@ -2345,19 +2345,19 @@ def getKosiolAISGroups(self, tree, n_bins, remove_files=False, verbose=True):
     gm = ["Alignment.writeKosiolAISFiles() "]
     if not tree.model:
         gm.append("Requires a tree with an optimimised model attached.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not tree.data:
         d = Data()
         tree.data = d
     if self.dataType != "protein":
         gm.append("The data are not protein.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not p4_which("ais"):
         gm.append("ais is not in your path")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not n_bins > 1 or not n_bins < 20:
         gm.append("n_bins must be > 1 and < 20")
-        raise Glitch, gm
+        raise Glitch(gm)
     #Init the model
     tree.calcLogLike(verbose=0)
     # Write the aa freqs
@@ -2410,7 +2410,7 @@ def getKosiolAISGroups(self, tree, n_bins, remove_files=False, verbose=True):
             continue
         else:
             if verbose:
-                print stdout
+                print(stdout)
             fh = open("%isets.txt" % n_bins, "r")
             lines = fh.readlines()
             fh.close()
@@ -2421,12 +2421,12 @@ def getKosiolAISGroups(self, tree, n_bins, remove_files=False, verbose=True):
                     sets.append("".join(aas.strip().lower().split()))
             if len(sets) != n_bins:
                 gm.append("Error: only recovered %i sets" % len(sets))
-                raise Glitch, gm
+                raise Glitch(gm)
             if remove_files:
                 for f in ["equi", "q", "evec", "%isets.txt" % n_bins,
                             "graph.txt", "coloring.txt"]:
                     if os.path.exists(f):
                         os.remove(f)
             return sets
-    print "Unable to run ais after 10 attempts. Giving up."
+    print("Unable to run ais after 10 attempts. Giving up.")
 

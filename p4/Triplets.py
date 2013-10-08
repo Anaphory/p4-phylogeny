@@ -1,6 +1,6 @@
 import string
-from Tree import Tree
-from Node import Node
+from .Tree import Tree
+from .Node import Node
 
 
 class Aho(object):
@@ -63,7 +63,7 @@ class Aho(object):
         
         tripletLists = []
         for c in components:
-            tripletLists.append([len(c.dict.keys()),c.getTriplets()])
+            tripletLists.append([len(list(c.dict.keys())),c.getTriplets()])
 #            print c.getTriplets()
                   
         return tripletLists
@@ -83,13 +83,13 @@ class Component(object):
         
     def join(self, component):
         self.list.extend(component.list)
-        for k in component.dict.keys():
+        for k in list(component.dict.keys()):
             self.dict[k] = 1
              
     def contains(self, triplet):
-        if self.dict.has_key(triplet[0]):
+        if triplet[0] in self.dict:
             return True
-        if self.dict.has_key(triplet[1]):
+        if triplet[1] in self.dict:
             return True
         return False
     
@@ -110,18 +110,18 @@ class TripletStripper(object):
         self.index = 0
         
     def printSet(self):
-        print 'Added: %s' % (self.added)
-        print 'Set.len: %s' % (len(self.set))
-        print 'Set'
+        print('Added: %s' % (self.added))
+        print('Set.len: %s' % (len(self.set)))
+        print('Set')
         for t in self.set:
-            print t
-        print 'Translation table'
-        for i,j in self.taxa2id.items():
-            print 'Item: %s, Value: %s' % (i,j)
+            print(t)
+        print('Translation table')
+        for i,j in list(self.taxa2id.items()):
+            print('Item: %s, Value: %s' % (i,j))
         if self.translatedSet:
-            print 'Translated set'
+            print('Translated set')
             for t in self.translatedSet:
-                print t
+                print(t)
         
     def getTripletSet(self):
         return self.set

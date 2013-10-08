@@ -1,6 +1,6 @@
 import time,os,string,glob,sys,math
 import pf,func
-from Glitch import Glitch
+from .Glitch import Glitch
 
 ##Ignore
 def _fixFileName(fName):
@@ -321,10 +321,10 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
             aLine = f2.readline()
             if not aLine:
                 gm.append("Empty file %s" % fName1)
-                raise Glitch, gm
+                raise Glitch(gm)
             if aLine[0] != '#':
                 gm.append("Expecting a '#' as the first character in file %s" % fName1)
-                raise Glitch, gm
+                raise Glitch(gm)
             aLine = f2.readline()
             #print "a got line %s" % aLine,
             while aLine:
@@ -333,12 +333,12 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
                     if len(splitLine) != 4:
                         gm.append("Bad line in Goldman stats file %s" % fName1)
                         gm.append("'%s'" % aLine)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if int(splitLine[0]) != -1:
                         gm.append("Bad line in Goldman stats file %s" % fName1)
                         gm.append("First item should be -1")
                         gm.append("'%s'" % aLine)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     #print splitLine[-1]
                     goldmanOverallSimStats.append(float(splitLine[-1]))
 
@@ -346,7 +346,7 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
                     #print "b got line %s" % aLine,
                     if not aLine:
                         gm.append("Premature end to file %s" % fName1)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
                 for partNum in range(self.data.nParts):
                     splitLine = aLine.split()
@@ -354,19 +354,19 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
                     if len(splitLine) != 4:
                         gm.append("Bad line in Goldman stats file %s" % fName1)
                         gm.append("'%s'" % aLine)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     try:
                         splitLine[0] = int(splitLine[0])
                     except ValueError:
                         gm.append("Bad line in Goldman stats file %s" % fName1)
                         gm.append("First item should be the partNum %i" % partNum)
                         gm.append("'%s'" % aLine)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if splitLine[0] != partNum:
                         gm.append("Bad line in Goldman stats file %s" % fName1)
                         gm.append("First item should be the partNum %i" % partNum)
                         gm.append("'%s'" % aLine)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     #for taxNum in range(self.data.nTax):
                     #    print splitLine[taxNum + 1]
                     #print splitLine[-1]
@@ -572,12 +572,12 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
             h['individualSimStats'].append([])
 
         if 0:
-            print "h['individualNSites'] = %s" % h['individualNSites']
-            print "h['observedIndividualCounts'] = %s" % h['observedIndividualCounts']
-            print "h['expectedIndividualCounts'] = %s" % h['expectedIndividualCounts']
-            print "h['overallStat'] = %s" % h['overallStat']
-            print "h['individualStats'] = %s" % h['individualStats']
-            raise Glitch, gm
+            print("h['individualNSites'] = %s" % h['individualNSites'])
+            print("h['observedIndividualCounts'] = %s" % h['observedIndividualCounts'])
+            print("h['expectedIndividualCounts'] = %s" % h['expectedIndividualCounts'])
+            print("h['overallStat'] = %s" % h['overallStat'])
+            print("h['individualStats'] = %s" % h['individualStats'])
+            raise Glitch(gm)
 
 
 
@@ -589,7 +589,7 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
         aLine = f2.readline()
         if not aLine:
             gm.append("Empty file %s" % fName1)
-            raise Glitch, gm
+            raise Glitch(gm)
         #print "a got line %s" % aLine,
         while aLine:
             for partNum in range(self.data.nParts):
@@ -598,12 +598,12 @@ def modelFitTests(self, fName = 'model_fit_tests_out', writeRawStats=0):
                 if len(splitLine) != (self.data.nTax + 2):
                     gm.append("Bad line in composition stats file %s" % fName1)
                     gm.append("'%s'" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 if int(splitLine[0]) != partNum:
                     gm.append("Bad line in composition stats file %s" % fName1)
                     gm.append("First item should be the partNum %i" % partNum)
                     gm.append("'%s'" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #for taxNum in range(self.data.nTax):
                 #    print splitLine[taxNum + 1]
                 #print splitLine[-1]
@@ -793,15 +793,15 @@ def compoTestUsingSimulations(self, nSims=100, doIndividualSequences=0, doChiSqu
 
     if not self.data:
         gm.append("No data.  Set the data first.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not self.model:
         gm.append("No model.  You need to set the model first.")
-        raise Glitch, gm
+        raise Glitch(gm)
     self.modelSanityCheck()
     if self.model.isHet:
         gm.append("The model for this tree is tree-heterogeneous.")
         gm.append("This test is not valid for tree-hetero models.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Make a new data object in which to do the sims, so we do not over-write self
     #print "a self.data = %s" % self.data
@@ -874,7 +874,7 @@ def compoTestUsingSimulations(self, nSims=100, doIndividualSequences=0, doChiSqu
             headWid = len(tN)
     headWid += 2
     #headSig = '%-' + `headWid` + 's'
-    headSig = '%' + `headWid - 2` + 's  '
+    headSig = '%' + repr(headWid - 2) + 's  '
 
     # Get the all-sequences tail area probs
     partTaps = []
@@ -883,64 +883,64 @@ def compoTestUsingSimulations(self, nSims=100, doIndividualSequences=0, doChiSqu
 
     # Intro
     if verbose:
-        print "Composition homogeneity test using simulations."
-        print "P-values are shown."
+        print("Composition homogeneity test using simulations.")
+        print("P-values are shown.")
         if doChiSquare:
-            print "(P-values from Chi-Square are shown in parens.)"
-        print
+            print("(P-values from Chi-Square are shown in parens.)")
+        print()
 
     # Print the Part Nums and Part Names
     if verbose:
-        print headSig % 'Part Num',
+        print(headSig % 'Part Num', end=' ')
         for pNum in range(self.data.nParts):
-            print string.center('%i' % pNum, partWid),
-        print
-        print headSig % 'Part Name',
+            print(string.center('%i' % pNum, partWid), end=' ')
+        print()
+        print(headSig % 'Part Name', end=' ')
         for pNum in range(self.data.nParts):
-            print string.center('%s' % self.data.parts[pNum].name, partWid),
-        print
-        print headSig % ('-' * (headWid - 2)),
+            print(string.center('%s' % self.data.parts[pNum].name, partWid), end=' ')
+        print()
+        print(headSig % ('-' * (headWid - 2)), end=' ')
         for pNum in range(self.data.nParts):
-            print string.center('%s' % ('-' * (partWid - 2)), partWid),
-        print
+            print(string.center('%s' % ('-' * (partWid - 2)), partWid), end=' ')
+        print()
 
     # Print the all-sequences results
     if verbose:
-        print headSig % 'All Sequences',
+        print(headSig % 'All Sequences', end=' ')
         for pNum in range(self.data.nParts):
-            print string.center('%6.4f' % partTaps[pNum], partWid),
-        print
+            print(string.center('%6.4f' % partTaps[pNum], partWid), end=' ')
+        print()
         if doChiSquare:
-            print headSig % '(Chi-Squared Prob)',
+            print(headSig % '(Chi-Squared Prob)', end=' ')
             for pNum in range(self.data.nParts):
-                print string.center('(%6.4f)' % original[pNum][2], partWid),
-            print
+                print(string.center('(%6.4f)' % original[pNum][2], partWid), end=' ')
+            print()
 
 
     if doIndividualSequences and verbose:
-        print
+        print()
         #print "Individual sequences"
         #print "--------------------"
 
         for tNum in range(self.data.nTax):
-            print headSig % self.data.taxNames[tNum],
+            print(headSig % self.data.taxNames[tNum], end=' ')
             for pNum in range(self.data.nParts):
                 if tNum not in skips[pNum]:
                     ret = func.tailAreaProbability(original[pNum][3][tNum], rows[pNum][tNum], verbose = 0)
-                    print string.center('%6.4f' % ret, partWid),
+                    print(string.center('%6.4f' % ret, partWid), end=' ')
                 else:
-                    print string.center('%s' % ('-' * 4), partWid),
-            print
+                    print(string.center('%s' % ('-' * 4), partWid), end=' ')
+            print()
             if doChiSquare:
-                print headSig % ' ',
+                print(headSig % ' ', end=' ')
                 for pNum in range(self.data.nParts):
                     dof = self.data.parts[pNum].dim - 1 # degrees of freedom
                     if tNum not in skips[pNum]:
                         ret = func.chiSquaredProb(original[pNum][3][tNum], dof)
-                        print string.center('(%6.4f)' % ret, partWid),
+                        print(string.center('(%6.4f)' % ret, partWid), end=' ')
                     else:
-                        print string.center('%s' % ('-' * 4), partWid),
-                print
+                        print(string.center('%s' % ('-' * 4), partWid), end=' ')
+                print()
 
     # Replace the saved data
     self.data = savedData # Since we are replacing an exisiting data, this triggers self.deleteCStuff()
@@ -966,8 +966,8 @@ def bigXSquaredSubM(self, verbose=False):
     l = []
     for pNum in range(self.data.nParts):
         if verbose:
-            print "Part %i" % pNum
-            print "======"
+            print("Part %i" % pNum)
+            print("======")
         obs = []
         nSites = [] # no gaps or ?
         for taxNum in range(self.nTax):
@@ -978,32 +978,32 @@ def bigXSquaredSubM(self, verbose=False):
             nSites.append(thisNSites)
             obs.append(comp)
         if verbose:
-            print "\n  Observed"
-            print " " * 10,
+            print("\n  Observed")
+            print(" " * 10, end=' ')
             for symbNum in range(self.data.parts[pNum].dim):
-                print "%8s" % self.data.parts[pNum].symbols[symbNum],
-            print
+                print("%8s" % self.data.parts[pNum].symbols[symbNum], end=' ')
+            print()
             for taxNum in range(self.nTax):
-                print "%10s" % self.taxNames[taxNum],
+                print("%10s" % self.taxNames[taxNum], end=' ')
                 for symbNum in range(self.data.parts[pNum].dim):
-                    print "%8.4f" % obs[taxNum][symbNum],
-                print "   n=%i" % nSites[taxNum]
+                    print("%8.4f" % obs[taxNum][symbNum], end=' ')
+                print("   n=%i" % nSites[taxNum])
                 
 
         # pf.p4_expectedCompositionCounts returns a tuple of tuples
         # representing the counts of the nodes in proper alignment order.
         exp = list(pf.p4_expectedCompositionCounts(self.cTree, pNum))
         if verbose:
-            print "\n  Expected"
-            print " " * 10,
+            print("\n  Expected")
+            print(" " * 10, end=' ')
             for symbNum in range(self.data.parts[pNum].dim):
-                print "%8s" % self.data.parts[pNum].symbols[symbNum],
-            print
+                print("%8s" % self.data.parts[pNum].symbols[symbNum], end=' ')
+            print()
             for taxNum in range(self.nTax):
-                print "%10s" % self.taxNames[taxNum],
+                print("%10s" % self.taxNames[taxNum], end=' ')
                 for symbNum in range(self.data.parts[pNum].dim):
-                    print "%8.4f" % exp[taxNum][symbNum],
-                print "   n=%i" % nSites[taxNum]
+                    print("%8.4f" % exp[taxNum][symbNum], end=' ')
+                print("   n=%i" % nSites[taxNum])
 
         # do the summation
         theSum = 0.0
@@ -1014,7 +1014,7 @@ def bigXSquaredSubM(self, verbose=False):
 
         l.append(theSum)
         if verbose:
-            print "The bigXSquaredSubM stat for this part is %.5f" % theSum
+            print("The bigXSquaredSubM stat for this part is %.5f" % theSum)
     return l
 
 
@@ -1037,36 +1037,36 @@ def compStatFromCharFreqs(self, verbose=False):
     l = []
     for pNum in range(self.data.nParts):
         if verbose:
-            print "Part %i" % pNum
-            print "======"
+            print("Part %i" % pNum)
+            print("======")
         obs = []
         for taxNum in range(self.nTax):
             comp = self.data.parts[pNum].composition([taxNum])
             obs.append(comp)
         if verbose:
-            print "\n  Observed"
-            print " " * 10,
+            print("\n  Observed")
+            print(" " * 10, end=' ')
             for symbNum in range(self.data.parts[pNum].dim):
-                print "%8s" % self.data.parts[pNum].symbols[symbNum],
-            print
+                print("%8s" % self.data.parts[pNum].symbols[symbNum], end=' ')
+            print()
             for taxNum in range(self.nTax):
-                print "%10s" % self.taxNames[taxNum],
+                print("%10s" % self.taxNames[taxNum], end=' ')
                 for symbNum in range(self.data.parts[pNum].dim):
-                    print "%8.4f" % obs[taxNum][symbNum],
-                print
+                    print("%8.4f" % obs[taxNum][symbNum], end=' ')
+                print()
                 
 
         if verbose:
-            print "\n  Expected"
-            print " " * 10,
+            print("\n  Expected")
+            print(" " * 10, end=' ')
             for symbNum in range(self.data.parts[pNum].dim):
-                print "%8s" % self.data.parts[pNum].symbols[symbNum],
-            print
+                print("%8s" % self.data.parts[pNum].symbols[symbNum], end=' ')
+            print()
             for taxNum in range(self.nTax):
-                print "%10s" % self.taxNames[taxNum],
+                print("%10s" % self.taxNames[taxNum], end=' ')
                 for symbNum in range(self.data.parts[pNum].dim):
-                    print "%8.4f" % exp[pNum][taxNum][symbNum],
-                print
+                    print("%8.4f" % exp[pNum][taxNum][symbNum], end=' ')
+                print()
 
         # do the summation
         theSum = 0.0
@@ -1076,7 +1076,7 @@ def compStatFromCharFreqs(self, verbose=False):
 
         l.append(theSum)
         if verbose:
-            print "The c_m stat for this part is %.5f" % theSum
+            print("The c_m stat for this part is %.5f" % theSum)
     return l
     
     

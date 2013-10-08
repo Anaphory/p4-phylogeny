@@ -39,6 +39,6 @@ for sampNum in range(0,10):
     t2.data = d
     t2.simulate()
     ret = t2.data.simpleBigXSquared()
-    print ret[0], ret[1]
+    print(ret[0], ret[1])
     
 

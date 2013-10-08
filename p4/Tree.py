@@ -1,12 +1,12 @@
-import sys,string,types,cStringIO,math,copy
-import func
-from Var import var
-from Glitch import Glitch
+import sys,string,types,io,math,copy
+from . import func
+from .Var import var
+from .Glitch import Glitch
 if var.usePfAndNumpy:
     import numpy
-    from Model import Model
-from Node import Node,NodePart,NodeBranchPart
-import NexusToken
+    from .Model import Model
+from .Node import Node,NodePart,NodeBranchPart
+from . import NexusToken
 
 
 class Tree(object):
@@ -205,12 +205,12 @@ class Tree(object):
     
     """
     # Tree methods in other files.
-    from Tree_muck import node, rotateAround, reRoot, removeRoot, removeNode, removeAboveNode, collapseNode, pruneSubTreeWithoutParent, reconnectSubTreeWithoutParent, addNodeBetweenNodes, allBiRootedTrees, ladderize, randomizeTopology, readBipartitionsFromPaupLogFile, renameForPhylip, restoreNamesFromRenameForPhylip, restoreDupeTaxa, lineUpLeaves, removeEverythingExceptCladeAtNode, dupeSubTree, addSubTree, addLeaf, addSibLeaf, subTreeIsFullyBifurcating, nni, checkThatAllSelfNodesAreInTheTree, spr, randomSpr, inputTreesToSuperTreeDistances
-    from Tree_write import patristicDistanceMatrix, tPickle, writePhylip, writeNexus, write, writeNewick, _getMcmcCommandComment, draw, textDrawList, eps, svg
+    from .Tree_muck import node, rotateAround, reRoot, removeRoot, removeNode, removeAboveNode, collapseNode, pruneSubTreeWithoutParent, reconnectSubTreeWithoutParent, addNodeBetweenNodes, allBiRootedTrees, ladderize, randomizeTopology, readBipartitionsFromPaupLogFile, renameForPhylip, restoreNamesFromRenameForPhylip, restoreDupeTaxa, lineUpLeaves, removeEverythingExceptCladeAtNode, dupeSubTree, addSubTree, addLeaf, addSibLeaf, subTreeIsFullyBifurcating, nni, checkThatAllSelfNodesAreInTheTree, spr, randomSpr, inputTreesToSuperTreeDistances
+    from .Tree_write import patristicDistanceMatrix, tPickle, writePhylip, writeNexus, write, writeNewick, _getMcmcCommandComment, draw, textDrawList, eps, svg
     if var.usePfAndNumpy:
-        from Tree_model import data, model, _setData, _checkModelThing, newComp, newRMatrix, newGdasrv, setPInvar, setRelRate, setRjComp, setRjRMatrix, setModelThing, setModelThingsRandomly, setModelThingsNNodes, summarizeModelThingsNNodes, setTextDrawSymbol, setNGammaCat, modelSanityCheck, setEmpiricalComps
-        from Tree_optSim import __del__, deleteCStuff, allocCStuff, setCStuff, _commonCStuff, calcLogLike, optLogLike, optTest, simplexDump, simulate, getSiteLikes, getSiteRates
-        from Tree_fit import simsForModelFitTests, modelFitTests, compoTestUsingSimulations, bigXSquaredSubM, compStatFromCharFreqs
+        from .Tree_model import data, model, _setData, _checkModelThing, newComp, newRMatrix, newGdasrv, setPInvar, setRelRate, setRjComp, setRjRMatrix, setModelThing, setModelThingsRandomly, setModelThingsNNodes, summarizeModelThingsNNodes, setTextDrawSymbol, setNGammaCat, modelSanityCheck, setEmpiricalComps
+        from .Tree_optSim import __del__, deleteCStuff, allocCStuff, setCStuff, _commonCStuff, calcLogLike, optLogLike, optTest, simplexDump, simulate, getSiteLikes, getSiteRates
+        from .Tree_fit import simsForModelFitTests, modelFitTests, compoTestUsingSimulations, bigXSquaredSubM, compStatFromCharFreqs
     #from Tree_pyLike import allocBigP, allocPartPatternsAndCondLikes, calcPartPatterns, calcBigP, calcBigPPart, calcCondLikes, calcCondLikesForPart, calcCondLikesForPartAtNode,partLogLike, calcLogLike2
 
     def __init__(self):
@@ -253,7 +253,7 @@ class Tree(object):
         if type(theTaxNames) != type([]):
             gm.append("You can only set property 'taxNames' to a list.")
             gm.append("Got attempt to set to '%s'" % theTaxNames)
-            raise Glitch, gm
+            raise Glitch(gm)
         self._taxNames = theTaxNames
         if theTaxNames: # and not var.allowTreesWithDifferingTaxonSets:  # Peter commented out until it is sorted. Why is it here?
             self.checkTaxNames()
@@ -276,7 +276,7 @@ class Tree(object):
         gm.append("    Caught an attempt to delete self.taxNames, but")
         gm.append("self.taxNames is a property, so you can't delete it.")
         gm.append("But you can set it to an empty list if you like.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     taxNames = property(lambda self: self._taxNames, _setTaxNames, _delTaxNames)
 
@@ -311,7 +311,7 @@ class Tree(object):
         gm = ['Tree._setNInternalNodes()']
         gm.append("Caught an attempt to set self.nInternalNodes, but")
         gm.append("self.nInternalNodes is a property, so you shouldn't do that.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     def _delNInternalNodes(self):
         self._nInternalNodes = -1
@@ -366,14 +366,14 @@ class Tree(object):
 
         gm  = ['Tree.parseNexus()'] # re-defined below
         if 0:
-            print 'Tree.parseNexus() translationHash = %s' % translationHash
-            print '    doModelComments = %s (nParts)' % doModelComments
-            print '    var.nexus_doFastNextTok = %s' % var.nexus_doFastNextTok
+            print('Tree.parseNexus() translationHash = %s' % translationHash)
+            print('    doModelComments = %s (nParts)' % doModelComments)
+            print('    var.nexus_doFastNextTok = %s' % var.nexus_doFastNextTok)
 
         if var.nexus_doFastNextTok:
-            from NexusToken2 import nextTok,safeNextTok
+            from .NexusToken2 import nextTok,safeNextTok
         else:
-            from NexusToken import nextTok,safeNextTok
+            from .NexusToken import nextTok,safeNextTok
 
 
 
@@ -381,12 +381,12 @@ class Tree(object):
         #print 'parseNexus() tok = %s' % tok
         tok = func.nexusUnquoteName(tok)
         if tok == '*':
-            print gm[0]
-            print "    Ignoring '*' in tree description"
+            print(gm[0])
+            print("    Ignoring '*' in tree description")
             tok = safeNextTok(flob, 'Tree.parseNexus()')
         if not func.nexusCheckName(tok):
             gm.append("Bad tree name: '%s'" % tok)
-            raise Glitch, gm
+            raise Glitch(gm)
         self.name = tok
         #print "got name: '%s'" % tok
         #print "%s" % tok
@@ -394,7 +394,7 @@ class Tree(object):
         tok = safeNextTok(flob, gm[0])
         if tok != '=':
             gm.append("Tree name must be followed by '='")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Generally this is the beginning of the newick tree
         # description.  But we have to look ahead to see if there is a
@@ -415,7 +415,7 @@ class Tree(object):
                 break
             elif tok == ';':
                 gm.append("Got ';' before any tree description.")
-                raise Glitch, gm
+                raise Glitch(gm)
             elif tok[0] in string.letters + string.digits + '_' + '\'':
                 flob.seek(savedPos, 0)
                 self.parseNewick(flob, translationHash, doModelComments)
@@ -423,18 +423,18 @@ class Tree(object):
                 break
             else:
                 gm.append('Expecting a newick tree description.')
-                raise Glitch, gm
+                raise Glitch(gm)
         self.initFinish()
         #print 'finished Tree.parseNexus()'
 
     def getWeightCommandComment(self, tok):
         if 0:
-            print 'var.nexus_getWeightCommandComments = %s' % var.nexus_getWeightCommandComments
-            print 'var.nexus_getAllCommandComments = %s' % var.nexus_getAllCommandComments
-            print "Got comment '%s', checking if it is a 'weight' comment." % tok
+            print('var.nexus_getWeightCommandComments = %s' % var.nexus_getWeightCommandComments)
+            print('var.nexus_getAllCommandComments = %s' % var.nexus_getAllCommandComments)
+            print("Got comment '%s', checking if it is a 'weight' comment." % tok)
         gm = ["Tree.getWeightCommandComment()"]
-        from NexusToken import nextTok,safeNextTok  # python, not c, so I can use StringIO
-        cFlob = cStringIO.StringIO(tok)
+        from .NexusToken import nextTok,safeNextTok  # python, not c, so I can use StringIO
+        cFlob = io.StringIO(tok)
         cFlob.seek(1) # The [
         cTok = nextTok(cFlob)
         if not cTok:
@@ -446,7 +446,7 @@ class Tree(object):
             return
         if lowCTok != '&w':
             gm.append('Expecting a weight comment.  Got %s' % tok)
-            raise Glitch, gm
+            raise Glitch(gm)
         cTok = nextTok(cFlob)
         # It might be a float, or the more usual 1/something
         if ("." in cTok):
@@ -455,7 +455,7 @@ class Tree(object):
                 self.weight = float(cTok)
             except:
                 gm.append("I can't grok '%s' in weight comment %s" % (cTok, tok))
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Should check for scientific notation?
 
@@ -464,11 +464,11 @@ class Tree(object):
                 theNumerator = int(cTok)
                 if theNumerator != 1:
                     gm.append('Expecting a numerator 1 in weight comment %s' % tok)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #print 'got theNumerator %i' % theNumerator
             except ValueError:
                 gm.append('Expecting a numerator 1 in weight comment %s' % tok)
-                raise Glitch, gm
+                raise Glitch(gm)
             cTok = nextTok(cFlob)
             if cTok == '/':
                 cTok = safeNextTok(cFlob, 'Getting weight comment %s' % tok)
@@ -476,13 +476,13 @@ class Tree(object):
                     self.recipWeight = int(cTok)
                 except ValueError:
                     gm.append('Bad denominator in weight comment %s' % tok)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             elif cTok == ']':
                 #self.recipWeight = theNumerator # ie 1, might as well leave it as None
                 pass
             else:
                 gm.append("I can't grok '%s' in weight comment %s" % (cTok, tok))
-                raise Glitch, gm
+                raise Glitch(gm)
         cFlob.close()
         #print 'got recipWeight = %s' % self.recipWeight
         
@@ -527,9 +527,9 @@ class Tree(object):
         lastPopped = None
 
         if var.nexus_doFastNextTok:
-            from NexusToken2 import nextTok,safeNextTok
+            from .NexusToken2 import nextTok,safeNextTok
         else:
-            from NexusToken import nextTok,safeNextTok
+            from .NexusToken import nextTok,safeNextTok
 
         tok = nextTok(flob)
         if not tok:
@@ -543,7 +543,7 @@ class Tree(object):
                 #print "Got '(': new node (%i)." % len(self.nodes)
                 if not (isAfterParen or isAfterComma):
                     gm.append('Got badly-placed paren, not after a paren or comma.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 newNode = Node()
                 if doModelComments:
                     for pNum in range(doModelComments):
@@ -564,7 +564,7 @@ class Tree(object):
                     else:
                         gm.append('Something is wrong. Stack is empty.')
                         gm.append('Extra paren?')
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 newNode.nodeNum = len(self.nodes)
                 self.nodes.append(newNode)
                 stack.append(newNode)
@@ -574,37 +574,37 @@ class Tree(object):
             elif tok == ',':
                 if isAfterParen:
                     gm.append('Got comma after paren.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 elif isAfterComma:
                     gm.append('Got comma after comma.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #self.printStack(stack)
                 try:
                     lastPopped = stack.pop()
                 except IndexError:
                     gm.append('Empty stack.  Out of place comma?')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 isAfterComma = 1
                 if len(stack) == 0:
                     gm.append('Empty stack.  Out of place comma?')
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             elif tok == ')':
                 try:
                     lastPopped = stack.pop()
                 except IndexError:
                     gm.append('Empty stack.  Out of place unparen?')
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 isAfterParen = 0
                 isAfterComma = 0
                 parenNestLevel = parenNestLevel - 1
                 if parenNestLevel < 0:
                     gm.append('Unmatched unparen.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 if len(stack) == 0 and len(self.nodes) > 1:
                     gm.append('Empty stack.  Out of place unparen?')
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             elif tok[0] in string.letters or tok[0] in string.digits or tok[0] == "'" or tok[0] in [
                 '_', '#', '\\', '/', '"', '(', ')']:
@@ -623,7 +623,7 @@ class Tree(object):
                                 gm.append('Missing comma maybe?  Or punctuation or spaces in an unquoted name?')
                                 gm.append("To allow reading Newick (or Nexus) with spaces, ")
                                 gm.append("turn var.newick_allowSpacesInNames on")
-                                raise Glitch, gm
+                                raise Glitch(gm)
                             else:
                                 stack[-1].name += ' '
                                 stack[-1].name += tok
@@ -641,31 +641,31 @@ class Tree(object):
                             lastPopped.name = tok
                         else:
                             gm.append("Badly placed token '%s' in tree description." % tok)
-                            raise Glitch, gm
+                            raise Glitch(gm)
 
 
                 else:
                     # A new terminal node.
                     if tok[0] in string.letters or tok[0] in ['_']:
-                        if translationHash and translationHash.has_key(tok):
+                        if translationHash and tok in translationHash:
                             #print 'got key %s, val is %s' % (tok, translationHash[tok])
                             tok = translationHash[tok]
 
                     elif tok[0] in string.digits:
                         if var.nexus_allowAllDigitNames:
-                            if translationHash and translationHash.has_key(tok):
+                            if translationHash and tok in translationHash:
                                 #print 'got key %s, val is %s' % (tok, translationHash[tok])
                                 tok = translationHash[tok]
                         else:
                             try:
                                 tok = int(tok)
-                                if translationHash and translationHash.has_key(`tok`):
-                                    tok = translationHash[`tok`]
-                                elif translationHash and not translationHash.has_key(`tok`):
+                                if translationHash and repr(tok) in translationHash:
+                                    tok = translationHash[repr(tok)]
+                                elif translationHash and repr(tok) not in translationHash:
                                     gm.append("There is a 'translation' for this tree, but the")
                                     gm.append("number '%i' in the tree description" % tok)
                                     gm.append('is not included in that translate command.')
-                                    raise Glitch, gm
+                                    raise Glitch(gm)
                                 elif self.taxNames:
                                     try:
                                         tok = self.taxNames[tok - 1]
@@ -673,7 +673,7 @@ class Tree(object):
                                         gm.append("Can't make sense out of token '%s' for a new terminal node." % tok)
                                         gm.append('There is no translate command, and the taxNames does not')
                                         gm.append('have a value for that number.')
-                                        raise Glitch, gm
+                                        raise Glitch(gm)
                                 else:
                                     gm.append("We have a taxon name '%s', composed only of numerals." % tok)
                                     gm.append(" ")
@@ -683,10 +683,10 @@ class Tree(object):
                                     gm.append('taxa are defined before the trees.  P4, however, does')
                                     gm.append('not require definition of taxa before the trees, and in')
                                     gm.append('the present case no definition was made.  Deal with it.')
-                                    raise Glitch, gm
+                                    raise Glitch(gm)
                             except ValueError:
-                                if translationHash and translationHash.has_key(`tok`):
-                                    tok = translationHash[`tok`]
+                                if translationHash and repr(tok) in translationHash:
+                                    tok = translationHash[repr(tok)]
                                 #else:  # starts with a digit, but it is not an int.
                                 #    gm.append('Problem token %s' % tok)
                                 #    raise Glitch, gm
@@ -704,7 +704,7 @@ class Tree(object):
                         #print 'got newNode.name = %s' % tok
                     else:
                         gm.append("Bad name '%s'" % tok)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if len(stack):
                         newNode.parent = stack[-1]
                         if newNode.parent.leftChild == None:
@@ -726,7 +726,7 @@ class Tree(object):
                 theNum = nextTok(flob)
                 if not theNum:
                     gm.append('Tree description ended with a colon.  Bad!')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #print "  Got token after colon:  '%s'" % theNum
                 if theNum == '-' or theNum == '+':
                     tok = nextTok(flob)
@@ -736,7 +736,7 @@ class Tree(object):
                         gm.append("It didn't work, tho.")
                         gm.append("Got this after colon:  '%s'" % theNum)
                         gm.append('followed by nothing.')
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     theNum += tok
                 try:
                     # If it is a simple number like 0.123 or -23, then we are finished.
@@ -763,26 +763,26 @@ class Tree(object):
                     if not c:
                         gm.append('Trying to deal with a branch length, possibly in scientific notation.')
                         gm.append("Got '%s' after the colon, but then nothing." % theNum)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if c not in ['+', '-']:
                         gm.append('Trying to deal with a branch length, possibly in scientific notation.')
                         gm.append("Got '%s' after the colon." % theNum)
                         gm.append("Expecting a '+' or '-' after that (no spaces allowed).")
                         gm.append("Got '%s'." % c)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     # Accumulate characters in 'theExp'.  We need at least one digit.
                     theExp = c
                     c = flob.read(1)
                     if not c:
                         gm.append('Trying to deal with a branch length, possibly in scientific notation.')
                         gm.append("Got '%s%s' after the colon, but then nothing." % (theNum, theExp))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if c not in string.digits:
                         gm.append("Trying to deal with a branch length, possibly in scientific notation.")
                         gm.append("Got '%s%s' after the colon." % (theNum, theExp))
                         gm.append('Expecting one or more digits.')
                         gm.append("Got '%s'" % c)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     theExp += c
                     # So we got one good digit.  Are there any more?
                     while 1:
@@ -790,7 +790,7 @@ class Tree(object):
                         if not c:
                             gm.append('Trying to deal with a branch length, possibly in scientific notation.')
                             gm.append("Got '%s%s' after the colon, but then nothing." % (theNum, theExp))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         # We got something.  If its a digit, add it to
                         # theExp.  If its anything else, back up one
                         # space and then break
@@ -812,13 +812,13 @@ class Tree(object):
                             gm.append("It didn't work, tho.")
                             gm.append("Got these after colon: '%s' and '%s'" % (theNum, theExp))
                             gm.append('And they could not be converted to an exponential float.')
-                            raise Glitch, gm
+                            raise Glitch(gm)
                     except ValueError:
                         gm.append('Trying to deal with a branch length, possibly in scientific notation.')
                         gm.append("It didn't work, tho.")
                         gm.append("Got these after colon: '%s' and '%s'." % (theNum, theExp))
                         gm.append('And the latter does not appear to be an int.')
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             elif tok[0] == '[':
                 #print "openSquareBracket.  Got tok '%s'" % tok
@@ -827,7 +827,7 @@ class Tree(object):
                     # eg [& c0.1 r0.0]
                     n = stack[-1]
                     #print 'got comment %s, node %i' % (tok, n.nodeNum)
-                    cFlob = cStringIO.StringIO(tok)
+                    cFlob = io.StringIO(tok)
                     cFlob.seek(2)
                     tok2 = NexusToken.safeNextTok(cFlob)
                     while 1:
@@ -841,7 +841,7 @@ class Tree(object):
                                 secondNum = int(splitEnding[1])
                             except ValueError:
                                 gm.append('Bad command comment %s' % tok)
-                                raise Glitch, gm 
+                                raise Glitch(gm) 
                             if tok2[0] == 'c':
                                 n.parts[firstNum].compNum = secondNum
                             if tok2[0] == 'r':
@@ -850,7 +850,7 @@ class Tree(object):
                                 n.br.parts[firstNum].gdasrvNum = secondNum
                         else:
                             gm.append('Bad command comment %s' % tok)
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         tok2 = NexusToken.safeNextTok(cFlob)
                 elif 0:
                     # Ugly hack for RAxML trees with bootstrap
@@ -899,7 +899,7 @@ class Tree(object):
                             theVal = False
                         else:
                             theVal = eval(theValString)
-                        assert type(theVal) in [types.FloatType, types.TupleType, types.BooleanType]
+                        assert type(theVal) in [float, tuple, bool]
                         n.__setattr__(theNameString, theVal) 
                         i = j + 1
                     
@@ -943,7 +943,7 @@ class Tree(object):
                             
                             
                 #gm.append("tok[0] is '%s'" % tok[0])
-                raise Glitch, gm
+                raise Glitch(gm)
 
             tok = func.nexusUnquoteName(safeNextTok(flob, 'Tree init, reading tree string'))
             #print 'got tok for next round = %s' % tok
@@ -953,10 +953,10 @@ class Tree(object):
 
         if parenNestLevel > 0:
             gm.append('Unmatched paren.')
-            raise Glitch, gm
+            raise Glitch(gm)
         elif parenNestLevel < 0:
             gm.append('Unmatched unparen.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if len(stack) == 0:
             if len(self.nodes) == 1:
@@ -964,12 +964,12 @@ class Tree(object):
             else:
                 gm.append("Got an oddly-placed ';' in the tree %s description." % self.name)
                 self.dump(treeInfo=0, nodeInfo=1)
-                raise Glitch, gm
+                raise Glitch(gm)
         elif len(stack) > 1:
             gm.append("Got an oddly-placed ';' in the tree %s description." % self.name)
             #gm.append('(stack len = %i)' % len(stack)
             #self.dump(tree=0, node=1)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if self.root.leftChild and self.root.leftChild.sibling:  # usually this
             self.root.isLeaf = 0
@@ -1016,13 +1016,13 @@ class Tree(object):
                 if not item.name:
                     if item == self.root:
                         if var.warnAboutTerminalRootWithNoName:
-                            print 'Tree.initFinish()'
-                            print '    Non-fatal warning: the root is terminal, but has no name.'
-                            print '    This may be what you wanted.  Or not?'
-                            print '    (To get rid of this warning, turn off var.warnAboutTerminalRootWithNoName)'
+                            print('Tree.initFinish()')
+                            print('    Non-fatal warning: the root is terminal, but has no name.')
+                            print('    This may be what you wanted.  Or not?')
+                            print('    (To get rid of this warning, turn off var.warnAboutTerminalRootWithNoName)')
                     else:
                         gm.append('Got a terminal node with no name.')
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
         if var.usePfAndNumpy:
             self.preOrder = numpy.array([var.NO_ORDER] * len(self.nodes), numpy.int32)
@@ -1062,7 +1062,7 @@ class Tree(object):
                     gm.append('var.doRepairDupedTaxonNames = 1')
                     gm.append('To repair duplications silently, set')
                     gm.append('var.doRepairDupedTaxonNames = 2')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 hasDupedName = 1
                 break
 
@@ -1077,10 +1077,10 @@ class Tree(object):
                     for loName in loNames:
                         if loNames.count(loName) > 1 and loName not in complainedAlready:
                             if self.name:
-                                print "        Tree %s. Duped tax name (lowercased) '%s'" % (
-                                    self.name, loName)
+                                print("        Tree %s. Duped tax name (lowercased) '%s'" % (
+                                    self.name, loName))
                             else:
-                                print "        Duped tax name (lowercased) '%s'" % loName
+                                print("        Duped tax name (lowercased) '%s'" % loName)
                             complainedAlready.append(loName)
 
             elif var.doRepairDupedTaxonNames:
@@ -1095,10 +1095,10 @@ class Tree(object):
                                     newName = '%s_%i' % (n.name, repairCounter)
                                     if var.doRepairDupedTaxonNames == 1:
                                         if self.name:
-                                            print "        Tree %s. Changing '%s' to '%s'" % (
-                                                self.name, n.name, newName)
+                                            print("        Tree %s. Changing '%s' to '%s'" % (
+                                                self.name, n.name, newName))
                                         else:
-                                            print "        Changing '%s' to '%s'" % (n.name, newName)
+                                            print("        Changing '%s' to '%s'" % (n.name, newName))
                                     n.name = newName
                                     repairedNames.append(loName)
                                     repairCounter += 1
@@ -1154,95 +1154,95 @@ class Tree(object):
 
     def _doTreeInfo(self):
         if self.name:
-            print "Tree '%s' dump" % self.name
+            print("Tree '%s' dump" % self.name)
         else:
-            print 'Tree dump.  No name.'
+            print('Tree dump.  No name.')
         if self.fName:
-            print "    From file '%s'" % self.fName
+            print("    From file '%s'" % self.fName)
         else:
-            print "    From an unknown file, or no file."
+            print("    From an unknown file, or no file.")
         if self.root:
-            print '    Node %i is root' % self.root.nodeNum
+            print('    Node %i is root' % self.root.nodeNum)
         else:
-            print '    There is no root'
+            print('    There is no root')
         if self.recipWeight:
-            print '    The tree recipWeight is %s' % self.recipWeight
+            print('    The tree recipWeight is %s' % self.recipWeight)
         else:
-            print '    There is no recipWeight'
-        print '    There are %i nodes' % len(self.nodes)
+            print('    There is no recipWeight')
+        print('    There are %i nodes' % len(self.nodes))
         terminals = 0
         for i in self.nodes:
             if i.isLeaf:
                 terminals += 1
-        print '        of which %i are terminal nodes' % terminals
+        print('        of which %i are terminal nodes' % terminals)
         if self.data:
-            print '    There is a data object, with %i parts.' % self.data.nParts
+            print('    There is a data object, with %i parts.' % self.data.nParts)
         else:
-            print '    There is no data object.'
+            print('    There is no data object.')
 
         if self.data:
-            print '    The data came from file(s):'
+            print('    The data came from file(s):')
             for a in self.data.alignments:
                 if a.fName:
-                    print '        %s' % a.fName
+                    print('        %s' % a.fName)
 
         if self.model:
-            print '    There is a model object, with %i parts.' % self.model.nParts
+            print('    There is a model object, with %i parts.' % self.model.nParts)
             if self.model.cModel:
-                print '    model.cModel is %i' % self.model.cModel
+                print('    model.cModel is %i' % self.model.cModel)
             else:
-                print '    There is no cModel.'
+                print('    There is no cModel.')
         else:
-            print '    There is no model object.'
+            print('    There is no model object.')
 
         if self.taxNames:
-            print '    There is a taxNames list.'
+            print('    There is a taxNames list.')
         else:
-            print '    There is no taxNames list.'
+            print('    There is no taxNames list.')
         if self.cTree:
-            print '    cTree is %i' % self.cTree
+            print('    cTree is %i' % self.cTree)
         else:
-            print '    There is no cTree.'
+            print('    There is no cTree.')
 
 
     def _doNodeInfo(self):
         """Basic rubbish about nodes."""
 
-        print '\n-------- nodes -----------------------------------------'
-        print '%7s %6s %6s %6s %6s %7s %6s  %4s' % ('nodeNum', 'isLeaf', 'parent', 'leftCh',
-                                                    'siblng', 'br.len', 'seqNum', 'name')
+        print('\n-------- nodes -----------------------------------------')
+        print('%7s %6s %6s %6s %6s %7s %6s  %4s' % ('nodeNum', 'isLeaf', 'parent', 'leftCh',
+                                                    'siblng', 'br.len', 'seqNum', 'name'))
         for n in self.nodes:
-            print '%7s %6s' % (n.nodeNum, n.isLeaf),
+            print('%7s %6s' % (n.nodeNum, n.isLeaf), end=' ')
             if n.parent:
-                print '%6s' % n.parent.nodeNum,
+                print('%6s' % n.parent.nodeNum, end=' ')
             else:
-                print '%6s' % 'None',
+                print('%6s' % 'None', end=' ')
 
             if n.leftChild:
-                print '%6s' % n.leftChild.nodeNum,
+                print('%6s' % n.leftChild.nodeNum, end=' ')
             else:
-                print '%6s' % 'None',
+                print('%6s' % 'None', end=' ')
 
             if n.sibling:
-                print '%6s' % n.sibling.nodeNum,
+                print('%6s' % n.sibling.nodeNum, end=' ')
             else:
-                print '%6s' % 'None',
+                print('%6s' % 'None', end=' ')
 
             if n.br and (n.br.len or n.br.len == 0.0):
-                print '%7.3f' % n.br.len,
+                print('%7.3f' % n.br.len, end=' ')
             else:
-                print '%7s' % 'None',
+                print('%7s' % 'None', end=' ')
 
             if n.seqNum or n.seqNum == 0:
-                print '%6s' % n.seqNum,
+                print('%6s' % n.seqNum, end=' ')
             else:
-                print '%6s' % 'None',
+                print('%6s' % 'None', end=' ')
 
             if n.name:
-                print '  %s' % n.name
+                print('  %s' % n.name)
             else:
-                print '  %s' % 'None'
-        print '--------------------------------------------------------\n'
+                print('  %s' % 'None')
+        print('--------------------------------------------------------\n')
 
 
         doMore = 0
@@ -1258,31 +1258,31 @@ class Tree(object):
                 break
             
         if doMore:
-            print '\n-------- more node stuff -------------------------------'
-            print '%7s   %10s %10s %10s   %4s' % ('nodeNum', 'br.name', 'br.uName', 'br.support', 'name')
+            print('\n-------- more node stuff -------------------------------')
+            print('%7s   %10s %10s %10s   %4s' % ('nodeNum', 'br.name', 'br.uName', 'br.support', 'name'))
             for n in self.nodes:
-                print '%7s' % n.nodeNum,
+                print('%7s' % n.nodeNum, end=' ')
 
                 if n.br and hasattr(n.br, 'name') and n.br.name:
-                    print '%10s' % n.br.name,
+                    print('%10s' % n.br.name, end=' ')
                 else:
-                    print '%10s' % '-',
+                    print('%10s' % '-', end=' ')
 
                 if n.br and hasattr(n.br, 'uName') and n.br.uName:
-                    print '%10s' % n.br.uName,
+                    print('%10s' % n.br.uName, end=' ')
                 else:
-                    print '%10s' % '-',
+                    print('%10s' % '-', end=' ')
 
                 if n.br and hasattr(n.br, 'support') and n.br.support:
-                    print '%10.4f' % n.br.support,
+                    print('%10.4f' % n.br.support, end=' ')
                 else:
-                    print '%10s' % '-',
+                    print('%10s' % '-', end=' ')
 
                 if n.name:
-                    print '    %s' % n.name
+                    print('    %s' % n.name)
                 else:
-                    print '    %s' % 'None'
-            print '--------------------------------------------------------\n'
+                    print('    %s' % 'None')
+            print('--------------------------------------------------------\n')
 
 
         doMore = 0
@@ -1299,31 +1299,31 @@ class Tree(object):
                     break
 
         if doMore:
-            print '\n-------- even more node stuff --------------------------'
-            print '%7s   %10s %14s %10s   %4s' % ('nodeNum', 'br.color', 'br.biRootCount', 'rootCount', 'name')
+            print('\n-------- even more node stuff --------------------------')
+            print('%7s   %10s %14s %10s   %4s' % ('nodeNum', 'br.color', 'br.biRootCount', 'rootCount', 'name'))
             for n in self.nodes:
-                print '%7s' % n.nodeNum,
+                print('%7s' % n.nodeNum, end=' ')
 
                 if n.br and hasattr(n.br, 'color') and n.br.color:
-                    print '%10s' % n.br.color,
+                    print('%10s' % n.br.color, end=' ')
                 else:
-                    print '%10s' % '-',
+                    print('%10s' % '-', end=' ')
 
                 if n.br and hasattr(n.br, 'biRootCount') and n.br.biRootCount:
-                    print '%14s' % n.br.biRootCount,
+                    print('%14s' % n.br.biRootCount, end=' ')
                 else:
-                    print '%14s' % '-',
+                    print('%14s' % '-', end=' ')
 
                 if hasattr(n, 'rootCount') and n.rootCount:
-                    print '%10s' % n.rootCount,
+                    print('%10s' % n.rootCount, end=' ')
                 else:
-                    print '%10s' % '-',
+                    print('%10s' % '-', end=' ')
 
                 if n.name:
-                    print '    %s' % n.name
+                    print('    %s' % n.name)
                 else:
-                    print '    %s' % 'None'
-            print '--------------------------------------------------------\n'
+                    print('    %s' % 'None')
+            print('--------------------------------------------------------\n')
 
 
 
@@ -1335,57 +1335,57 @@ class Tree(object):
 
     def _doNodeModelInfo(self):
         if not self.model:
-            print '\n****** Node Model Info.  No model.'
+            print('\n****** Node Model Info.  No model.')
             if not self.data:
-                print '(no data attached, either)'
+                print('(no data attached, either)')
         else:
-            print '\n****** Node Model Info.  nParts=%s' % self.model.nParts
+            print('\n****** Node Model Info.  nParts=%s' % self.model.nParts)
             if not self.data:
-                print 'no data'
+                print('no data')
             if not self.model.nParts:
                 return
 
-            print '\nComps in the nodes:'
-            print ' %13s' % 'nodeNum',
+            print('\nComps in the nodes:')
+            print(' %13s' % 'nodeNum', end=' ')
             for i in range(self.model.nParts):
-                print ' %8s' % 'part%i' % i,
-            print ''
+                print(' %8s' % 'part%i' % i, end=' ')
+            print('')
             for n in self.nodes:
-                print ' %13i' % n.nodeNum,
+                print(' %13i' % n.nodeNum, end=' ')
                 for i in range(self.model.nParts):
-                    print '%8i' % n.parts[i].compNum,
-                print ''
+                    print('%8i' % n.parts[i].compNum, end=' ')
+                print('')
 
-            print '\nrMatrices in the nodes:'
-            print ' %13s' % 'nodeNum',
+            print('\nrMatrices in the nodes:')
+            print(' %13s' % 'nodeNum', end=' ')
             for i in range(self.model.nParts):
-                print ' %8s' % 'part%i' % i,
-            print ''
+                print(' %8s' % 'part%i' % i, end=' ')
+            print('')
             for n in self.iterNodesNoRoot():
-                print ' %13i' % n.nodeNum,
+                print(' %13i' % n.nodeNum, end=' ')
                 for i in range(self.model.nParts):
-                    print '%8i' % n.br.parts[i].rMatrixNum,
-                print ''
+                    print('%8i' % n.br.parts[i].rMatrixNum, end=' ')
+                print('')
 
-            print '\ngdasrvs in the nodes:'
-            print ' %13s' % '',
+            print('\ngdasrvs in the nodes:')
+            print(' %13s' % '', end=' ')
             for i in range(self.model.nParts):
-                print ' %8s' % 'part%i' % i,
-            print ''
-            print ' %13s' % 'nGammaCats ->',
+                print(' %8s' % 'part%i' % i, end=' ')
+            print('')
+            print(' %13s' % 'nGammaCats ->', end=' ')
             for i in range(self.model.nParts):
-                print '%8i' % self.model.parts[i].nGammaCat,
-            print '\n'
+                print('%8i' % self.model.parts[i].nGammaCat, end=' ')
+            print('\n')
 
-            print ' %13s' % 'nodeNum',
+            print(' %13s' % 'nodeNum', end=' ')
             for i in range(self.model.nParts):
-                print ' %8s' % 'part%i' % i,
-            print ''
+                print(' %8s' % 'part%i' % i, end=' ')
+            print('')
             for n in self.iterNodesNoRoot():
-                print ' %13i' % n.nodeNum,
+                print(' %13i' % n.nodeNum, end=' ')
                 for i in range(self.model.nParts):
-                    print '%8i' % n.br.parts[i].gdasrvNum,
-                print ''
+                    print('%8i' % n.br.parts[i].gdasrvNum, end=' ')
+                print('')
 
 
 
@@ -1428,7 +1428,7 @@ class Tree(object):
                 if ts.lowName in lowSelfTaxNames:
                     gm.append("Can't have taxSet names that are the same (case-insensitive) as a tax name")
                     gm.append("Lowercased taxSet name '%s' is the same as a lowcased taxName." % ts.name)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             self.nexusSets.lowTaxNames = lowSelfTaxNames
             
             # If it is standard format, 
@@ -1444,11 +1444,11 @@ class Tree(object):
                         gm.append("taxSet %s" % ts.name)
                         gm.append("It is vector format, but the length is wrong.")
                         gm.append("taxSet mask is length %i, but self nTax is %i" % (len(ts.mask), self.nTax))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 else:
                     gm.append("taxSet %s" % ts.name)
                     gm.append("unknown format %s" % ts.format)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                     
 
@@ -1509,7 +1509,7 @@ class Tree(object):
         if not theNode:
             gm = ['Tree.getChildrenNums()']
             gm.append('Bad node specifier')
-            raise Glitch, gm
+            raise Glitch(gm)
         ret = []
         x, y = self.getPreAndPostOrderAbove(specifier)
         for i in y[:-1]:
@@ -1526,7 +1526,7 @@ class Tree(object):
         if not theNode:
             gm = ['Tree.getChildrenNums()']
             gm.append('Bad node specifier')
-            raise Glitch, gm
+            raise Glitch(gm)
         ret = []
         c = theNode.leftChild
         while 1:
@@ -1607,7 +1607,7 @@ class Tree(object):
                 else:
                     gm.append('Problemo.')
                     gm.append('xxx got theNode %s' % theNode.nodeNum)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         return preOrder, postOrder
 
@@ -1664,7 +1664,7 @@ class Tree(object):
                     except IndexError:
                         gm.append("preOrdIndx=%s, theNodeNum=%i" % (preOrdIndx, theNodeNum))
                         gm.append("preOrder = %s" % self.preOrder)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     preOrdIndx += 1
                 else:
                     #print '                 postOrder appending  v %i' % stack[-1].nodeNum
@@ -1694,7 +1694,7 @@ class Tree(object):
                     else:
                         gm.append('Problemo.')
                         gm.append('xxx got theNode %s' % theNode.nodeNum)
-                        raise Glitch, gm
+                        raise Glitch(gm)
         if 1:
             assert preOrdIndx == postOrdIndx
             #print "a preOrdIndx = %i, len(self.nodes) = %i" % (preOrdIndx, len(self.nodes))
@@ -1963,7 +1963,7 @@ class Tree(object):
         #raise Glitch, gm
         if not self.taxNames:
             gm.append('No taxNames.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if not self.preAndPostOrderAreValid:
             self.setPreAndPostOrder()
@@ -1972,7 +1972,7 @@ class Tree(object):
         if makeNodeForSplitKeyDict:
             self.nodeForSplitKeyDict = {}
 
-        allOnes = 2L**(self.nTax) - 1
+        allOnes = 2**(self.nTax) - 1
         #print 'nTax = %i, allOnes = %i' % (self.nTax, allOnes)
 
         for n in self.iterPostOrder():
@@ -1982,11 +1982,11 @@ class Tree(object):
                 if not n.leftChild:
                     # A long int, eg 1L, has no upper limit on its value
                     try:
-                        n.br.rawSplitKey = 1L << self.taxNames.index(n.name)  # "<<" is left-shift
+                        n.br.rawSplitKey = 1 << self.taxNames.index(n.name)  # "<<" is left-shift
                     except ValueError:
                         gm.append('node.name %s' % n.name)
                         gm.append('is not in taxNames %s' % self.taxNames)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     #n.br.rawSplitKey = 1L << self.taxNames.index(n.name)  # "<<" is left-shift
                     
                     if n.br.rawSplitKey == 1:
@@ -1999,7 +1999,7 @@ class Tree(object):
                     childrenNums = self.getChildrenNums(n)
                     if len(childrenNums) == 1:
                         gm.append('Internal node has only one child.  That will make a duped split.')
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     x = self.nodes[childrenNums[0]].br.rawSplitKey
                     for i in childrenNums[1:]:
                         y = self.nodes[i].br.rawSplitKey
@@ -2028,8 +2028,8 @@ class Tree(object):
                     gm.append('Duped rawSplitKey %i.' % k)
                     for n in self.nodes:
                         if n != self.root:
-                            print '%7s     %4s       %4s' % (n.nodeNum, n.br.rawSplitKey, n.br.splitKey)
-                    raise Glitch, gm
+                            print('%7s     %4s       %4s' % (n.nodeNum, n.br.rawSplitKey, n.br.splitKey))
+                    raise Glitch(gm)
 
             # Any duped splitKeys?  There will be if the tree is bi-Rooted.
             if 0:
@@ -2040,16 +2040,16 @@ class Tree(object):
                     if theKeys.count(k) > 1:
                         gm.append('Duped splitKey %i.' % k)
                         for n in self.iterNodesNoRoot():
-                            print '%7s     %4s       %4s' % (n.nodeNum, n.br.rawSplitKey, n.br.splitKey)
-                        raise Glitch, gm
+                            print('%7s     %4s       %4s' % (n.nodeNum, n.br.rawSplitKey, n.br.splitKey))
+                        raise Glitch(gm)
 
         if 0:
-            print gm[0]
-            print self.taxNames
-            print 'nodeNum  rawSplitKey  splitKey'
+            print(gm[0])
+            print(self.taxNames)
+            print('nodeNum  rawSplitKey  splitKey')
             for n in self.iterNodesNoRoot():
-                print '%7s     %4s       %4s        %s' % (
-                    n.nodeNum, n.br.rawSplitKey, n.br.splitKey, func.getSplitStringFromKey(n.br.splitKey, self.nTax))
+                print('%7s     %4s       %4s        %s' % (
+                    n.nodeNum, n.br.rawSplitKey, n.br.splitKey, func.getSplitStringFromKey(n.br.splitKey, self.nTax)))
 
 
     def recalculateSplitKeysOfNodeFromChildren(self, aNode, allOnes):
@@ -2067,7 +2067,7 @@ class Tree(object):
     def checkSplitKeys(self, useOldName=False, glitch=True, verbose=True):
         gm = ['Tree.checkSplitKeys()']
         
-        allOnes = 2L**(self.nTax) - 1
+        allOnes = 2**(self.nTax) - 1
         #print 'nTax = %i, allOnes = %i' % (self.nTax, allOnes)
 
         isBad = False
@@ -2079,16 +2079,16 @@ class Tree(object):
                     # A long int, eg 1L, has no upper limit on its value
                     try:
                         if useOldName:
-                            rawSplitKey = 1L << self.taxNames.index(n.oldName)  # "<<" is left-shift
+                            rawSplitKey = 1 << self.taxNames.index(n.oldName)  # "<<" is left-shift
                         else:
-                            rawSplitKey = 1L << self.taxNames.index(n.name)  # "<<" is left-shift
+                            rawSplitKey = 1 << self.taxNames.index(n.name)  # "<<" is left-shift
                     except ValueError:
                         if useOldName:
                             gm.append('node.name %s' % n.oldName)
                         else:
                             gm.append('node.name %s' % n.name)
                         gm.append('is not in taxNames %s' % self.taxNames)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     #n.br.rawSplitKey = 1L << self.taxNames.index(n.name)  # "<<" is left-shift
 
                     if rawSplitKey == 1:
@@ -2101,7 +2101,7 @@ class Tree(object):
                     childrenNums = self.getChildrenNums(n)
                     if len(childrenNums) == 1:
                         gm.append('Internal node has only one child.  That will make a duped split.')
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     x = self.nodes[childrenNums[0]].br.rawSplitKey
                     for i in childrenNums[1:]:
                         y = self.nodes[i].br.rawSplitKey
@@ -2117,15 +2117,15 @@ class Tree(object):
                         splitKey = rawSplitKey
                     #print 'intern node %s, rawSplitKey %s, splitKey %s' % (n.nodeNum, n.br.rawSplitKey, n.br.splitKey)
                 if n.br.rawSplitKey != rawSplitKey:
-                    print "checkSplitKeys node %2i rawSplitKey: existing %s, calculated %s" % (n.nodeNum, n.br.rawSplitKey, rawSplitKey)
+                    print("checkSplitKeys node %2i rawSplitKey: existing %s, calculated %s" % (n.nodeNum, n.br.rawSplitKey, rawSplitKey))
                     isBad = True
                 if n.br.splitKey != splitKey:
-                    print "checkSplitKeys node %2i splitKey: existing %s, calculated %s" % (n.nodeNum, n.br.splitKey, splitKey)
+                    print("checkSplitKeys node %2i splitKey: existing %s, calculated %s" % (n.nodeNum, n.br.splitKey, splitKey))
                     isBad = True
         if glitch and isBad:
-            raise Glitch, gm
+            raise Glitch(gm)
         if verbose and not isBad:
-            print "checkSplitKeys().  ok"
+            print("checkSplitKeys().  ok")
 
 
     def taxSetIsASplit(self, taxSetName):
@@ -2142,13 +2142,13 @@ class Tree(object):
         assert theTS, "Could not find the taxSet named %s" % taxSetName
         #theTS.dump()
         assert theTS.mask
-        rawSplitKey = 0L
+        rawSplitKey = 0
         for i in range(len(theTS.mask)):
             #print i, theTS.mask[i]
             if theTS.mask[i] == '1':
-                rawSplitKey += (1L << i)
+                rawSplitKey += (1 << i)
         if 1 & rawSplitKey: # Ie "Does rawSplitKey contain a 1?" or "Is rawSplitKey odd?"
-            allOnes = 2L**(self.nTax) - 1
+            allOnes = 2**(self.nTax) - 1
             splitKey = allOnes ^ rawSplitKey # "^" is xor, a bit-flipper.
         else:
             splitKey = rawSplitKey
@@ -2190,7 +2190,7 @@ class Tree(object):
 
         if not self.taxNames:
             gm.append('No taxNames.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         tax = []
         for n in self.iterNodes():
@@ -2225,17 +2225,17 @@ class Tree(object):
         s = taxSet.difference(selfTaxNamesSet)
         if len(s):
             isBad = 1
-            print gm[0]
-            print 'TaxName mismatch between the tree and self.taxNames.'
-            print 'These taxa are found in the tree but not in self.taxNames:'
-            print s
+            print(gm[0])
+            print('TaxName mismatch between the tree and self.taxNames.')
+            print('These taxa are found in the tree but not in self.taxNames:')
+            print(s)
         s = selfTaxNamesSet.difference(taxSet)
         if len(s):
             isBad = 1
-            print gm[0]
-            print 'TaxName mismatch between the tree and self.taxNames.'
-            print 'These taxa are found in the self.taxNames but not in the tree:'
-            print s
+            print(gm[0])
+            print('TaxName mismatch between the tree and self.taxNames.')
+            print('These taxa are found in the self.taxNames but not in the tree:')
+            print(s)
 
         if isBad:
             raise Glitch(gm, 'tree_taxNamesMisMatch')
@@ -2250,7 +2250,7 @@ class Tree(object):
 
         if len(self.nodes) != len(otherTree.nodes):
             gm.append('Different number of nodes.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # node relations (parent, child, sib)
         for nNum in range(len(self.nodes)):
@@ -2321,8 +2321,8 @@ class Tree(object):
         complaintHead = '\nTree.verifyIdentityWith()' # keep
 
         if len(self.nodes) != len(otherTree.nodes):
-            print complaintHead
-            print '    Different number of nodes.'
+            print(complaintHead)
+            print('    Different number of nodes.')
             return var.DIFFERENT
 
         # check node relations (parent, child, sib)
@@ -2365,15 +2365,15 @@ class Tree(object):
                     isBad = 1
 
             if isBad:
-                print complaintHead
-                print '    Node %i, relations differ.' % nNum
+                print(complaintHead)
+                print('    Node %i, relations differ.' % nNum)
                 self.write()
                 otherTree.write()
                 return var.DIFFERENT
 
         if self.root.nodeNum != otherTree.root.nodeNum:
-            print complaintHead
-            print '    Roots differ.'
+            print(complaintHead)
+            print('    Roots differ.')
             return var.DIFFERENT
 
         # brLens, lenChanged, and node.flag. and splitKeys
@@ -2381,25 +2381,25 @@ class Tree(object):
             if self.nodes[nNum] != self.root:
                 #if self.nodes[nNum].br.len != otherTree.nodes[nNum].br.len:
                 if math.fabs(self.nodes[nNum].br.len - otherTree.nodes[nNum].br.len) > 1.e-8:
-                    print complaintHead
-                    print '    BrLens differ.'
+                    print(complaintHead)
+                    print('    BrLens differ.')
                     return var.DIFFERENT
                 if self.nodes[nNum].br.lenChanged != otherTree.nodes[nNum].br.lenChanged:
-                    print complaintHead
-                    print '    br.lenChanged differs.'
+                    print(complaintHead)
+                    print('    br.lenChanged differs.')
                     return var.DIFFERENT
                 if self.nodes[nNum].flag != otherTree.nodes[nNum].flag:
-                    print complaintHead
-                    print '    flag differs, nodeNum %i.  %s vs %s' % (nNum, self.nodes[nNum].flag, otherTree.nodes[nNum].flag)
+                    print(complaintHead)
+                    print('    flag differs, nodeNum %i.  %s vs %s' % (nNum, self.nodes[nNum].flag, otherTree.nodes[nNum].flag))
                     return var.DIFFERENT
                 if doSplitKeys:
                     if self.nodes[nNum].br.splitKey != otherTree.nodes[nNum].br.splitKey:
-                        print complaintHead
-                        print '    SplitKeys differ.'
+                        print(complaintHead)
+                        print('    SplitKeys differ.')
                         return var.DIFFERENT
                     if self.nodes[nNum].br.rawSplitKey != otherTree.nodes[nNum].br.rawSplitKey:
-                        print complaintHead
-                        print '    rawSplitKeys differ.'
+                        print(complaintHead)
+                        print('    rawSplitKeys differ.')
                         return var.DIFFERENT
 
         # model usage numbers
@@ -2417,8 +2417,8 @@ class Tree(object):
                         isBad = 1
 
                 if isBad:
-                    print complaintHead
-                    print '    Node %i, model usage info does not match.' % nNum
+                    print(complaintHead)
+                    print('    Node %i, model usage info does not match.' % nNum)
                     return var.DIFFERENT
 
         # pre- and postOrder
@@ -2431,22 +2431,22 @@ class Tree(object):
                 isBad = 1
                 break
         if isBad:
-            print complaintHead
-            print '    Pre- or postOrder do not match.'
+            print(complaintHead)
+            print('    Pre- or postOrder do not match.')
             return var.DIFFERENT
 
         if self._nInternalNodes != otherTree._nInternalNodes:
-            print complaintHead
-            print '    _nInternalNodes differ.'
+            print(complaintHead)
+            print('    _nInternalNodes differ.')
             return var.DIFFERENT
 
         # partLikes
         for pNum in range(self.model.nParts):
             #if otherTree.partLikes[pNum] != self.partLikes[pNum]:
             if math.fabs(otherTree.partLikes[pNum] - self.partLikes[pNum]) > 1.e-8:
-                print complaintHead
-                print "    partLikes differ.  (%.5f, (%g) %.5f (%g)" % (
-                    otherTree.partLikes[pNum], otherTree.partLikes[pNum], self.partLikes[pNum], self.partLikes[pNum])
+                print(complaintHead)
+                print("    partLikes differ.  (%.5f, (%g) %.5f (%g)" % (
+                    otherTree.partLikes[pNum], otherTree.partLikes[pNum], self.partLikes[pNum], self.partLikes[pNum]))
                 return var.DIFFERENT
 
         if 0: # some more
@@ -2454,20 +2454,20 @@ class Tree(object):
                 selfNode = self.nodes[nNum]
                 otherNode = otherTree.nodes[nNum]
                 if selfNode.nodeNum != otherNode.nodeNum:
-                    print complaintHead
-                    print '    nodeNum differs'
+                    print(complaintHead)
+                    print('    nodeNum differs')
                     return var.DIFFERENT
                 if selfNode.seqNum != otherNode.seqNum:
-                    print complaintHead
-                    print '    seqNum differs'
+                    print(complaintHead)
+                    print('    seqNum differs')
                     return var.DIFFERENT
                 if selfNode.name != otherNode.name:
-                    print complaintHead
-                    print '    name differs'
+                    print(complaintHead)
+                    print('    name differs')
                     return var.DIFFERENT
                 if selfNode.isLeaf != otherNode.isLeaf:
-                    print complaintHead
-                    print '    isLeaf differs'
+                    print(complaintHead)
+                    print('    isLeaf differs')
                     return var.DIFFERENT
 
         
@@ -2483,23 +2483,23 @@ class Tree(object):
         if self.root and self.root.leftChild and self.root.leftChild.sibling and self.root.leftChild.sibling.sibling:
             if self.root.leftChild.sibling.sibling.sibling:
                 if verbose:
-                    print "isFullyBifurcating() returning False, due to root with 4 or more children." 
+                    print("isFullyBifurcating() returning False, due to root with 4 or more children.") 
                 return False
         elif self.root and self.root.isLeaf:
             pass
         else:
             if verbose:
-                print "isFullyBifurcating() returning False, due to (non-leaf) root not having 3 children."
+                print("isFullyBifurcating() returning False, due to (non-leaf) root not having 3 children.")
             return False
         for n in self.iterInternalsNoRoot():
             if n.leftChild and n.leftChild.sibling:
                 if n.leftChild.sibling.sibling:
                     if verbose:
-                        print "isFullyBifurcating() returning False, due to node %i having 3 or more children." % n.nodeNum
+                        print("isFullyBifurcating() returning False, due to node %i having 3 or more children." % n.nodeNum)
                     return False
             else:
                 if verbose:
-                    print "isFullyBifurcating() returning False, due to non-leaf node %i having 1 or fewer children." % n.nodeNum
+                    print("isFullyBifurcating() returning False, due to non-leaf node %i having 1 or fewer children." % n.nodeNum)
                 return False
         return True
 
@@ -2562,11 +2562,11 @@ class Tree(object):
                     else:
                         return hub.leftChild
         else:
-            print "*=" * 25
+            print("*=" * 25)
             self.draw()
             gm = ["Tree.nextNode() spoke=%i, hub=%i" % (spoke.nodeNum, hub.nodeNum)]
             gm.append("Need to have either spoke.parent == hub or hub == spoke.")
-            raise Glitch, gm
+            raise Glitch(gm)
             
         
 
@@ -2633,28 +2633,28 @@ class Tree(object):
         if metric not in var.topologyDistanceMetrics:
             gm.append("Got a request for unknown metric '%s'" % metric)
             gm.append("The 'metric' arg should be one of %s" % var.topologyDistanceMetrics)
-            raise Glitch, gm
+            raise Glitch(gm)
         if metric == 'scqdist': # no need for taxNames
             try:
                 import scqdist
             except ImportError:
                 gm.append("Could not find the experimental 'scqdist' module needed for this metric.")
-                raise Glitch, gm
+                raise Glitch(gm)
             tsSelf = self.writeNewick(toString=True)
             tsTree2 = tree2.writeNewick(toString=True)
             return scqdist.qdist(tsSelf, tsTree2)
         if not self.taxNames or not tree2.taxNames:
             gm.append("This method requires taxNames to be set.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if self.taxNames != tree2.taxNames:
             gm.append("The taxNames are different for the two trees.")
             gm.append("Self:  %s" % self.taxNames)
             gm.append("tree2: %s" % tree2.taxNames)
-            raise Glitch, gm
+            raise Glitch(gm)
         if (self.root.getNChildren() == 2 or tree2.root.getNChildren() == 2) and ( metric in ['wrf', 'bld']):
             gm.append('One of the input trees has a bifurcating root.')
             gm.append('Weighted tree distance calculations do not work on bi-rooted trees.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Tobias' old stuff.  The quartet distances did not give correct distances.  Not clear about the triplet distances.
         # #        Building a triplet set before the splitset is build to avoid doing extra work
@@ -2790,7 +2790,7 @@ class Tree(object):
 
         If you have nexus taxsets defined, you can show them.
         """
-        from BTV import TV
+        from .BTV import TV
         #import os
         #os.environ['PYTHONINSPECT'] = '1'
         TV(self)
@@ -2807,7 +2807,7 @@ class Tree(object):
 
         If you have nexus taxsets defined, you can show them.
         """
-        from BTV import BTV
+        from .BTV import BTV
         #import os
         #os.environ['PYTHONINSPECT'] = '1'
         BTV(self)
@@ -2826,7 +2826,7 @@ class Tree(object):
         
         sd = self.topologyDistance(treeB)
         if sd == 0:
-            print "The trees are the same. No tv."
+            print("The trees are the same. No tv.")
             return
         #for sk in self.splitKeyHash.iterkeys():
         #    if not treeB.splitKeyHash.has_key(sk):
@@ -2843,7 +2843,7 @@ class Tree(object):
         selfHasButTreeBDoesnt = self.splitKeySet.difference(treeB.splitKeySet)
         treeBHasButSelfDoesnt = treeB.splitKeySet.difference(self.splitKeySet)
 
-        from BTV import TV
+        from .BTV import TV
         #import os
         #os.environ['PYTHONINSPECT'] = '1'
         TV(self, title='TV self')

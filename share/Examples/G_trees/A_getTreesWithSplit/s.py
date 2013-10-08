@@ -16,7 +16,7 @@ else:
 tt = Trees(taxNames=taxNames)
 treesWithSplit = tt.getTreesWithSplit(theSplitTax)
 
-print 'These trees have the split containing %s' % theSplitTax
+print('These trees have the split containing %s' % theSplitTax)
 for t in treesWithSplit:
     t.draw()
 

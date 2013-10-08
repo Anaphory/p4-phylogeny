@@ -5,25 +5,26 @@ import sys
 import re
 import string
 import math
-import cStringIO
+import io
 import random
 import glob
 import time
-from Var import var
-from SequenceList import Sequence,SequenceList
-from Alignment import Alignment
-from Nexus import Nexus
-from Tree import Tree
-from Node import Node
-from Glitch import Glitch
-from Constraints import Constraints
+from .Var import var
+from .SequenceList import Sequence,SequenceList
+from .Alignment import Alignment
+from .Nexus import Nexus
+from .Tree import Tree
+from .Node import Node
+from .Glitch import Glitch
+from .Constraints import Constraints
+from functools import reduce
 if var.usePfAndNumpy:
     try:
         import pf
         import numpy
     except ImportError:
-        raise Glitch, "Can't import at least one of pf or numpy."
-    from Numbers import Numbers
+        raise Glitch("Can't import at least one of pf or numpy.")
+    from .Numbers import Numbers
 
 
 def nexusCheckName(theName):
@@ -72,7 +73,7 @@ def nexusUnquoteName(theName):
             gm = ['func.nexusUnquotName()']
             gm.append('the name is %s' % theName)
             gm.append("First char is a single quote, but last char is not.")
-            raise Glitch, gm
+            raise Glitch(gm)
         theName = theName[1:-1]
         if theName.count('\'\''):
             return theName.replace('\'\'', '\'')
@@ -121,7 +122,7 @@ def nexusFixNameIfQuotesAreNeeded(theName, verbose=0):
                 theName = theName.replace('\'', '\'\'')
         newName = '\'' + theName + '\''
         if verbose:
-            print "Warning. Nexus quoting |%s| to |%s|" % (oldName, newName)
+            print("Warning. Nexus quoting |%s| to |%s|" % (oldName, newName))
         return newName
     else:
         return theName
@@ -145,10 +146,10 @@ def isDnaRnaOrProtein(aString):
     t = string.count(aString, 't')
     u = string.count(aString, 'u')
     if 0:
-        print "stringLength(no gaps) = %s" % strLenNoGaps
-        print "acgn = %f" % acgn
-        print "t = %f" % t
-        print "u = %f" % u
+        print("stringLength(no gaps) = %s" % strLenNoGaps)
+        print("acgn = %f" % acgn)
+        print("t = %f" % t)
+        print("u = %f" % u)
 
     # If it is 90% or better acgn +t or +u, then assume it is dna or rna
     threshold = 0.9 * strLenNoGaps
@@ -187,7 +188,7 @@ def isDnaRnaOrProtein(aString):
 
 def stringZapWhitespaceAndDigits(inString):
     out = list(inString)
-    theRange = range(len(out))
+    theRange = list(range(len(out)))
     theRange.reverse()
     for i in theRange:
         if out[i] in string.whitespace or out[i] in string.digits:
@@ -198,25 +199,25 @@ def stringZapWhitespaceAndDigits(inString):
 def dump():
     """A top-level dump of p4 trees, files, sequenceLists, and alignments."""
 
-    print "\np4 dump"
+    print("\np4 dump")
     if len(var.fileNames) == 0:
-        print "    Haven't read any files"
+        print("    Haven't read any files")
     elif len(var.fileNames) == 1:
-        print "    Read one file: %s" % var.fileNames[0]
+        print("    Read one file: %s" % var.fileNames[0])
     else:
-        print "    Read files:"
+        print("    Read files:")
         for i in var.fileNames:
-            print "                %s" % i
+            print("                %s" % i)
 
     if len(var.alignments) == 0:
         #print "    There are no alignments."
         pass
     elif len(var.alignments) == 1:
-        print "    There is 1 alignment."
+        print("    There is 1 alignment.")
         #if recursive:
         #    var.alignments[0].dump()
     else:
-        print "    There are %i alignments." % len(var.alignments)
+        print("    There are %i alignments." % len(var.alignments))
         #if recursive:
         #    for i in var.alignments:
         #        i.dump()
@@ -225,11 +226,11 @@ def dump():
         #print "    There are no sequenceLists."
         pass
     elif len(var.sequenceLists) == 1:
-        print "    There is 1 sequenceList."
+        print("    There is 1 sequenceList.")
         #if recursive:
         #    var.sequenceLists[0].dump()
     else:
-        print "    There are %i sequenceLists." % len(var.sequenceLists)
+        print("    There are %i sequenceLists." % len(var.sequenceLists))
         #if recursive:
         #    for i in var.sequenceLists:
         #        i.dump()
@@ -238,11 +239,11 @@ def dump():
         # print "    There are no trees."
         pass
     elif len(var.trees) == 1:
-        print "    There is 1 tree."
+        print("    There is 1 tree.")
         #if recursive:
         #    var.trees[0].dump()
     else:
-        print "    There are %i trees." % len(var.trees)
+        print("    There are %i trees." % len(var.trees))
         #if recursive:
         #    for i in var.trees:
         #        i.dump()
@@ -324,7 +325,7 @@ def read(stuff):
     gm = ['p4.read()']
     if type(stuff) != type('string'):
         gm.append("I was expecting a string argument.")
-        raise Glitch, gm
+        raise Glitch(gm)
     #nAlignments = len(var.alignments)
     if os.path.exists(stuff):
         #var.nexus_doFastNextTok = False
@@ -339,13 +340,13 @@ def read(stuff):
         else: # Nope, not a glob.  Is it a string, not a file name?
             saved_nexus_doFastNextTok = var.nexus_doFastNextTok
             if var.warnReadNoFile:
-                print "\nread()"
-                print "    A file by the name specified by the argument cannot be found."
-                print "    So I am assuming that it is to be taken as a string."
-                print "    Maybe it was a mis-specified file name?"
-                print "    (You can turn off this warning by turning var.warnReadNoFile off.)\n"
+                print("\nread()")
+                print("    A file by the name specified by the argument cannot be found.")
+                print("    So I am assuming that it is to be taken as a string.")
+                print("    Maybe it was a mis-specified file name?")
+                print("    (You can turn off this warning by turning var.warnReadNoFile off.)\n")
             var.nexus_doFastNextTok = False
-            flob = cStringIO.StringIO(stuff)
+            flob = io.StringIO(stuff)
             _decideFromContent('<input string>', flob)
             #_decideFromContent(stuff, flob)
             #if var.verboseRead:
@@ -365,7 +366,7 @@ def readFile(fName):
         flob = file(fName, "U") # Universal line endings.
     except IOError:
         gm.append("Can't open %s.  Are you sure you have the right name?" % fName)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     
     # See if there is an informative suffix on the file name
@@ -380,7 +381,7 @@ def readFile(fName):
         if suffix == 'py':
             flob.close()
             import __main__
-            execfile(fName, __main__.__dict__,  __main__.__dict__)
+            exec(compile(open(fName).read(), fName, 'exec'), __main__.__dict__,  __main__.__dict__)
             if hasattr(__main__, 'pyFileCount'):
                 __main__.pyFileCount += 1
             return
@@ -391,50 +392,50 @@ def readFile(fName):
             ret = _tryToReadFastaFile(fName, flob)
             if not ret:
                 gm.append("Failed to read supposed fasta file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             return
         elif suffix == 'gde':
             ret = _tryToReadGdeFile(fName, flob)
             if not ret:
                 gm.append("Failed to read supposed gde file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             return
         elif suffix in ['pir', 'nbrf']:  # new, july 2010
             ret = _tryToReadPirFile(fName, flob)
             if not ret:
                 gm.append("Failed to read supposed pir file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             return
         elif suffix == 'phy' or suffix == 'phylip':
             ret = _tryToReadPhylipFile(fName, flob, None)
             if not ret:
                 gm.append("Failed to read supposed phylip file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             return
         elif suffix == 'aln':
             ret = _tryToReadClustalwFile(fName, flob)
             if not ret:
                 gm.append("Failed to read supposed clustalw file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             return
         elif result.group(2) in ['p4_tPickle']: # preserve uppercase
             if var.verboseRead:
-                print "Trying to read '%s' as a pickled Tree file..." % fName
-            import cPickle
-            ret = cPickle.load(flob)
+                print("Trying to read '%s' as a pickled Tree file..." % fName)
+            import pickle
+            ret = pickle.load(flob)
             if not ret:
                 gm.append("Failed to read supposed p4_tPickle file '%s'." % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 if isinstance(ret, Tree):
                     ret.fName = fName
                     var.trees.append(ret)
                     var.fileNames.append(fName)
                     if var.verboseRead:
-                        print "Got a tree from file '%s'." % fName
+                        print("Got a tree from file '%s'." % fName)
                 else:
                     gm.append("Failed to get a Tree from '%s'" % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             return
         else:
             _decideFromContent(fName, flob)
@@ -467,7 +468,7 @@ def _decideFromContent(fName, flob):
     #    print "Got a blank file."
     if not firstLine:
         gm.append("Input '%s' is empty." % fName)
-        raise Glitch, gm
+        raise Glitch(gm)
     else:
         # Fasta, phylip, and clustalw files have clues on the first line
         # If these files fail to be what they are first supposed to be,
@@ -476,32 +477,32 @@ def _decideFromContent(fName, flob):
 
         if firstLine[0] == '>' or firstLine[0] == ';':
             if var.verboseRead:
-                print "Guessing that '%s' is a fasta file..." % fName
+                print("Guessing that '%s' is a fasta file..." % fName)
             ret = _tryToReadFastaFile(fName, flob, firstLine)
             if not ret:
                 if var.verboseRead:
-                    print "Failed to read '%s' as a fasta file." % fName
+                    print("Failed to read '%s' as a fasta file." % fName)
             if ret:
                 return
 
         elif firstLine[0] == 'C':
             if var.verboseRead:
-                print "First letter is 'C'-- guessing that '%s' is a clustalw file..." % fName
+                print("First letter is 'C'-- guessing that '%s' is a clustalw file..." % fName)
             ret = _tryToReadClustalwFile(fName, flob, firstLine)
             if not ret:
                 if var.verboseRead:
-                    print "Failed to read '%s' as a clustalw file." % fName
+                    print("Failed to read '%s' as a clustalw file." % fName)
             if ret:
                 return
 
         else: # Maybe its a phylip file?
             if var.verboseRead:
-                print "Guessing that '%s' is a phylip file..." % fName
+                print("Guessing that '%s' is a phylip file..." % fName)
             # either data or trees
             ret = _tryToReadPhylipFile(fName, flob, firstLine) 
             if not ret:
                 if var.verboseRead:
-                    print "Failed to read '%s' as a phylip file." % fName
+                    print("Failed to read '%s' as a phylip file." % fName)
             if ret:
                 return
 
@@ -521,18 +522,18 @@ def _decideFromContent(fName, flob):
         #print "Got firstChar candidate '%s'" % firstChar
         if firstChar == '':  # Redundant: this problem seems to be caught above, in _tryToReadPhylipFile()
             gm.append("This file seems to be composed only of whitespace.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         #print "got firstChar = %s" % firstChar
         flob.seek(0)
         if firstChar in ['[', '#']:
             # it might be a nexus file
-            if var.verboseRead: print "Guessing that '%s' is a nexus file..." % fName
+            if var.verboseRead: print("Guessing that '%s' is a nexus file..." % fName)
             ret = _tryToReadNexusFile(fName, flob)
             if ret:
                 return
         elif firstChar == '{':
-            if var.verboseRead: print "Guessing that '%s' is a gde file..." % fName
+            if var.verboseRead: print("Guessing that '%s' is a gde file..." % fName)
             ret = _tryToReadGdeFile(fName, flob)
             if ret:
                 return
@@ -541,7 +542,7 @@ def _decideFromContent(fName, flob):
         # Last alternative: its assumed to be a python script
         if var.verboseRead:
             #print "As a last resort, guessing that '%s' is a python file..." % fName
-            print "Trying to read '%s' as a python file..." % fName
+            print("Trying to read '%s' as a python file..." % fName)
         try:
             theString = flob.getvalue() # get it, for a possible error message below, while the flob is still open
         except AttributeError:
@@ -549,7 +550,7 @@ def _decideFromContent(fName, flob):
         flob.close()
         try:
             import __main__
-            execfile(fName, __main__.__dict__, __main__.__dict__)
+            exec(compile(open(fName).read(), fName, 'exec'), __main__.__dict__, __main__.__dict__)
             if hasattr(__main__, 'pyFileCount'):
                 __main__.pyFileCount += 1
         except:
@@ -557,7 +558,7 @@ def _decideFromContent(fName, flob):
                 gm = ["Failed to read '%s' as a python file..." % fName]
                 gm.append("Giving up on trying to read '%s' at all." % fName)
             else:
-                if type(flob) == type(cStringIO.StringIO('foo')): # probably a mis-spelled file name
+                if type(flob) == type(io.StringIO('foo')): # probably a mis-spelled file name
                     if theString:
                         if len(theString) < 100:
                             gm = ["Couldn't make sense out of the input '%s'" % theString]
@@ -566,13 +567,13 @@ def _decideFromContent(fName, flob):
                     gm.append("It is not a file name, and I could not make sense out of it otherwise.")
                 else:
                     gm=["Couldn't make sense of the input '%s'." % fName]
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
 
 def _tryToReadNexusFile(fName, flob):
     if var.verboseRead:
-        print "Trying to read '%s' as a nexus file..." % fName
+        print("Trying to read '%s' as a nexus file..." % fName)
     nf = Nexus()
 
     # nf.readNexusFile()
@@ -582,12 +583,12 @@ def _tryToReadNexusFile(fName, flob):
     #print "Nexus.readNexusFile() returned a %s" % ret
     if ret == -1:
         if var.verboseRead:
-            print "Failed to get '%s' as a nexus file." % fName
+            print("Failed to get '%s' as a nexus file." % fName)
     else:
         if 0:
-            print "\n******************************************\n"
+            print("\n******************************************\n")
             nf.dump()
-            print "\n******************************************\n"
+            print("\n******************************************\n")
         if len(nf.alignments):
             for a in nf.alignments:
                 a.checkLengthsAndTypes()
@@ -615,14 +616,14 @@ def _tryToReadNexusFile(fName, flob):
                     tnList.append(string.lower(t.name))
                 for t in var.trees:
                     if tnList.count(string.lower(t.name)) > 1:
-                        print "P4: Warning: got duplicated tree name '%s' (names are compared in lowercase)" \
-                              % t.name
+                        print("P4: Warning: got duplicated tree name '%s' (names are compared in lowercase)" \
+                              % t.name)
                         #print "Lowercased tree names: %s" % tnList
                         #sys.exit()
         if hasattr(flob, 'name'):
             var.fileNames.append(flob.name)
         if var.verboseRead:
-            print "Got nexus file '%s'" % fName
+            print("Got nexus file '%s'" % fName)
         return 1
 
 
@@ -645,10 +646,10 @@ def _tryToReadFastaFile(fName, flob, firstLine=None):
         #    print "Got a blank file."
     if not firstLine:
         gm = ["_tryToReadFastaFile: the file '%s' is empty!" % fName]
-        raise Glitch, gm
+        raise Glitch(gm)
     else:
         if var.verboseRead:
-            print "Trying to read '%s' as a fasta file..." % fName
+            print("Trying to read '%s' as a fasta file..." % fName)
         if len(firstLine) > 1:
             if firstLine[0] == '>' or firstLine[0] == ';':
                 flob.seek(0)
@@ -657,7 +658,7 @@ def _tryToReadFastaFile(fName, flob, firstLine=None):
                     sl = SequenceList(flob)
                 except:
                     if var.verboseRead:
-                        print "Reading it as a fasta file didn't work (no 'SequenceList' object returned)"
+                        print("Reading it as a fasta file didn't work (no 'SequenceList' object returned)")
                     return None
                 else:
                     if hasattr(flob, 'name'):
@@ -678,25 +679,25 @@ def _tryToReadFastaFile(fName, flob, firstLine=None):
                         
                     if not hasEqualSequenceLens:
                         if var.verboseRead:
-                            print "The sequences appear to be different lengths"
+                            print("The sequences appear to be different lengths")
                         var.sequenceLists.append(sl)
                     else:
                         if var.verboseRead:
-                            print "The sequences appear to be all the same length"
+                            print("The sequences appear to be all the same length")
                         try:
                             a = sl.alignment()    # includes a call to checkLengthsAndTypes()
                             #a.checkLengthsAndTypes()
                         except:
                             if var.verboseRead:
-                                print "Its not an alignment, even tho the sequences are all the same length."
-                                print "    Maybe p4 (erroneously?) thinks that the sequences are different dataTypes."
+                                print("Its not an alignment, even tho the sequences are all the same length.")
+                                print("    Maybe p4 (erroneously?) thinks that the sequences are different dataTypes.")
                             var.sequenceLists.append(sl)
                             if var.verboseRead:
-                                print "Got fasta file '%s'."  % fName
+                                print("Got fasta file '%s'."  % fName)
                             return 1
 
                         if var.verboseRead:
-                            print "The fasta file appears to be an alignment."
+                            print("The fasta file appears to be an alignment.")
 
                         if var.doCheckForAllGapColumns:
                             a.checkForAllGapColumns()
@@ -707,14 +708,14 @@ def _tryToReadFastaFile(fName, flob, firstLine=None):
                         var.alignments.append(a)
                         
                     if var.verboseRead:
-                        print "Got fasta file '%s'."  % fName
+                        print("Got fasta file '%s'."  % fName)
                     return 1
             else:
                 if var.verboseRead:
-                    print "First char is neither '>' nor ';' ---not fasta"
+                    print("First char is neither '>' nor ';' ---not fasta")
         else:
             if var.verboseRead:
-                print "First line is blank--- not fasta"
+                print("First line is blank--- not fasta")
 
 
 
@@ -727,7 +728,7 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
     #print "B firstLine is '%s'" % firstLine
     if not firstLine:
         gm.append("The file %s is empty." % fName)
-        raise Glitch, gm
+        raise Glitch(gm)
     splitLine = firstLine.split()
 
     # If theres 2 numbers on the first line, it may be a phylip data file
@@ -737,7 +738,7 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
             secondNum = int(splitLine[1])
             
             if var.verboseRead:
-                print "Trying to read '%s' as a phylip data file..." % fName
+                print("Trying to read '%s' as a phylip data file..." % fName)
             a = Alignment()
             if hasattr(flob, 'name'):
                 a.fName = flob.name
@@ -753,11 +754,11 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
             var.alignments.append(a)
             var.fileNames.append(fName)
             if var.verboseRead:
-                print "Got '%s' as a phylip-like file." % fName
+                print("Got '%s' as a phylip-like file." % fName)
             return 1
         except ValueError:
             if var.verboseRead:
-                print "Does not seem to be a phylip or phylip-like data file."
+                print("Does not seem to be a phylip or phylip-like data file.")
 
     # Ok, so the file did not start with 2 integers.  It might still
     # be a Phylip tree file.
@@ -767,22 +768,22 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
         firstChar = flob.read(1)
     if not firstChar:
         gm.append("No non-whitespace chars found.")
-        raise Glitch, gm
+        raise Glitch(gm)
     #print "got firstChar '%s'" % firstChar
     if firstChar not in ['(', '[']:  # The '[' for puzzle output.
         if var.verboseRead:
-            print "First char is not '(' or '['.  This does not seem to be a phylip or puzzle tree file."
+            print("First char is not '(' or '['.  This does not seem to be a phylip or puzzle tree file.")
         return
     if var.verboseRead:
-        print "Trying to read '%s' as a phylip tree file..." % fName
+        print("Trying to read '%s' as a phylip tree file..." % fName)
     flob.seek(0,0)
     theseTrees = []
 
     # We need to import nextTok.
     if var.nexus_doFastNextTok:
-        from NexusToken2 import nextTok
+        from .NexusToken2 import nextTok
     else:
-        from NexusToken import nextTok
+        from .NexusToken import nextTok
     
     while 1:
         savedPosition = flob.tell()
@@ -791,10 +792,10 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
             break
         if tok != '(':
             if var.verboseRead:
-                print "First char was '%s'," % firstChar,
-                print "so I thought it was a phylip or puzzle tree file."
-                print "However, after having read in %i trees," % len(theseTrees)
-                print " it confused me by starting a supposed new tree with a '%s'" % tok
+                print("First char was '%s'," % firstChar, end=' ')
+                print("so I thought it was a phylip or puzzle tree file.")
+                print("However, after having read in %i trees," % len(theseTrees))
+                print(" it confused me by starting a supposed new tree with a '%s'" % tok)
             return
         flob.seek(savedPosition, 0) # Throw the token away.
         t = Tree()
@@ -813,7 +814,7 @@ def _tryToReadPhylipFile(fName, flob, firstLine):
     if hasattr(flob, 'name'):
         var.fileNames.append(flob.name)
     if var.verboseRead:
-        print "Got %i trees from phylip tree file '%s'" % (len(theseTrees), fName)
+        print("Got %i trees from phylip tree file '%s'" % (len(theseTrees), fName))
     return 1
 
 
@@ -823,11 +824,11 @@ def _tryToReadClustalwFile(fName, flob, firstLine = None):
         firstLine = flob.readline()
     if not firstLine:
         gm.append("func. _tryToReadClustalwFile()  The file %s is empty." % fName)
-        raise Glitch, gm
+        raise Glitch(gm)
     expectedFirstLine = 'CLUSTAL'
     if firstLine.startswith(expectedFirstLine):
         if var.verboseRead:
-            print "Trying to read '%s' as a clustalw file..." % fName
+            print("Trying to read '%s' as a clustalw file..." % fName)
         a = Alignment()
         if hasattr(flob, 'name'):
             a.fName = flob.name
@@ -843,13 +844,13 @@ def _tryToReadClustalwFile(fName, flob, firstLine = None):
             a.checkForDuplicateSequences()
         var.alignments.append(a)
         if var.verboseRead:
-            print "Got '%s' as a clustalw file." % fName
+            print("Got '%s' as a clustalw file." % fName)
         return 1
 
 
 def _tryToReadGdeFile(fName, flob):
     if var.verboseRead:
-        print "Trying to read '%s' as a gde file..." % fName
+        print("Trying to read '%s' as a gde file..." % fName)
     a = Alignment()
     if hasattr(flob, 'name'):
         a.fName = flob.name
@@ -864,18 +865,18 @@ def _tryToReadGdeFile(fName, flob):
         a.checkForDuplicateSequences()
     var.alignments.append(a)
     if var.verboseRead:
-        print "Got '%s' as a gde file." % fName
+        print("Got '%s' as a gde file." % fName)
     return 1
 
 def _tryToReadPirFile(fName, flob):
     if var.verboseRead:
-        print "Trying to read '%s' as a pir file..." % fName
+        print("Trying to read '%s' as a pir file..." % fName)
     flob.seek(0)
     sl = SequenceList()
     ret = sl._readOpenPirFile(flob)
     if not ret:
         if var.verboseRead:
-           print "Reading it as a pir file didn't work."
+           print("Reading it as a pir file didn't work.")
            return None
     else:
         #print "Got sl"
@@ -897,24 +898,24 @@ def _tryToReadPirFile(fName, flob):
 
         if not hasEqualSequenceLens:
             if var.verboseRead:
-                print "The sequences appear to be different lengths"
+                print("The sequences appear to be different lengths")
             var.sequenceLists.append(sl)
         else:
             if var.verboseRead:
-                print "The sequences appear to be all the same length"
+                print("The sequences appear to be all the same length")
             try:
                 a = sl.alignment()    # includes a call to checkLengthsAndTypes()
             except:
                 if var.verboseRead:
-                    print "Its not an alignment, even tho the sequences are all the same length."
-                    print "    Maybe p4 (erroneously?) thinks that the sequences are different dataTypes."
+                    print("Its not an alignment, even tho the sequences are all the same length.")
+                    print("    Maybe p4 (erroneously?) thinks that the sequences are different dataTypes.")
                 var.sequenceLists.append(sl)
                 if var.verboseRead:
-                    print "Got pir file '%s'."  % fName
+                    print("Got pir file '%s'."  % fName)
                 return 1
 
             if var.verboseRead:
-                print "The pir file appears to be an alignment."
+                print("The pir file appears to be an alignment.")
 
             if var.doCheckForAllGapColumns:
                 a.checkForAllGapColumns()
@@ -925,18 +926,18 @@ def _tryToReadPirFile(fName, flob):
             var.alignments.append(a)
 
         if var.verboseRead:
-            print "Got pir file '%s'."  % fName
+            print("Got pir file '%s'."  % fName)
         return 1
 
 
 
 def splash():
     """Print a splash screen for p4."""
-    print ''
+    print('')
 
-    from version import versionString, dateString
-    print "p4 v %s, %s" % (versionString, dateString)
-    print """
+    from .version import versionString, dateString
+    print("p4 v %s, %s" % (versionString, dateString))
+    print("""
 usage:
     p4
  or
@@ -945,13 +946,13 @@ usage:
     p4 --help
 
 p4 is a Python package for phylogenetics.
-p4 is also the name of a Python script that loads the p4 package."""
+p4 is also the name of a Python script that loads the p4 package.""")
     
-    print """
+    print("""
 There are (Sphinx-generated) documentation web pages, which may be
-installed locally."""
+installed locally.""")
 
-    print """
+    print("""
 Using the p4 script, after reading in the (optional) files on the
 command line, p4 goes interactive unless one of the files on the
 command line is a Python script.  Use the -i option if you want to go
@@ -962,12 +963,12 @@ line, and then exits.
 
 Peter Foster
 The Natural History Museum, London
-p.foster@nhm.ac.uk"""
+p.foster@nhm.ac.uk""")
 
     if var.examplesDir:
-        print "\nSee the examples in %s" % var.examplesDir
-    print ''
-    print "(Control-d to quit.)\n"
+        print("\nSee the examples in %s" % var.examplesDir)
+    print('')
+    print("(Control-d to quit.)\n")
 
 
         
@@ -1005,12 +1006,12 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
     # we need either taxNames or nTax
     if not taxNames and not nTax:
         gm.append("You need to supply either taxNames or nTax.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if taxNames and nTax:
         if len(taxNames) != nTax:
             gm.append("You need not supply both taxNames and nTax,")
             gm.append("but if you do, at least they should match, ok?")
-            raise Glitch, gm
+            raise Glitch(gm)
     if taxNames:  # implies not []
         nTax = len(taxNames)
     elif nTax:
@@ -1025,7 +1026,7 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
     import random
     if seed != None: # it might be 0
         random.seed(seed)
-    indcs = range(nTax)
+    indcs = list(range(nTax))
     random.shuffle(indcs)
 
     # Instantiate the tree, and add a root node
@@ -1072,7 +1073,7 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
             t.setPreAndPostOrder()
             eTaxNames = []
             for i in range(nTax):
-                tester = 1L << i
+                tester = 1 << i
                 if tester & aConstraint: # Does aConstraint contain the tester bit?
                     eTaxNames.append(taxNames[i])
             #print "aConstraint %s" % eTaxNames
@@ -1084,7 +1085,7 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
                     gm.append("constraint %s" % getSplitStringFromKey(aConstraint, constraints.tree.nTax))
                     gm.append("'%s' parent is not node %i" % (tN, firstParent.nodeNum))
                     gm.append('It appears that there are incompatible constraints.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
             
             n = Node()
             n.nodeNum = nodeNum
@@ -1124,13 +1125,13 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
                 chosenNodeOldLeftSib = chosenNode.leftSibling()
                 if 0:
                     if chosenNodeOldLeftSib:
-                        print 'chosenNodeOldLeftSib = %s' % chosenNodeOldLeftSib.nodeNum
+                        print('chosenNodeOldLeftSib = %s' % chosenNodeOldLeftSib.nodeNum)
                     else:
-                        print 'chosenNodeOldLeftSib = None'
+                        print('chosenNodeOldLeftSib = None')
                     if chosenNodeOldSib:
-                        print 'chosenNodeOldSib = %s' % chosenNodeOldSib.nodeNum
+                        print('chosenNodeOldSib = %s' % chosenNodeOldSib.nodeNum)
                     else:
-                        print 'chosenNodeOldSib = None'
+                        print('chosenNodeOldSib = None')
                 
                 
                 chosenNode.parent = n
@@ -1217,14 +1218,14 @@ def randomTree(taxNames=None, nTax=None, name='random', seed=None, biRoot=0, ran
         oldLeftSib = lChild.leftSibling() # could be none
         if 0:
             if oldLeftSib:
-                print "oldLeftSib = %i" % oldLeftSib.nodeNum
+                print("oldLeftSib = %i" % oldLeftSib.nodeNum)
             else:
-                print "oldLeftSib = None"
-            print "lChildSib = %i" % lChildSib.nodeNum
+                print("oldLeftSib = None")
+            print("lChildSib = %i" % lChildSib.nodeNum)
             if oldLChildSibSib:
-                print "oldLChildSibSib = %i" % oldLChildSibSib.nodeNum
+                print("oldLChildSibSib = %i" % oldLChildSibSib.nodeNum)
             else:
-                print "oldLChildSibSib = None"
+                print("oldLChildSibSib = None")
 
         if oldLeftSib:
             oldLeftSib.sibling = n
@@ -1300,29 +1301,29 @@ def newEmptyAlignment(dataType=None, symbols=None, taxNames=None, length=None):
     # check for silliness
     if not dataType:
         gm.append("No dataType. You need to specify at least the dataType, taxNames, and sequenceLength.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not taxNames:
         gm.append("No taxNames. You need to specify at least the dataType, taxNames, and sequenceLength.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not length:
         gm.append("No length.  You need to specify at least the dataType, taxNames, and sequenceLength.")
-        raise Glitch, gm
+        raise Glitch(gm)
     goodDataTypes = ['dna', 'protein', 'standard']
     if dataType not in goodDataTypes:
         gm.append("dataType '%s' is not recognized.")
         gm.append("I only know about %s" % goodDataTypes)
-        raise Glitch, gm
+        raise Glitch(gm)
     if dataType == 'standard':
         if not symbols:
             gm.append("For standard dataType you need to specify symbols.")
-            raise Glitch, gm
+            raise Glitch(gm)
     else:
         if symbols:
             gm.append("You should not specify symbols for %s dataType." % dataType)
-            raise Glitch, gm
+            raise Glitch(gm)
 
-    from Alignment import Alignment
-    from SequenceList import Sequence
+    from .Alignment import Alignment
+    from .SequenceList import Sequence
     a = Alignment()
     a.length = length
     a.dataType = dataType
@@ -1360,7 +1361,7 @@ def getSplitStringFromKey(theKey, nTax, escaped=False):
     ss = ['.'] * nTax
     #ss = ['0'] * nTax
     for i in range(nTax):
-        tester = 2L ** i
+        tester = 2 ** i
         if tester & theKey:
             ss[i] = '*'
             #ss[i] = '1'
@@ -1409,24 +1410,24 @@ def getSplitKeyFromTaxNames(allTaxNames, someTaxNames):
     gm = ['func.getSplitKeyFromTaxNames()']
     if not len(allTaxNames) or not len(someTaxNames):
         gm.append("Got an empty arg?!?")
-        raise Glitch, gm
+        raise Glitch(gm)
     theIndices = []
     for tn in someTaxNames:
         try:
             theIndex = allTaxNames.index(tn)
         except ValueError:
             gm.append("The taxName '%s' is not in allTaxNames." % tn)
-            raise Glitch, gm
+            raise Glitch(gm)
         if theIndex not in theIndices:  # Duped indices would be a Bad Thing
             theIndices.append(theIndex)
     #print "theIndices = %s" % theIndices
 
-    theRawSplitKey  = 0L
+    theRawSplitKey  = 0
     for i in theIndices:
-        theRawSplitKey += 1L << i # "<<" is left-shift
+        theRawSplitKey += 1 << i # "<<" is left-shift
 
     if 1 & theRawSplitKey:  # Is it odd?  or Does it contain a 1?
-        allOnes = 2L**(len(allTaxNames)) - 1
+        allOnes = 2**(len(allTaxNames)) - 1
         theSplitKey = allOnes ^ theRawSplitKey  # "^" is xor, a bit-flipper.
         return theSplitKey
     else:
@@ -1439,7 +1440,7 @@ def _sumOfRows(aList):
     Eg _sumOfRows([[2,3], [6,13]]) returns [5, 19]
     """
     if type(aList[0]) != type([]):
-        print "_sumOfRows: not a 2D array.  Assume its a row vector and return sum"
+        print("_sumOfRows: not a 2D array.  Assume its a row vector and return sum")
         return sum(aList)
     outList = []
     for i in aList:
@@ -1452,12 +1453,12 @@ def _sumOfColumns(aList):
     Eg _sumOfColumns([[2,3], [6,13]]) returns [8, 16]
     """
     if type(aList[0]) != type([]):
-        print "_sumOfColumns: not a 2D array.  Assume its a column vector and return sum"
+        print("_sumOfColumns: not a 2D array.  Assume its a column vector and return sum")
         return sum(aList)
     theLen = len(aList[0])
     for i in aList:
         if theLen != len(i):
-            print "_sumOfColumns: unequal rows"
+            print("_sumOfColumns: unequal rows")
             return None
     outList = [0] * theLen
     for i in aList:
@@ -1493,11 +1494,11 @@ def xSquared(observed):
     for i in theSumOfRows:
         if i == 0.0:
             gm.append("Sum of rows includes a zero.  Can't calculate xSquared.")
-            raise Glitch, gm
+            raise Glitch(gm)
     for i in theSumOfCols:
         if i == 0.0:
             gm.append("Sum of cols includes a zero.  Can't calculate xSquared.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     xSq = 0.0
     for i in range(nRows):
@@ -1520,7 +1521,7 @@ def _stdErrorOfTheDifferenceBetweenTwoMeans(seq1, seq2):
     else:
         gm = ["_stdErrorOfTheDifferenceBetweenTwoMeans()"]
         gm.append("I can only deal with sequences of equal length, each more than 30 long.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
 def mean(seq):
     """Simple, pure-python mean.  For big lists, use something better."""
@@ -1550,12 +1551,12 @@ def tailAreaProbability(theStat, theDistribution, verbose=1):
             float(i)
         except TypeError:
             gm.append("Item '%s' from theDistribution does not seem to be a float." % i)
-            raise Glitch, gm
+            raise Glitch(gm)
     try:
         float(theStat)
     except TypeError:
         gm.append("theStat '%s' does not seem to be a float." % theStat)
-        raise Glitch, gm
+        raise Glitch(gm)
         
     hits = 0
     theMax = theDistribution[0]
@@ -1569,11 +1570,11 @@ def tailAreaProbability(theStat, theDistribution, verbose=1):
             hits = hits + 1
     tap = float(hits)/float(theLen)
     if verbose:
-        print "# The stat is %s" % theStat
-        print "# The distribution has %i items" % len(theDistribution)
-        print "# The distribution goes from %s to %s" % (theMin, theMax)
-        print "# Items in the distribution were >= theStat %i times." % hits
-        print "# The tail-area probability is %f" % tap
+        print("# The stat is %s" % theStat)
+        print("# The distribution has %i items" % len(theDistribution))
+        print("# The distribution goes from %s to %s" % (theMin, theMax))
+        print("# Items in the distribution were >= theStat %i times." % hits)
+        print("# The tail-area probability is %f" % tap)
     return tap
 
 
@@ -1584,7 +1585,7 @@ def ls():
     fList = os.listdir('.')
     fList.sort()
     for f in fList:
-        print f
+        print(f)
 
 def which(what, verbose=0):
     """Asks if an auxiliary program is available.
@@ -1594,7 +1595,7 @@ def which(what, verbose=0):
     If verbose is turned on, it speaks the path, if it exists."""
 
     if type(what) != type('aString'):
-        raise Glitch, "function which().  I was expecting a string argument."
+        raise Glitch("function which().  I was expecting a string argument.")
     import os
     f = os.popen('which %s 2> /dev/null' % what, 'r')
     aLine = f.readline()
@@ -1605,7 +1606,7 @@ def which(what, verbose=0):
             aLine = None
     if aLine:
         if verbose:
-            print aLine
+            print(aLine)
         return 1
     else:
         return 0
@@ -1634,7 +1635,7 @@ def writeRMatrixTupleToOpenFile(theTuple, dim, flob, offset=23):
     gm = ["func.writeRMatrixTupleToOpenFile()"]
     if dim < 2:
         gm.append("dim must be two or more for this to work.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     isShort = False # For backward compatibility
     if var.rMatrixNormalizeTo1:
@@ -1647,7 +1648,7 @@ def writeRMatrixTupleToOpenFile(theTuple, dim, flob, offset=23):
                 gm.append("The length of the tuple (%i) is " % len(theTuple))
                 gm.append("incommensurate with the dim (%i)" % dim)
                 gm.append("(should be %i)" % (((dim * dim) - dim) / 2))
-                raise Glitch, gm
+                raise Glitch(gm)
     else:
         isShort = True
         if len(theTuple) != (((dim * dim) - dim) / 2) - 1:
@@ -1655,7 +1656,7 @@ def writeRMatrixTupleToOpenFile(theTuple, dim, flob, offset=23):
             gm.append("The length of the tuple (%i) is " % len(theTuple))
             gm.append("incommensurate with the dim (%i)" % dim)
             gm.append("(should be %i)" % ((((dim * dim) - dim) / 2) - 1))
-            raise Glitch, gm
+            raise Glitch(gm)
         
     if dim == 3:
         flob.write('%s\n' % repr(theTuple))
@@ -1795,7 +1796,7 @@ def fixCharsForLatex(theString):
     if l[0] == '\'' and l[-1] == '\'':
         del(l[-1])
         del(l[0])
-        theRange = range(len(l))
+        theRange = list(range(len(l)))
         theRange.reverse()
         for i in theRange[:-1]:
             if l[i] == '\'' and l[i - 1] == '\'':
@@ -1817,7 +1818,7 @@ def maskFromNexusCharacterList(nexusCharListString, maskLength, invert=0):
     """
 
     gm = ["maskFromNexusCharacterList()"]
-    from Alignment_muck import cListPat, cList2Pat, cListAllPat
+    from .Alignment_muck import cListPat, cList2Pat, cListAllPat
     #cListPat = re.compile('(\d+)-?(.+)?')
     #cList2Pat = re.compile('(.+)\\\\(\d+)')
     #cListAllPat = re.compile('all\\\\?(\d+)?')
@@ -1851,11 +1852,11 @@ def maskFromNexusCharacterList(nexusCharListString, maskLength, invert=0):
                 third = result.group(1)
             else:
                 gm.append("Can't parse maskFromNexusCharacterList '%s'" % nexusCharListString)
-                raise Glitch, gm
+                raise Glitch(gm)
         # print "first = %s, second = %s, third = %s" % (first, second, third)
         if not first:
             gm.append("Can't parse maskFromNexusCharacterList '%s'" % nexusCharListString)
-            raise Glitch, gm
+            raise Glitch(gm)
         elif first and not second: # its a single
             if string.lower(first) == 'all':
                 for i in range(len(mask)):
@@ -1869,14 +1870,14 @@ def maskFromNexusCharacterList(nexusCharListString, maskLength, invert=0):
                 except ValueError:
                     gm.append("Can't parse '%s' in maskFromNexusCharacterList '%s'" \
                           % (first, nexusCharListString))
-                    raise Glitch, gm
+                    raise Glitch(gm)
         elif first and second:  # its a range
             try:
                 start = int(first)
             except ValueError:
                 gm.append("Can't parse '%s' in maskFromNexusCharacterList '%s'" \
                       % (first, nexusCharListString))
-                raise Glitch, gm
+                raise Glitch(gm)
             if second == '.':
                 fin = len(mask)
             else:
@@ -1885,14 +1886,14 @@ def maskFromNexusCharacterList(nexusCharListString, maskLength, invert=0):
                 except ValueError:
                     gm.append("Can't parse '%s' in maskFromNexusCharacterList '%s'" % \
                                     (second, nexusCharListString))
-                    raise Glitch, gm
+                    raise Glitch(gm)
             if third:
                 try:
                     bystep = int(third)
                 except ValueError:
                     gm.append("Can't parse '%s' in maskFromNexusCharacterList '%s'" % \
                           (third, nexusCharListString))
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 for spot in range(start - 1, fin, bystep):
                     mask[spot] = '1'
             else:
@@ -1916,7 +1917,7 @@ def polar2square(angleLenList):
     if angleLenList[1] == 0.0:
         return [0, 0]
     elif angleLenList[1] < 0.0:
-        raise Glitch, 'func.polar2square error: len is less than zero'
+        raise Glitch('func.polar2square error: len is less than zero')
     if angleLenList[0] == (math.pi / 2.0) or angleLenList[0] == (math.pi / -2.0):
         adj = 0.0
     else:
@@ -1946,21 +1947,21 @@ def factorial(n):
     try:
         n = int(n)
     except:
-        raise Glitch, "n should be (at least convertible to) an int."
+        raise Glitch("n should be (at least convertible to) an int.")
     assert n >= 0, "n should be zero or positive."
 
     fact = {0: 1, 1: 1, 2: 2, 3: 6, 4: 24, 5: 120, 6: 720, 7: 5040, 8: 40320, 9: 362880,
-            10: 3628800, 11: 39916800, 12: 479001600, 13: 6227020800L, 14: 87178291200L,
-            15: 1307674368000L, 16: 20922789888000L, 17: 355687428096000L, 18: 6402373705728000L,
-            19: 121645100408832000L, 20: 2432902008176640000L, 21: 51090942171709440000L,
-            22: 1124000727777607680000L, 23: 25852016738884976640000L, 24: 620448401733239439360000L,
-            25: 15511210043330985984000000L, 26: 403291461126605635584000000L,
-            27: 10888869450418352160768000000L, 28: 304888344611713860501504000000L,
-            29: 8841761993739701954543616000000L, 30: 265252859812191058636308480000000L}
+            10: 3628800, 11: 39916800, 12: 479001600, 13: 6227020800, 14: 87178291200,
+            15: 1307674368000, 16: 20922789888000, 17: 355687428096000, 18: 6402373705728000,
+            19: 121645100408832000, 20: 2432902008176640000, 21: 51090942171709440000,
+            22: 1124000727777607680000, 23: 25852016738884976640000, 24: 620448401733239439360000,
+            25: 15511210043330985984000000, 26: 403291461126605635584000000,
+            27: 10888869450418352160768000000, 28: 304888344611713860501504000000,
+            29: 8841761993739701954543616000000, 30: 265252859812191058636308480000000}
     if n <= 30:
         return fact[n]
     else:
-        total = 1L
+        total = 1
         while n > 1:
             total *= n
             n -= 1
@@ -1971,8 +1972,8 @@ def nChooseK(n, k):
     try:
         n = int(n)
         k = int(k)
-    except ValueError, TypeError:
-        raise Glitch, "n and k should be (at least convertible to) ints."
+    except ValueError as TypeError:
+        raise Glitch("n and k should be (at least convertible to) ints.")
     
     assert n >= 0, "n should be zero or more."
     assert k <= n, "k should be less than or equal to n"
@@ -1985,7 +1986,7 @@ def nChooseK(n, k):
 
 def nUnrootedTrees(nTaxa):
     upper = (nTaxa * 2) - 5
-    nTrees = 1L
+    nTrees = 1
     i = 3
     while i <= upper:
         nTrees *= i
@@ -1994,7 +1995,7 @@ def nUnrootedTrees(nTaxa):
 
 def nRootedTrees(nTaxa):
     upper = (nTaxa * 2) - 3
-    nTrees = 1L
+    nTrees = 1
     i = 3
     while i <= upper:
         nTrees *= i
@@ -2015,32 +2016,32 @@ def nRootedTreesWithMultifurcations(nTaxa):
     # Make a table.
     table = []
     for nInts in range(nTaxa):
-        table.append([0L] * (nTaxa + 1))
+        table.append([0] * (nTaxa + 1))
     for nT in range(2, nTaxa + 1):
-        table[1][nT] = 1L
+        table[1][nT] = 1
     for nInt in range(2, nTaxa):
         for nTx in range(nInt + 1, nTaxa + 1):
             table[nInt][nTx] = ((nTx + nInt - 2) * table[nInt - 1][nTx -1]) + (nInt * table[nInt][nTx - 1])
 
     if 0:
         # Print out the table.
-        print "%-9s|" % "nTx ->",
+        print("%-9s|" % "nTx ->", end=' ')
         for nTx in range(1,nTaxa + 1):
-            print "%10i" % nTx,
-        print
+            print("%10i" % nTx, end=' ')
+        print()
         for nTx in range(nTaxa + 1):
-            print "%10s" % " ---------",
-        print
-        print "%8s |" % "nInt"
+            print("%10s" % " ---------", end=' ')
+        print()
+        print("%8s |" % "nInt")
 
 
         for nInt in range(1, nTaxa):
-            print "%8i |" % nInt,
+            print("%8i |" % nInt, end=' ')
             for nTx in range(nInt):
-                print "%10s" % "",
+                print("%10s" % "", end=' ')
             for nTx in range(nInt + 1, nTaxa + 1):
-                print "%10i" % table[nInt][nTx],
-            print
+                print("%10i" % table[nInt][nTx], end=' ')
+            print()
     results = []
     for nInt in range(nTaxa):
         results.append(table[nInt][nTaxa])
@@ -2123,7 +2124,7 @@ def dirichlet1(inSeq, alpha, theMin, theMax=None, u=None):
             gm.append("Tried more than %i times to get good dirichlet values, and failed.  Giving up." % safetyLimit)
             gm.append("inSeq: %s" % inSeq)
             gm.append("theMin: %s, theMax: %s, u=%s" % (theMin, theMax, u))
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
 
@@ -2141,10 +2142,10 @@ def unPickleMcmc(runNum, theData, verbose=True):
         runNum = int(runNum)
     except (ValueError, TypeError):
         gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-        raise Glitch, gm
+        raise Glitch(gm)
     if runNum < 0:
         gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-        raise Glitch, gm
+        raise Glitch(gm)
     baseName = "mcmc_checkPoint_%i." % runNum
     ff = glob.glob("%s*" % baseName)
 
@@ -2155,15 +2156,15 @@ def unPickleMcmc(runNum, theData, verbose=True):
     if not pickleNums: # an empty sequence
         gm.append("Can't find any checkpoints for runNum %i." % runNum)
         gm.append("Got the right runNum?")
-        raise Glitch, gm
+        raise Glitch(gm)
     theIndx = pickleNums.index(max(pickleNums))
     fName = ff[theIndx]
     if verbose:
-        print "...unpickling Mcmc in %s" %  fName
+        print("...unpickling Mcmc in %s" %  fName)
 
-    import cPickle
+    import pickle
     f = file(fName)
-    m = cPickle.load(f)
+    m = pickle.load(f)
     f.close()
 
     # 30 Aug 2011.  Fix for backward compatibility.  Need to add
@@ -2210,10 +2211,10 @@ def unPickleSTMcmc(runNum, verbose=True):
         runNum = int(runNum)
     except (ValueError, TypeError):
         gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-        raise Glitch, gm
+        raise Glitch(gm)
     if runNum < 0:
         gm.append("runNum should be an int, 0 or more.  Got %s" % runNum)
-        raise Glitch, gm
+        raise Glitch(gm)
     baseName = "mcmc_checkPoint_%i." % runNum
     ff = glob.glob("%s*" % baseName)
 
@@ -2224,15 +2225,15 @@ def unPickleSTMcmc(runNum, verbose=True):
     if not pickleNums: # an empty sequence
         gm.append("Can't find any checkpoints for runNum %i." % runNum)
         gm.append("Got the right runNum?")
-        raise Glitch, gm
+        raise Glitch(gm)
     theIndx = pickleNums.index(max(pickleNums))
     fName = ff[theIndx]
     if verbose:
-        print "...unpickling Mcmc in %s" %  fName
+        print("...unpickling Mcmc in %s" %  fName)
 
-    import cPickle
+    import pickle
     f = file(fName)
-    m = cPickle.load(f)
+    m = pickle.load(f)
     f.close()
 
     if m.usingP4stmModule:
@@ -2254,7 +2255,7 @@ def recipes(writeToFile=var.recipesWriteToFile):
     gm = ["func.recipes()"]
     if not var.examplesDir:
         gm.append("Can't find the Examples directory.")
-        raise Glitch, gm
+        raise Glitch(gm)
     recipesDir = os.path.join(var.examplesDir, 'W_recipes')
 
     # # One line blurb, and default file name.
@@ -2292,8 +2293,8 @@ def recipes(writeToFile=var.recipesWriteToFile):
     
     for recNum in range(len(recipesList)):
         rec = recipesList[recNum]
-        print "%s.  %s" % (string.uppercase[recNum], rec[0])
-    ret = raw_input('Tell me a letter: ')
+        print("%s.  %s" % (string.uppercase[recNum], rec[0]))
+    ret = input('Tell me a letter: ')
     #print "Got %s" % ret
     if ret == '':
         return
@@ -2306,7 +2307,7 @@ def recipes(writeToFile=var.recipesWriteToFile):
     #print "Got recNum %i" % recNum
 
     if writeToFile:
-        ret = raw_input('Write it to file name [default %s] :' % recipesList[recNum][1])
+        ret = input('Write it to file name [default %s] :' % recipesList[recNum][1])
         if ret == '':
             theFName = recipesList[recNum][1]
         else:
@@ -2314,10 +2315,10 @@ def recipes(writeToFile=var.recipesWriteToFile):
         if os.path.exists(theFName):
             "The file %s already exists.  I'm refusing to over-write it, so I'm doing nothing." % theFName
             return
-        print "Writing to file '%s' ..." % theFName
+        print("Writing to file '%s' ..." % theFName)
         os.system("cp %s %s" % (os.path.join(recipesDir, recipesList[recNum][1]), theFName))
     else:
-        print "\n"
+        print("\n")
         os.system("cat %s" % os.path.join(recipesDir, recipesList[recNum][1]))
     
         
@@ -2327,10 +2328,10 @@ def recipes(writeToFile=var.recipesWriteToFile):
 def uninstall():
     """Uninstall the p4 package."""
 
-    print """
+    print("""
 This function is for uninstalling an installed version of p4.  It uses
 the p4.installation module to get the locations of files.  It may need
-to be done as root, or using sudo."""
+to be done as root, or using sudo.""")
 
     weAreInteractive = False
     if os.getenv('PYTHONINSPECT'):   # The p4 script sets this
@@ -2343,8 +2344,8 @@ to be done as root, or using sudo."""
     try:
         import installation
     except ImportError:
-        raise Glitch, "Unable to import the p4.installation module."
-    print """
+        raise Glitch("Unable to import the p4.installation module.")
+    print("""
     
 This function will remove the p4 script file
   %s
@@ -2353,25 +2354,25 @@ the library files in the directory
 and the documentation in the directory
   %s
 
-""" % (installation.p4ScriptPath, installation.p4LibDir, installation.p4DocDir)
+""" % (installation.p4ScriptPath, installation.p4LibDir, installation.p4DocDir))
     
-    ret = raw_input('Ok to do this? [y/n]')
+    ret = input('Ok to do this? [y/n]')
     ret = string.lower(ret)
     if ret not in ['y', 'yes']:
         return
-    print "Ok, deleting ..."
+    print("Ok, deleting ...")
     if os.path.exists(installation.p4LibDir):
         os.system("rm -fr %s" % installation.p4LibDir)
     else:
-        raise Glitch, "Could not find %s" % installation.p4LibDir
+        raise Glitch("Could not find %s" % installation.p4LibDir)
     if os.path.exists(installation.p4DocDir):
         os.system("rm -fr %s" % installation.p4DocDir)
     else:
-        raise Glitch, "Could not find %s" % installation.p4DocDir
+        raise Glitch("Could not find %s" % installation.p4DocDir)
     if os.path.exists(installation.p4ScriptPath):
         os.system("rm %s" % installation.p4ScriptPath)
     else:
-        raise Glitch, "Could not find %s" % installation.p4ScriptPath
+        raise Glitch("Could not find %s" % installation.p4ScriptPath)
     
     
 
@@ -2480,7 +2481,7 @@ def uniqueFile(file_name):
 def writeInColour(theString, colour='blue'):
     goodColours = ['red', 'RED', 'blue', 'BLUE', 'cyan', 'CYAN', 'violet', 'VIOLET']
     if colour not in goodColours:
-        raise Glitch, "func.printColour().  The colour should be one of %s" % goodColours
+        raise Glitch("func.printColour().  The colour should be one of %s" % goodColours)
     codeDict = {
         'red': '\033[0;31m', 
         'RED':'\033[1;31m',
@@ -2533,25 +2534,25 @@ def sortListOfObjectsOnAttribute(aListOfObjects, attributeString):
     
     def pairing(anObject, a=attributeString):
         return (getattr(anObject, a), anObject)
-    paired = map(pairing, aListOfObjects)
+    paired = list(map(pairing, aListOfObjects))
     #print paired
     # 'paired' is a list of 2-element tuples, (thingToSortOn, theOriginalObject)
     paired.sort()
     def stripit(pair):
         return pair[1]
-    return map(stripit, paired)
+    return list(map(stripit, paired))
 
 def sortListOfObjectsOn2Attributes(aListOfObjects, attributeString1, attributeString2):
     """Returns a new sorted list."""
     
     def tripling(anObject, a=attributeString1, b=attributeString2):
         return (getattr(anObject, a), getattr(anObject, b), anObject)
-    tripled = map(tripling, aListOfObjects)
+    tripled = list(map(tripling, aListOfObjects))
     # 'tripled' is a list of 3-element tuples, (thingToSortOn, secondThingToSortOn, theOriginalObject)
     tripled.sort()
     def stripit(triple):
         return triple[2]
-    return map(stripit, tripled)
+    return list(map(stripit, tripled))
 
 
 def sortListOfListsOnListElementNumber(aListOfLists, elementNumber):
@@ -2559,13 +2560,13 @@ def sortListOfListsOnListElementNumber(aListOfLists, elementNumber):
     
     def pairing(aList, e = elementNumber):
         return (aList[e], aList)
-    paired = map(pairing, aListOfLists)
+    paired = list(map(pairing, aListOfLists))
     # 'paired' is a list of 2-element tuples, (thingToSortOn, theOriginalElement)
     # print "paired = ", paired
     paired.sort()
     def stripit(pair):
         return pair[1]
-    return map(stripit, paired)
+    return list(map(stripit, paired))
 
 
 def readAndPop(stuff):
@@ -2593,7 +2594,7 @@ def readAndPop(stuff):
             gm.append("no appropriate objects were made.")
         else:
             gm.append("Got %i objects.  Only 1 allowed." % mySum)
-        raise Glitch, gm
+        raise Glitch(gm)
     if nnSL:
         return var.sequenceLists.pop()
     elif nnAlig:
@@ -2635,9 +2636,9 @@ def charsets(names, lens, fName=None):
     gm = ['func.charsets()']
     if len(names) != len(lens):
         gm.append("len of names (%i) is not the same as the len of lengths (%i)" % (len(names), len(lens)))
-        print "names: ", names
-        print "lens: ", lens
-        raise Glitch, gm
+        print("names: ", names)
+        print("lens: ", lens)
+        raise Glitch(gm)
                   
     start = 1
     if fName:
@@ -2706,9 +2707,9 @@ if var.usePfAndNumpy:
         pf.gsl_meanVariance(mySeq, len(seq), mean, variance)
         if 0:
             from p4 import func
-            print "slow p4: mean=%f, variance=%f" % (func.mean(list(seq)), func.variance(list(seq)))
-            print "gsl: mean=%f, variance=%f" % (mean, variance)
-            print "numpy: mean=%f, variance=%f" % (mySeq.mean(), mySeq.var())  # different than gsl-- no n-1 weighting.
+            print("slow p4: mean=%f, variance=%f" % (func.mean(list(seq)), func.variance(list(seq))))
+            print("gsl: mean=%f, variance=%f" % (mean, variance))
+            print("numpy: mean=%f, variance=%f" % (mySeq.mean(), mySeq.var()))  # different than gsl-- no n-1 weighting.
         return (mean, variance)
 
     def chiSquaredProb(xSquared, dof):
@@ -2727,7 +2728,7 @@ if var.usePfAndNumpy:
             b = float(b)
         except:
             gm.append("Both a and b should be floats.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         isNewGSL_RNG = 0
         if not var.gsl_rng:
@@ -2743,9 +2744,9 @@ if var.usePfAndNumpy:
                         newSeed = int(seed)
                         pf.gsl_rng_set(var.gsl_rng, newSeed)
                     except ValueError:
-                        print complaintHead
-                        print "    The seed should be convertible to an integer"
-                        print "    Using the process id instead."
+                        print(complaintHead)
+                        print("    The seed should be convertible to an integer")
+                        print("    Using the process id instead.")
                         pf.gsl_rng_set(var.gsl_rng,  os.getpid())
                 else:
                     pf.gsl_rng_set(var.gsl_rng,  os.getpid())
@@ -2786,7 +2787,7 @@ if var.usePfAndNumpy:
             safety += 1
             if safety > safetyLimit:
                 gm.append("Tried more than %i times to get good dirichlet values, and failed.  Giving up." % safetyLimit)
-                raise Glitch, gm
+                raise Glitch(gm)
     
 
 
@@ -2811,7 +2812,7 @@ if var.usePfAndNumpy:
             assert type(theta) == numpy.ndarray
         except AssertionError:
             gm.append(" alpha, theta, should be numpy arrays.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         assert len(alpha) > 1
         assert len(theta) == len(alpha)
@@ -2830,9 +2831,9 @@ if var.usePfAndNumpy:
                         newSeed = int(seed)
                         pf.gsl_rng_set(var.gsl_rng, newSeed)
                     except ValueError:
-                        print complaintHead
-                        print "    The seed should be convertable to an integer"
-                        print "    Using the process id instead."
+                        print(complaintHead)
+                        print("    The seed should be convertable to an integer")
+                        print("    Using the process id instead.")
                         pf.gsl_rng_set(var.gsl_rng,  os.getpid())
                 else:
                     pf.gsl_rng_set(var.gsl_rng,  os.getpid())
@@ -2863,10 +2864,10 @@ if var.usePfAndNumpy:
         p = pf.studentsTProb(t, dof)
 
         if verbose:
-            print "mean =", m
-            print "std dev =", s
-            print "t statistic =", t
-            print "prob =", p
+            print("mean =", m)
+            print("std dev =", s)
+            print("t statistic =", t)
+            print("prob =", p)
         return p
 
 
@@ -2953,13 +2954,13 @@ if var.usePfAndNumpy:
         pramsProfile = None
         try:
             loc = {}
-            execfile(os.path.join(theDir, "mcmc_pramsProfile.py"), {}, loc)
+            exec(compile(open(os.path.join(theDir, "mcmc_pramsProfile.py")).read(), os.path.join(theDir, "mcmc_pramsProfile.py"), 'exec'), {}, loc)
             #loc =locals()  no workee.
             #print "loc = %s" % loc
             nPrams = loc['nPrams']
             pramsProfile = loc['pramsProfile']
         except IOError:
-            print "The file 'mcmc_pramsProfile.py' cannot be found."
+            print("The file 'mcmc_pramsProfile.py' cannot be found.")
 
         numsList = None
         if run == -1:
@@ -2971,7 +2972,7 @@ if var.usePfAndNumpy:
             try:
                 theFName = os.path.join(theDir, "mcmc_prams_%i" % runNum)
                 flob = file(theFName)
-                print "Reading prams from file %s" % theFName 
+                print("Reading prams from file %s" % theFName) 
             except IOError:
                 break
             theLines = flob.readlines()
@@ -2997,7 +2998,7 @@ if var.usePfAndNumpy:
                             if nPrams:
                                 if not thisNPrams == nPrams:
                                     gm.append("thisNPrams = %i, nPrams = %s" % (thisNPrams, nPrams))
-                                    raise Glitch, gm
+                                    raise Glitch(gm)
                             else:
                                 nPrams = thisNPrams
                             numsList = []
@@ -3009,91 +3010,91 @@ if var.usePfAndNumpy:
                             except IndexError:
                                 gm.append("Line '%s'.  " % string.rstrip(aLine))
                                 gm.append("Can't get parameter number %i  " % pramNum) 
-                                raise Glitch, gm
+                                raise Glitch(gm)
                             try:
                                 aFloat = float(theOne)
                                 numsList[pramNum].append(aFloat)
                             except (ValueError, TypeError):
                                 gm.append("Can't make sense of '%s'" % theOne)
-                                raise Glitch, gm
+                                raise Glitch(gm)
                         linesRead += 1
-            print "  skipped %i lines" % skipsDone
-            print "  read %i lines" % linesRead
+            print("  skipped %i lines" % skipsDone)
+            print("  read %i lines" % linesRead)
             totalLinesRead += linesRead
             if run != -1:
                 break
 
-        print "Read %i pram lines in total." % totalLinesRead
+        print("Read %i pram lines in total." % totalLinesRead)
 
         #print numsList
         spacer1 = ' ' * 20
         if pramsProfile:
-            print "%s   %16s         mean      variance       ess  " % (spacer1, ' ')
-            print "%s   %16s       --------    --------    --------" % (spacer1, ' ')
+            print("%s   %16s         mean      variance       ess  " % (spacer1, ' '))
+            print("%s   %16s       --------    --------    --------" % (spacer1, ' '))
             pramCounter = 0
             for partNum in range(len(pramsProfile)):
                 if len(pramsProfile) > 1:
-                    print "Data partition %i" % partNum
+                    print("Data partition %i" % partNum)
                 if len(pramsProfile[partNum]):
                     #print pramsProfile[partNum]
                     for pramNum in range(len(pramsProfile[partNum])):
                         pString = pramsProfile[partNum][pramNum][0]
                         pramCounts = pramsProfile[partNum][pramNum][1]
                         for p in range(pramCounts):
-                            print "%s%3i %12s[%2i]   " % (spacer1, pramCounter, pString, p),
+                            print("%s%3i %12s[%2i]   " % (spacer1, pramCounter, pString, p), end=' ')
                             d = numpy.array(numsList[pramCounter], numpy.float)
                             m,v = gsl_meanVariance(d)
                             ess = effectiveSampleSize(d, m)
                             if m == 0.0:
-                                print "  0.0      ",
+                                print("  0.0      ", end=' ')
                             elif m < 0.00001:
-                                print "%10.3g " % m,
+                                print("%10.3g " % m, end=' ')
                             elif m < 1.0:
-                                print "%10.6f " % m,
+                                print("%10.6f " % m, end=' ')
                             else:
-                                print "%10.4f " % m,
+                                print("%10.4f " % m, end=' ')
                             if v == 0.0:
-                                print "  0.0      ",
+                                print("  0.0      ", end=' ')
                             elif v < 0.000001:
-                                print "%10.3g " % v,
+                                print("%10.3g " % v, end=' ')
                             elif v < 1.0:
-                                print "%10.6f " % v,
+                                print("%10.6f " % v, end=' ')
                             else:
-                                print "%10.4f " % v,
-                            print "%10.1f " % ess,
-                            print
+                                print("%10.4f " % v, end=' ')
+                            print("%10.1f " % ess, end=' ')
+                            print()
                             pramCounter += 1
 
                 else:
-                    print "        No parameters in this data partition."
+                    print("        No parameters in this data partition.")
         else: # no pramsProfile
-            print "%9s  mean      variance       ess  " % ' '
-            print "%9s--------    --------    --------" % ' '
+            print("%9s  mean      variance       ess  " % ' ')
+            print("%9s--------    --------    --------" % ' ')
             for pramNum in range(nPrams):
-                print "  %2i  " % pramNum,
+                print("  %2i  " % pramNum, end=' ')
                 d = numpy.array(numsList[pramNum], numpy.float)
                 m,v = gsl_meanVariance(d)
                 ess = effectiveSampleSize(d, m)
                 if m == 0.0:
-                    print "  0.0      ",
+                    print("  0.0      ", end=' ')
                 elif m < 0.00001:
-                    print "%10.3g " % m,
+                    print("%10.3g " % m, end=' ')
                 elif m < 1.0:
-                    print "%10.6f " % m,
+                    print("%10.6f " % m, end=' ')
                 else:
-                    print "%10.4f " % m,
+                    print("%10.4f " % m, end=' ')
 
                 if v == 0.0:
-                    print "  0.0      ",
+                    print("  0.0      ", end=' ')
                 elif v < 0.000001:
-                    print "%10.3g " % v,
+                    print("%10.3g " % v, end=' ')
                 elif v < 1.0:
-                    print "%10.6f " % v,
+                    print("%10.6f " % v, end=' ')
                 else:
-                    print "%10.4f " % v,
+                    print("%10.4f " % v, end=' ')
 
-                print "%10.1f " % ess,
-                print
+                print("%10.1f " % ess, end=' ')
+                print()
 
 
 

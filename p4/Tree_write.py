@@ -1,10 +1,10 @@
 import sys,string,os
 #from utilities import fixCharsForLatex
 #from Node import NodeGram
-from DistanceMatrix import DistanceMatrix
-from Glitch import Glitch
-import func
-from Var import var
+from .DistanceMatrix import DistanceMatrix
+from .Glitch import Glitch
+from . import func
+from .Var import var
 
 def patristicDistanceMatrix(self):
     """Matrix of distances along tree path.
@@ -19,7 +19,7 @@ def patristicDistanceMatrix(self):
 
     if not self.taxNames:
         gm.append("No taxNames.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # The tree will be rearranged, so make a copy to play with, so
     # self is undisturbed.
@@ -75,7 +75,7 @@ def tPickle(self, fName=None):
 
     """
 
-    import cPickle
+    import pickle
     #suffix = '.p4_%s_tPickle' % var.versionString
     suffix = '.p4_tPickle'
 
@@ -93,7 +93,7 @@ def tPickle(self, fName=None):
         else:
             fN = self.name + suffix
     f = file(fN, 'w')
-    cPickle.dump(self.dupe(), f, 1) # 1 for binary
+    pickle.dump(self.dupe(), f, 1) # 1 for binary
     #cPickle.dump(self, f, 1) # Don't do this -- has pointers that would not have been malloc'ed!  And data!
     f.close()
 
@@ -123,20 +123,20 @@ def writeNexus(self, fName=None, append=0, writeTaxaBlockIfTaxNamesIsSet=1, mess
                     f = open(fName, 'a')
                 except IOError:
                     gm.append("Can't open %s for appending." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             else:
                 if 0:
-                    print "Tree.writeNexus()"
-                    print "    'append' is requested,"
-                    print "    but '%s' is not a regular file (doesn't exist?)." \
-                          % fName
-                    print "    Writing to a new file instead."
+                    print("Tree.writeNexus()")
+                    print("    'append' is requested,")
+                    print("    but '%s' is not a regular file (doesn't exist?)." \
+                          % fName)
+                    print("    Writing to a new file instead.")
                 try:
                     f = open(fName, 'w')
                     f.write('#NEXUS\n\n')
                 except IOError:
                     gm.append("Can't open %s for writing." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         else:
             try:
@@ -144,7 +144,7 @@ def writeNexus(self, fName=None, append=0, writeTaxaBlockIfTaxNamesIsSet=1, mess
                 f.write('#NEXUS\n\n')
             except IOError:
                 gm.append("Can't open %s for writing." % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
 
     if writeTaxaBlockIfTaxNamesIsSet and self.taxNames:
         f.write('begin taxa;\n')
@@ -211,17 +211,17 @@ def writeNewick(self, fName=None, withTranslation=0, translationHash=None, doMcm
     sList = []
     if withTranslation and not translationHash:
         gm.append("No translationHash.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if fName and toString:
         gm.append("You cannot write to a file and string at the same time.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if doMcmcCommandComments:
         if not self.model:
             gm.append("No model attached to tree.")
             gm.append("Set doMcmcCommandComments=0")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
     #print 'self.preAndPostOrderAreValid = %s' % self.preAndPostOrderAreValid
@@ -244,7 +244,7 @@ def writeNewick(self, fName=None, withTranslation=0, translationHash=None, doMcm
         else:
             # Will this ever happen?
             gm.append("Something is wrong.  There is only one node, and it is not terminal.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     elif nNodes > 1:
         writeBrLens = 0
@@ -274,7 +274,7 @@ def writeNewick(self, fName=None, withTranslation=0, translationHash=None, doMcm
                         else:
                             if n1 != self.root:
                                 gm.append("Terminal node with no name?")
-                                raise Glitch, gm
+                                raise Glitch(gm)
                 else:
                     sList.append(')')
                     if n1.name:
@@ -291,7 +291,7 @@ def writeNewick(self, fName=None, withTranslation=0, translationHash=None, doMcm
     if toString:
         return "".join(sList)
     elif fName == None:
-        print  "".join(sList)
+        print("".join(sList))
     elif type(fName) == type('string'):
         if append:
             fName2 = file(fName, 'a')
@@ -306,7 +306,7 @@ def writeNewick(self, fName=None, withTranslation=0, translationHash=None, doMcm
         # Somebody else opened the fName, so somebody else can close it.
     else:
         gm.append("I don't understand (%s) passed to me to write to." % fName)
-        raise Glitch, gm
+        raise Glitch(gm)
     
 
 def _getMcmcCommandComment(self, theNode):
@@ -348,7 +348,7 @@ def draw(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, showNodeNums
                           addToBrLen=addToBrLen, width=width,
                           autoIncreaseWidth=True,
                           showNodeNums=showNodeNums, partNum=partNum, model=model)
-    print string.join(s, '\n')
+    print(string.join(s, '\n'))
 
 
 def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, autoIncreaseWidth=True, showNodeNums=1, partNum=0, model=False):
@@ -364,7 +364,7 @@ def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, auto
     if not self.preAndPostOrderAreValid:
         self.setPreAndPostOrder()
 
-    from TreePicture import TreePicture
+    from .TreePicture import TreePicture
     p = TreePicture(self)
     p.fName = None
     p.width = width
@@ -419,7 +419,7 @@ def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, auto
             if n.isLeaf and n != self.root:
                 if n.name and len(n.name) > p.width:
                     gm.append("There are long names, and the given width is not enough.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
 
     if model:
@@ -427,13 +427,13 @@ def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, auto
             partNum = int(partNum)
         except:
             gm.append("partNum arg should be an integer.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if not self.model:
             gm.append("If model arg is set, then self.model must exist.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if partNum < 0 or partNum >= self.model.nParts:
             gm.append("Zero-based partNum %i is out of range of %s parts." % (partNum, self.model.nParts))
-            raise Glitch, gm
+            raise Glitch(gm)
         p.partNum = partNum
         p.doModel = 1
 
@@ -455,9 +455,9 @@ def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, auto
         if doComps:
             if 0:
                 if self.model.nParts > 1:
-                    print "Compositions for part %i" % partNum
+                    print("Compositions for part %i" % partNum)
                 else:
-                    print "\nCompositions\n------------"
+                    print("\nCompositions\n------------")
             p.textDrawModelThing = var.TEXTDRAW_COMP
             p.setPos(autoIncreaseWidth)
             s = p.textString(returnAsList=True)
@@ -467,9 +467,9 @@ def textDrawList(self, showInternalNodeNames=1, addToBrLen=0.2, width=None, auto
         if doRMatrices:
             if 0:
                 if self.model.nParts > 1:
-                    print "RMatrices for part %i" % partNum
+                    print("RMatrices for part %i" % partNum)
                 else:
-                    print "\nRMatrices\n---------"
+                    print("\nRMatrices\n---------")
             p.textDrawModelThing = var.TEXTDRAW_RMATRIX
             p.setPos(autoIncreaseWidth)
             if s:
@@ -508,7 +508,7 @@ def eps(self, fName=None, width=500, putInternalNodeNamesOnBranches=0):
     if not self.preAndPostOrderAreValid:
         self.setPreAndPostOrder()
 
-    from TreePicture import TreePicture
+    from .TreePicture import TreePicture
     p = TreePicture(self)
     p.addToBrLen = 0.0
     p.width = width
@@ -549,7 +549,7 @@ def svg(self, fName=None, width=500, putInternalNodeNamesOnBranches=0):
     if not self.preAndPostOrderAreValid:
         self.setPreAndPostOrder()
 
-    from TreePicture import TreePicture
+    from .TreePicture import TreePicture
     p = TreePicture(self)
     p.addToBrLen = 0.0
     p.width = width

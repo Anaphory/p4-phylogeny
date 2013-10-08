@@ -1,6 +1,6 @@
 import os,string,sys,types
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 
 
 ############################################################################
@@ -46,7 +46,7 @@ def safeNextTok(flob, caller=None):
             gm = ["safeNextTok()"]
         gm.append("Premature Death.")
         gm.append("Ran out of understandable things to read in nexus file.")
-        raise Glitch, gm
+        raise Glitch(gm)
     else:
         return t
 
@@ -98,9 +98,9 @@ def nextTok(flob):
         c = flob.read(1)
         if 0:
             if c == '\n' or c == '\r':
-                print 'nt %3i  c = line ending' % flob.tell()
+                print('nt %3i  c = line ending' % flob.tell())
             else:
-                print 'nt %3i  c = %s' % (flob.tell(), c)
+                print('nt %3i  c = %s' % (flob.tell(), c))
         if not c:
             return None
         #if 0:
@@ -151,18 +151,18 @@ def _handleComment(flob):
     if not c: # empty string, ie at the end of the flob.  level can be assumed to be more than zero.
         gm = ["NexusToken._skipComment()"]
         gm.append("Reached the end while still in a comment.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if 0:
         if c in string.whitespace:
-            print "hc %3i whitespace"  % flob.tell()
+            print("hc %3i whitespace"  % flob.tell())
         else:
-            print "hc %3i  %s" % (flob.tell(), c)
+            print("hc %3i  %s" % (flob.tell(), c))
     if c == ']':
         return None
     if c == '!' and var.nexus_writeVisibleComments:
         flob.seek(commentStartPos, 0)
         theComment = _getComment(flob)
-        print theComment
+        print(theComment)
         return None
     elif c in ['&']: #, '\\']:
         if var.nexus_getAllCommandComments:
@@ -172,7 +172,7 @@ def _handleComment(flob):
         if not c2:
             gm = ["NexusToken._skipComment()"]
             gm.append("Reached the end while still in a comment.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if c == '&' and string.lower(c2) == 'w' and var.nexus_getWeightCommandComments:
             flob.seek(commentStartPos, 0)
             return _getComment(flob)
@@ -199,13 +199,13 @@ def _skipComment(flob):
         c = flob.read(1)
         if 0:
             if c in string.whitespace:
-                print "sc %3i  whitespace" % flob.tell()
+                print("sc %3i  whitespace" % flob.tell())
             else:
-                print "sc %3i  %s" % (flob.tell(), c)
+                print("sc %3i  %s" % (flob.tell(), c))
         if not c: # empty string, ie at the end of the flob.  level can be assumed to be more than zero.
             gm = ["NexusToken._skipComment()"]
             gm.append("Reached the end while still in a comment.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if c == '[':
             level = level + 1
         elif c == ']':
@@ -221,13 +221,13 @@ def _getComment(flob):
         c = flob.read(1)
         if 0:
             if c in string.whitespace:
-                print "gc %3i  whitespace" % flob.tell()
+                print("gc %3i  whitespace" % flob.tell())
             else:
-                print "gc %3i  %s" % (flob.tell(), c)
+                print("gc %3i  %s" % (flob.tell(), c))
         if not c:
             gm = ["NexusToken._getComment()"]
             gm.append("Reached the end while still in a comment.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if c == '[':
             level = level + 1
         elif c == ']':
@@ -258,11 +258,11 @@ def _getWord(flob):
         c = flob.read(1)
         if 0:
             if not c:
-                print "gw %3i  empty (position given is that of the last char)" % flob.tell()
+                print("gw %3i  empty (position given is that of the last char)" % flob.tell())
             if c in string.whitespace:
-                print "gw %3i  whitespace" % flob.tell()
+                print("gw %3i  whitespace" % flob.tell())
             else:
-                print "gw %3i  %s" % (flob.tell(), c)
+                print("gw %3i  %s" % (flob.tell(), c))
         if c == '[':
             endPos = flob.tell() - 1
             theLen = endPos - startPos
@@ -345,18 +345,18 @@ def _getQuotedStuff(flob):
                     # bad.
                     gm = [complaintHead]
                     gm.append("Got 2 single quotes in a row, not properly within single quotes.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             else:
                 gm = [complaintHead]
                 gm.append("Got 2 single quotes in a row, not properly within single quotes.")
                 gm.append("And then the file ended.  Bad.")
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             flob.seek(-1, 1) # it wasn't a single quote, so back up one space
     else:
         gm = [complaintHead]
         gm.append("    File ended with an un-matched single quote.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     #print 'At the start of the while(1) loop, the file position is %i' % flob.tell()
     while 1:
@@ -364,11 +364,11 @@ def _getQuotedStuff(flob):
         #print '! c= %s' % c
         if 0:
             if not c:
-                print "gq %3i  empty (position is eof)" % flob.tell()
+                print("gq %3i  empty (position is eof)" % flob.tell())
             elif c in string.whitespace:
-                print "gq %3i  whitespace" % flob.tell()
+                print("gq %3i  whitespace" % flob.tell())
             else:
-                print "gq %3i  %s" % (flob.tell(), c)
+                print("gq %3i  %s" % (flob.tell(), c))
         if c == '\'':
             c2 = flob.read(1)
             if c2:
@@ -393,7 +393,7 @@ def _getQuotedStuff(flob):
         elif not c:
             gm = [complaintHead]
             gm.append("File ended while still in a quoted word.")
-            raise Glitch, gm
+            raise Glitch(gm)
     return string.join(['\''] + local_pieces + ['\''], '')
 
 # (Thats it for the token generation stuff)
@@ -415,7 +415,7 @@ def nexusSkipPastNextSemiColon(flob):
     gm = [complaintHead]
     gm.append("Every Nexus command must end in a semicolon.")
     gm.append("No semicolon was found.  Premature end of file?")
-    raise Glitch, gm
+    raise Glitch(gm)
 
 ##Ignore
 def nexusSkipPastBlockEnd(flob):
@@ -430,13 +430,13 @@ def nexusSkipPastBlockEnd(flob):
             if lowTok == 'end' or lowTok == 'endblock':
                 tok2 = nextTok(flob)
                 if not tok2 or tok2 != ';':
-                    print complaintHead
+                    print(complaintHead)
                     gm.append("Expecting a semicolon after %s" % tok)
                     if not tok2:
                         gm.append("Got nothing.")
                     else:
                         gm.append("Got '%s'" % tok2)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 return
             elif lowTok == ';':  # for pathological cases where the last command is a ';' by itself.
                 continue
@@ -446,7 +446,7 @@ def nexusSkipPastBlockEnd(flob):
             break
     gm.append("Failed to find either 'end' or 'endblock'")
     gm.append("Premature end of file?")
-    raise Glitch, gm
+    raise Glitch(gm)
 
 
 def nexusNextCommand(flob):
@@ -468,6 +468,6 @@ def nexusNextCommand(flob):
     gm = ["NexusToken.nexusNextCommand()"]
     gm.append("Could not find a semi-colon to end the nexus command.")
     gm.append("Premature end of file?")
-    raise Glitch, gm
+    raise Glitch(gm)
 
 

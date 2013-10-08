@@ -1,8 +1,8 @@
 import string,sys,os
-import func
-from Var import var
-from SequenceList import Sequence
-from Glitch import Glitch
+from . import func
+from .Var import var
+from .SequenceList import Sequence
+from .Glitch import Glitch
 
 
 def readOpenPhylipFile(self, flob, nTax, nChar):
@@ -16,12 +16,12 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
     dbug = False
 
     if dbug:
-        print "\nreadOpenPhylipFile here"
+        print("\nreadOpenPhylipFile here")
         if hasattr(flob, 'name'):
-            print "    fileName is %s" % flob.name
-        print "    nTax is", nTax
-        print "    nChar is", nChar
-        print "    var.phylipDataMaxNameLength is", var.phylipDataMaxNameLength
+            print("    fileName is %s" % flob.name)
+        print("    nTax is", nTax)
+        print("    nChar is", nChar)
+        print("    var.phylipDataMaxNameLength is", var.phylipDataMaxNameLength)
 
     # It is difficult to tell whether it is sequential or interleaved.
     # For example, is the following alignment sequential or interleaved?
@@ -111,7 +111,7 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
         secondInt = int(splFirstLine[1])
     except ValueError:  # This should have been caught before, so this should never happen.
         gm.append('bad first line %s' % headerLine)
-        raise Glitch, gm
+        raise Glitch(gm)
     assert firstInt == nTax
     assert secondInt == nChar
 
@@ -174,7 +174,7 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
         isSequential = True
 
     if dbug:
-        print "    moduloRemainderIsZero is %s" % moduloRemainderIsZero
+        print("    moduloRemainderIsZero is %s" % moduloRemainderIsZero)
             
     
     if isSequential == None:
@@ -184,8 +184,8 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
         firstLine = theLines[0]
         if len(firstLine) <= (var.phylipDataMaxNameLength):
             if dbug:
-                print "Got the name %s by virtue of it being a short name on the first data line." % firstLine
-                print "Setting 'isSequential' to True, based on that."
+                print("Got the name %s by virtue of it being a short name on the first data line." % firstLine)
+                print("Setting 'isSequential' to True, based on that.")
             isSequential = True
         elif not firstLine.count(' '):
             isSequential = True
@@ -206,23 +206,23 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
     while not gotIt:
         if dbug:
             if hasattr(flob, 'name'):
-                print "  fileName is %s" % flob.name
-            print "  isSequential is %s" % isSequential
-            print "  whitespaceSeparatesNames is %s" % whitespaceSeparatesNames
-            print "  haveTriedSequential = %s" % haveTriedSequential
-            print "  haveTriedSequential_strict = %s" % haveTriedSequential_strict
-            print "  seqentialResult is %s" % sequentialResult
-            print "  haveTriedInterleaved is %s" % haveTriedInterleaved
-            print "  haveTriedInterleaved_strict is %s" % haveTriedInterleaved_strict
-            print "  interleavedResult is %s" % interleavedResult
+                print("  fileName is %s" % flob.name)
+            print("  isSequential is %s" % isSequential)
+            print("  whitespaceSeparatesNames is %s" % whitespaceSeparatesNames)
+            print("  haveTriedSequential = %s" % haveTriedSequential)
+            print("  haveTriedSequential_strict = %s" % haveTriedSequential_strict)
+            print("  seqentialResult is %s" % sequentialResult)
+            print("  haveTriedInterleaved is %s" % haveTriedInterleaved)
+            print("  haveTriedInterleaved_strict is %s" % haveTriedInterleaved_strict)
+            print("  interleavedResult is %s" % interleavedResult)
 
         if 0:
             if len(theLines) >= 5:
-                theRange = range(5)
+                theRange = list(range(5))
             else:
-                theRange = range(len(theLines))
+                theRange = list(range(len(theLines)))
             for lineNum in theRange:
-                print theLines[lineNum]
+                print(theLines[lineNum])
         
         if whitespaceSeparatesNames:
             if isSequential and not haveTriedSequential:
@@ -297,7 +297,7 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
             gm.append("Failed to read the phylip or phylip-like file.")
             if not var.verboseRead:
                 gm.append("(For more info, turn var.verboseRead on)")
-            raise Glitch, gm
+            raise Glitch(gm)
     ###########################################################################################
     ###########################################################################################
     
@@ -322,7 +322,7 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
             s.dataType = 'protein'
             s.symbols = 'arndcqeghilkmfpstwyv'
         else:
-            raise Glitch, "Got rna sequence.  Fix me."
+            raise Glitch("Got rna sequence.  Fix me.")
     
     # Having read in all the sequences, check for valid characters.
     if len(self.sequences) > 0:
@@ -332,39 +332,39 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
                 j = 0
                 while j < nChar:
                     if s.sequence[j] not in var.validDnaChars:
-                        print "Got bad character '%s' in (zero-based) dna sequence %s " % \
-                                                    (s.sequence[j], self.sequences.index(s))
-                        print "          sequence name: %s" % s.name
-                        print "          at (zero-based) position %s" % j
+                        print("Got bad character '%s' in (zero-based) dna sequence %s " % \
+                                                    (s.sequence[j], self.sequences.index(s)))
+                        print("          sequence name: %s" % s.name)
+                        print("          at (zero-based) position %s" % j)
                         bads = bads + 1
                         if bads > 10:
-                            print "...and possibly others"
+                            print("...and possibly others")
                             break
                     j = j + 1
                 if bads > 10:
                     break
             if bads:
                 gm.append("See the list of bad chars above")
-                raise Glitch, gm
+                raise Glitch(gm)
         elif self.sequences[0].dataType == 'protein':
             for s in self.sequences:
                 j = 0
                 while j < nChar:
                     if s.sequence[j] not in var.validProteinChars:
-                        print "Got bad character '%s' in (zero-based) protein sequence %s " % \
-                                                    (s.sequence[j], self.sequences.index(s))
-                        print "          sequence name: %s" % s.name
-                        print "          at (zero-based) position %s" % j
+                        print("Got bad character '%s' in (zero-based) protein sequence %s " % \
+                                                    (s.sequence[j], self.sequences.index(s)))
+                        print("          sequence name: %s" % s.name)
+                        print("          at (zero-based) position %s" % j)
                         bads = bads + 1
                         if bads > 10:
-                            print "...and possibly others"
+                            print("...and possibly others")
                             break
                     j = j + 1
                 if bads > 10:
                     break
             if bads:
                 gm.append("See the list of bad chars above")
-                raise Glitch, gm
+                raise Glitch(gm)
 
     #for s in self.sequences:
     #    print s.name
@@ -375,8 +375,8 @@ def readOpenPhylipFile(self, flob, nTax, nChar):
 def _readPhylipSequential(self, nTax, nChar, theLines):
 
     if var.verboseRead:
-        print "Attempting to read the phylip file assuming"
-        print "  sequential format, and that whitespaceSeparatesNames"
+        print("Attempting to read the phylip file assuming")
+        print("  sequential format, and that whitespaceSeparatesNames")
 
     lineNum = 0
     
@@ -398,7 +398,7 @@ def _readPhylipSequential(self, nTax, nChar, theLines):
                 lineNum += 1
             except IndexError:
                 if var.verboseRead:
-                    print "    Early termination"
+                    print("    Early termination")
                 return False
             theSequenceBits.append(func.stringZapWhitespaceAndDigits(aLine))
             seqLenSoFar += len(theSequenceBits[-1])
@@ -406,9 +406,9 @@ def _readPhylipSequential(self, nTax, nChar, theLines):
 
         if seqLenSoFar != nChar:
             if var.verboseRead:
-                print "    Did not get exactly nChar."
-                print "    Expected: ", seqLenSoFar
-                print "    Got: ", nChar
+                print("    Did not get exactly nChar.")
+                print("    Expected: ", seqLenSoFar)
+                print("    Got: ", nChar)
             return False
 
         s = Sequence()
@@ -419,7 +419,7 @@ def _readPhylipSequential(self, nTax, nChar, theLines):
 
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get correct nTax."
+            print("    Did not get correct nTax.")
         return False
                       
     isBad = False
@@ -429,18 +429,18 @@ def _readPhylipSequential(self, nTax, nChar, theLines):
             break
     if isBad:
         if var.verboseRead:
-            print "    At least one sequence has the wrong nChar."
+            print("    At least one sequence has the wrong nChar.")
         return False
 
     if var.verboseRead:
-        print "    Got a candidate alignment."
+        print("    Got a candidate alignment.")
     return True
 
 def _readPhylipInterleaved(self, nTax, nChar, theLines):
 
     if var.verboseRead:
-        print "Attempting to read the phylip file assuming"
-        print "  interleaved format, and that whitespaceSeparatesNames"
+        print("Attempting to read the phylip file assuming")
+        print("  interleaved format, and that whitespaceSeparatesNames")
 
     lineNum = 0
     for i in range(nTax):
@@ -460,7 +460,7 @@ def _readPhylipInterleaved(self, nTax, nChar, theLines):
         self.sequences.append(s)
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get exactly nTax sequences"
+            print("    Did not get exactly nTax sequences")
         return False
 
     # Subsequent cycles don't have names-- just sequence
@@ -486,7 +486,7 @@ def _readPhylipInterleaved(self, nTax, nChar, theLines):
                 if self.sequences[seqNum].seqLenSoFar >= nChar:
                     isDone = True
         else:
-            print '_readPhylipInterleaved() bad line?: %s' % aLine
+            print('_readPhylipInterleaved() bad line?: %s' % aLine)
 
 
     for s in self.sequences:
@@ -497,7 +497,7 @@ def _readPhylipInterleaved(self, nTax, nChar, theLines):
 
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get correct nTax."
+            print("    Did not get correct nTax.")
         return False
                       
     isBad = False
@@ -509,21 +509,21 @@ def _readPhylipInterleaved(self, nTax, nChar, theLines):
             break
     if isBad:
         if var.verboseRead:
-            print "    At least one sequence has the wrong nChar."
-            print "    Expected: ", nChar
-            print "    Got: ", len(s.sequence)
+            print("    At least one sequence has the wrong nChar.")
+            print("    Expected: ", nChar)
+            print("    Got: ", len(s.sequence))
         return False
 
     if var.verboseRead:
-        print "    Got a candidate alignment."
+        print("    Got a candidate alignment.")
     return True
     
 
 def _readPhylipSequentialStrict(self, nTax, nChar, theLines):
 
     if var.verboseRead:
-        print "Attempting to read the phylip file assuming"
-        print "  sequential format, with strict phylip format"
+        print("Attempting to read the phylip file assuming")
+        print("  sequential format, with strict phylip format")
 
     lineNum = 0
     
@@ -542,7 +542,7 @@ def _readPhylipSequentialStrict(self, nTax, nChar, theLines):
                 lineNum += 1
             except IndexError:
                 if var.verboseRead:
-                    print "    Early termination"
+                    print("    Early termination")
                 return False
             aBit = func.stringZapWhitespaceAndDigits(aLine)
             theSequenceBits.append(aBit)
@@ -551,7 +551,7 @@ def _readPhylipSequentialStrict(self, nTax, nChar, theLines):
 
         if seqLenSoFar != nChar:
             if var.verboseRead:
-                print "    Did not get exactly nChar."
+                print("    Did not get exactly nChar.")
             return False
 
         s = Sequence()
@@ -562,7 +562,7 @@ def _readPhylipSequentialStrict(self, nTax, nChar, theLines):
 
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get correct nTax."
+            print("    Did not get correct nTax.")
         return False
                       
     isBad = False
@@ -572,17 +572,17 @@ def _readPhylipSequentialStrict(self, nTax, nChar, theLines):
             break
     if isBad:
         if var.verboseRead:
-            print "    At least one sequence has the wrong nChar."
+            print("    At least one sequence has the wrong nChar.")
         return False
 
     if var.verboseRead:
-        print "    Got a candidate alignment."
+        print("    Got a candidate alignment.")
     return True
 
 def _readPhylipInterleavedStrict(self, nTax, nChar, theLines):
     if var.verboseRead:
-        print "Attempting to read the phylip file assuming"
-        print "  interleaved format, with strict phylip format"
+        print("Attempting to read the phylip file assuming")
+        print("  interleaved format, with strict phylip format")
 
     lineNum = 0
     for i in range(nTax):
@@ -598,7 +598,7 @@ def _readPhylipInterleavedStrict(self, nTax, nChar, theLines):
         self.sequences.append(s)
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get exactly nTax sequences"
+            print("    Did not get exactly nTax sequences")
         return False
 
     # Subsequent cycles don't have names-- just sequence
@@ -622,7 +622,7 @@ def _readPhylipInterleavedStrict(self, nTax, nChar, theLines):
                 if self.sequences[seqNum].seqLenSoFar >= nChar:
                     isDone = True
         else:
-            print '_readPhylipInterleavedStrict() bad line?: %s' % aLine
+            print('_readPhylipInterleavedStrict() bad line?: %s' % aLine)
             
     for s in self.sequences:
         s.sequence = string.join(s.theSequenceBits, '')
@@ -632,7 +632,7 @@ def _readPhylipInterleavedStrict(self, nTax, nChar, theLines):
 
     if len(self.sequences) != nTax:
         if var.verboseRead:
-            print "    Did not get correct nTax."
+            print("    Did not get correct nTax.")
         return False
                       
     isBad = False
@@ -642,11 +642,11 @@ def _readPhylipInterleavedStrict(self, nTax, nChar, theLines):
             break
     if isBad:
         if var.verboseRead:
-            print "    At least one sequence has the wrong nChar."
+            print("    At least one sequence has the wrong nChar.")
         return False
 
     if var.verboseRead:
-        print "    Got a candidate alignment."
+        print("    Got a candidate alignment.")
     return True
     
 
@@ -661,20 +661,20 @@ def readOpenClustalwFile(self, flob):
 
     dbug = 0
     if dbug:
-        print "\nreadOpenClustalwFile() here"
+        print("\nreadOpenClustalwFile() here")
 
     # readline up to the first line of sequence
     aLine = flob.readline()
     if not aLine:
         gm.append("No sequence?")
-        raise Glitch, gm
+        raise Glitch(gm)
     while len(aLine) <= 1:
         aLine = flob.readline()
         if not aLine:
             gm.append("No sequence?")
-            raise Glitch, gm
+            raise Glitch(gm)
     if dbug:
-        print "a- got aLine: '%s'" % aLine
+        print("a- got aLine: '%s'" % aLine)
 
     # Do the first cycle:
     while len(aLine) > 1 and aLine[0] not in string.whitespace:
@@ -682,13 +682,13 @@ def readOpenClustalwFile(self, flob):
         splitLine = string.split(aLine)
         if len(splitLine) != 2:
             gm.append("Odd line:\n%s" % aLine)
-            raise Glitch, gm
+            raise Glitch(gm)
         s.name = splitLine[0]
         s.temp = []
         s.temp.append(string.lower(string.strip(splitLine[1])))
         if dbug:
-            print "b got name: %s" % s.name
-            print "b got a line of sequence:\n          %s" % s.temp
+            print("b got name: %s" % s.name)
+            print("b got a line of sequence:\n          %s" % s.temp)
         self.sequences.append(s)
         aLine = flob.readline()
         if not aLine:
@@ -699,9 +699,9 @@ def readOpenClustalwFile(self, flob):
     nSeqs = len(self.sequences)
     if not nSeqs:
         gm.append("No sequences?")
-        raise Glitch, gm
+        raise Glitch(gm)
     if dbug:
-        print "Got %i sequences (after first cycle)" % nSeqs
+        print("Got %i sequences (after first cycle)" % nSeqs)
 
     # Do subsequent cycles
     while 1:
@@ -711,7 +711,7 @@ def readOpenClustalwFile(self, flob):
                 break
         if aLine:
             if dbug:
-                print "begin subsequent cycle with aLine:\n    %s" % aLine
+                print("begin subsequent cycle with aLine:\n    %s" % aLine)
             for s in self.sequences:
                 if aLine[0] in string.whitespace or len(aLine) <= 1:
                     gm.append("Bad line:\n    %s" % aLine)
@@ -719,14 +719,14 @@ def readOpenClustalwFile(self, flob):
                 splitLine = string.split(aLine)
                 if len(splitLine) != 2:
                     gm.append("Odd line:\n%s" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 if s.name != splitLine[0]:
                     gm.append("Problem: existing name %s does not match new name %s" % (s.name, splitLine[0]))
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 s.temp.append(string.lower(string.strip(splitLine[1])))
                 if dbug:
-                    print "got name: %s" % s.name
-                    print "got a line of sequence:\n          %s" % s.temp
+                    print("got name: %s" % s.name)
+                    print("got a line of sequence:\n          %s" % s.temp)
                 aLine = flob.readline()
                 if not aLine:
                     break
@@ -739,14 +739,14 @@ def readOpenClustalwFile(self, flob):
 
     for s in self.sequences:
         if dbug:
-            print "got name: %s" % s.name
-            print "got sequence:\n          %s" % s.temp
+            print("got name: %s" % s.name)
+            print("got sequence:\n          %s" % s.temp)
         s.temp = string.join(s.temp, '')
         if len(s.temp) != nChar:
             gm.append("Something is wrong with the sequence length of the clustalw file.")
             gm.append("(zero-based) sequence %i" % self.sequences.index(s))
             gm.append("expected %i, got %i" % (nChar, len(s.temp)))
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if func.isDnaRnaOrProtein(s.temp): # returns 1,2 or 0, respectively
             s.sequence = s.temp
@@ -766,45 +766,45 @@ def readOpenClustalwFile(self, flob):
                 j = 0
                 while j < nChar:
                     if s.sequence[j] not in var.validDnaChars:
-                        print "bad character '%s' in (zero-based) dna sequence %s " % \
-                                                    (s.sequence[j], self.sequences.index(s))
-                        print "          sequence name: %s" % s.name
-                        print "          at (zero-based) position %s" % j
+                        print("bad character '%s' in (zero-based) dna sequence %s " % \
+                                                    (s.sequence[j], self.sequences.index(s)))
+                        print("          sequence name: %s" % s.name)
+                        print("          at (zero-based) position %s" % j)
                         bads = bads + 1
                         if bads > 10:
-                            print "...and possibly others"
+                            print("...and possibly others")
                             break
                     j = j + 1
                 if bads > 10:
                     break
             if bads:
-                raise Glitch, gm
+                raise Glitch(gm)
         elif self.sequences[0].dataType == 'protein':
             for s in self.sequences:
                 j = 0
                 while j < nChar:
                     if s.sequence[j] not in var.validProteinChars:
-                        print "bad character '%s' in (zero-based) protein sequence %s " % \
-                                                    (s.sequence[j], self.sequences.index(s))
-                        print "          sequence name: %s" % s.name
-                        print "          at (zero-based) position %s" % j
+                        print("bad character '%s' in (zero-based) protein sequence %s " % \
+                                                    (s.sequence[j], self.sequences.index(s)))
+                        print("          sequence name: %s" % s.name)
+                        print("          at (zero-based) position %s" % j)
                         bads = bads + 1
                         if bads > 10:
-                            print "...and possibly others"
+                            print("...and possibly others")
                             break
                     j = j + 1
                 if bads > 10:
                     break
             if bads:
-                raise Glitch, gm
+                raise Glitch(gm)
 
     if dbug:
         for t in self.sequences:
-            print '%20s  %-30s' % ('name', t.name)
-            print '%20s  %-30s' % ('comment', t.comment)
-            print '%20s  %-30s' % ('sequence', t.sequence)
-            print '%20s  %-30s' % ('type', t.dataType)
-            print ''
+            print('%20s  %-30s' % ('name', t.name))
+            print('%20s  %-30s' % ('comment', t.comment))
+            print('%20s  %-30s' % ('sequence', t.sequence))
+            print('%20s  %-30s' % ('type', t.dataType))
+            print('')
 
 
 
@@ -840,17 +840,17 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
                     f = open(fName, 'a')
                 except IOError:
                     gm.append("Can't open %s for appending." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             else:
-                print "Alignment: writeNexusFile() 'append' is requested,"
-                print "    but '%s' is not a regular file (maybe it doesn't exist?)." % fName
-                print "    Writing to a new file instead."
+                print("Alignment: writeNexusFile() 'append' is requested,")
+                print("    but '%s' is not a regular file (maybe it doesn't exist?)." % fName)
+                print("    Writing to a new file instead.")
                 try:
                     f = open(fName, 'w')
                     f.write('#NEXUS\n\n')
                 except IOError:
                     gm.append("Can't open %s for writing." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         else:
             try:
@@ -858,7 +858,7 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
                 f.write('#NEXUS\n\n')
             except IOError:
                 gm.append("Can't open %s for writing." % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
 
     if not writeDataBlock:
         f.write('begin taxa;\n')
@@ -935,7 +935,7 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
             gm.append("'interleave' option does not make sense with 'flat' option.")
             if f != sys.stdout:
                 f.close()
-            raise Glitch, gm
+            raise Glitch(gm)
         else:
             # first, get the length of the longest name
             longest = 0
@@ -944,7 +944,7 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
                 if len(s.name) > longest:
                     longest = len(func.nexusFixNameIfQuotesAreNeeded(s.name))
             #formatString = '    %' + `-longest` + 's '  # boring left-justified
-            formatString = '    %' + `longest` + 's '   # cool right-justified
+            formatString = '    %' + repr(longest) + 's '   # cool right-justified
             # print "format string is '%s'" % formatString
             if longest > 10:
                 wid = 50
@@ -974,7 +974,7 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
                 if len(s.name) > longest:
                     longest = len(func.nexusFixNameIfQuotesAreNeeded(s.name))
             #formatString = '    %' + `-longest` + 's '  # boring left-justified
-            formatString = '    %' + `longest` + 's '   # cool right-justified
+            formatString = '    %' + repr(longest) + 's '   # cool right-justified
             # print "format string is '%s'" % formatString
             for i in range(len(self.sequences)):
                 s = self.sequences[i]
@@ -997,7 +997,7 @@ def writeNexus(self, fName=None, writeDataBlock=0,  interleave=0, flat=0, append
     f.write('end;\n\n')
 
     if self.nexusSets:
-        from NexusSets import NexusSets
+        from .NexusSets import NexusSets
         #print "self.nexusSets = %s" % self.nexusSets
         if self.excludeDelete:
             if self.length < self.excludeDelete.length:
@@ -1090,7 +1090,7 @@ def writePhylip(self, fName=None, interleave=True, whitespaceSeparatesNames=True
         gm.append("have spaces.  That won't work. -- Fix it.")
         for crime in crimes:
             gm.append(crime)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     doStrictOkAnyway = False
     if maxNameLen < var.phylipDataMaxNameLength:
@@ -1098,7 +1098,7 @@ def writePhylip(self, fName=None, interleave=True, whitespaceSeparatesNames=True
 
     if interleave and flat:
         gm.append("Both 'interleave' and 'flat' are turned on -- does not work.")
-        raise Glitch, gm
+        raise Glitch(gm)
     
     # Check and complain if any taxNames will be truncated.
     if not whitespaceSeparatesNames and maxNameLen > var.phylipDataMaxNameLength:
@@ -1106,7 +1106,7 @@ def writePhylip(self, fName=None, interleave=True, whitespaceSeparatesNames=True
         gm.append('var.phylipDataMaxNameLength is now %i' % var.phylipDataMaxNameLength)
         gm.append('Sequence names will be truncated.  Fix it.')
         gm.append("You may want to use the 'renameForPhylip()' method.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     nameWid = var.phylipDataMaxNameLength + 1
     spacer1 = var.phylipDataMaxNameLength + 1
@@ -1123,7 +1123,7 @@ def writePhylip(self, fName=None, interleave=True, whitespaceSeparatesNames=True
             f = open(fName, 'w')
         except IOError:
             gm.append("Can't open '%s' for writing." % fName)
-            raise Glitch, gm
+            raise Glitch(gm)
     f.write(' %i  %i\n' % (len(self.sequences), self.length))
 
     if interleave:
@@ -1217,7 +1217,7 @@ def writeMolphy(self, fName=None):
             f = open(fName, 'w')
         except IOError:
             gm.append("Can't open %s for writing." % fName)
-            raise Glitch, gm
+            raise Glitch(gm)
     f.write(' %i  %i\n' % (len(self.sequences), self.length))
 
     wid = 50
@@ -1254,45 +1254,45 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
     aLine = flob.readline()
     aLine = string.strip(aLine)
     if dbug:
-        print aLine
+        print(aLine)
     if aLine[0] != '{':
         gm.append("The first character is not '{' --- not a GDE file??")
         gm.append("(Note that p4 only reads proper gde files, not gde flat files.)")
-        raise Glitch, gm
+        raise Glitch(gm)
     while aLine:
         s = Sequence()
         if aLine[0] == '{':
             aLine = string.strip(flob.readline())
         else:
             gm.append("Problem with GDE file at line:\n\t%s" % aLine)
-            raise Glitch, gm
+            raise Glitch(gm)
         if aLine[:4] == 'name':
             # the name line might be like: name    "D.ethanoge"
             # or it might be like: name    "C.acetobA ", ie with a spurious space.
             if dbug:
-                print "got name line: \n%s" % aLine
+                print("got name line: \n%s" % aLine)
             splitLine = string.split(aLine, '\"')
             s.name = string.strip(splitLine[1])
             #print s.name
             if not func.nexusCheckName(s.name):
                 gm.append("Bad name '%s'" % s.name)
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             gm.append("I was expecting a name line: instead I got line:\n\t%s" % aLine)
-            raise Glitch, gm
+            raise Glitch(gm)
         aLine = string.strip(flob.readline())
         if aLine[:4] == 'type':
             if dbug:
-                print "get type line: \n%s" % aLine
+                print("get type line: \n%s" % aLine)
             splitLine = string.split(aLine)
             type = splitLine[1][1:-1]
             #print type
             if type not in ['DNA', 'PROTEIN', 'MASK', 'TEXT', 'RNA']:
                 gm.append("Unknown type '%s'" % type)
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             gm.append("I was expecting a type line: instead I got line:\n\t%s" % aLine)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if type == 'DNA' or type == 'RNA':
             s.dataType = 'dna'
@@ -1304,7 +1304,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
             s.dataType = 'text'
 
         if dbug:
-            print "dataType set to: %s" % s.dataType
+            print("dataType set to: %s" % s.dataType)
 
         # Next, we are on the lookout for an 'offset' line, which
         # may or may not be there.  If we come across the first
@@ -1316,22 +1316,22 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
             if aLine[:6] == 'offset':
                 aLine = string.strip(aLine)
                 if dbug:
-                    print "got offset line: \n%s" % aLine
+                    print("got offset line: \n%s" % aLine)
                 splitLine = string.split(aLine)
                 try:
                     offset = int(splitLine[1])
                     if dbug:
-                        print "get offset: %i" % offset
+                        print("get offset: %i" % offset)
                 except ValueError:
                     gm.append("Bad offset in line '%s'" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             elif aLine[:8] == 'sequence' and aLine[:11] != 'sequence-ID':
                 aLine = string.strip(aLine)
                 break
 
         # Now aLine has the first line of the sequence
         if dbug:
-            print "\nGot first line of sequence: %s" % aLine
+            print("\nGot first line of sequence: %s" % aLine)
         # Get the rest of the sequence.
         splitLine = string.split(aLine)
         thisSeqList = []
@@ -1363,7 +1363,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
     # Make all the sequences the same length.  GDE certainly does not do this.
     if len(sList) == 0:
         gm.append("Finished reading file, but got no sequences.  What gives?")
-        raise Glitch, gm
+        raise Glitch(gm)
     maxSeqLen = 0
     for s in sList:
         if len(s.sequence) > maxSeqLen:
@@ -1393,7 +1393,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
             #print "xxx dataType=%s" % s.dataType
             if len(s.sequence) != topLen:
                 gm.append("Got sequences of unequal lengths")
-                raise Glitch,gm
+                raise Glitch(gm)
         self.length = topLen
 
         # check dataType's
@@ -1401,7 +1401,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
         for s in self.sequences:
             if s.dataType != topType:
                 gm.append("Mixed dataTypes.")
-                raise Glitch, gm
+                raise Glitch(gm)
         self.dataType = topType
         if self.dataType == 'dna':
             self.symbols = 'acgt'
@@ -1418,7 +1418,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
                 self.equates = {'b': 'dn', 'x': 'arndcqeghilkmfpstwyv', 'z': 'eq'}
         else:
             gm.append("Can't deal with dataType '%s'." % self.dataType)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     #self.dump()
     # Is the following really needed?
@@ -1431,10 +1431,10 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
 
     if 1:
         if len(maskList):
-            from NexusSets import NexusSets
+            from .NexusSets import NexusSets
             self.nexusSets = NexusSets()
         for s in maskList:
-            from NexusSets import CharSet
+            from .NexusSets import CharSet
             c = CharSet()
             c.nexusSets = self.nexusSets
             c.nChar = self.length
@@ -1453,7 +1453,7 @@ def readOpenGdeFile(self, flob, inverseMasks=0):
             for c1 in self.nexusSets.charSets:
                 if c1.lowName == c.lowName:
                     gm.append("Duplicated charSet (ie mask) name %s" % c.name)
-                    raise Glitch, gm
+                    raise Glitch(gm)
             self.nexusSets.charSets.append(c)
 
 

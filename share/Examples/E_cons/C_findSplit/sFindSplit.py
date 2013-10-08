@@ -3,11 +3,11 @@ allTaxNames = ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10'
 some = ['t20', 't23']
 splitKey = func.getSplitKeyFromTaxNames(allTaxNames, some)
 splitString = func.getSplitStringFromKey(splitKey, len(allTaxNames), escaped=True)
-print some
+print(some)
 os.system('grep "%s" splits' % splitString)
 
 some = ['t27', 't36']
 splitKey = func.getSplitKeyFromTaxNames(allTaxNames, some)
 splitString = func.getSplitStringFromKey(splitKey, len(allTaxNames), escaped=True)
-print some
+print(some)
 os.system('grep "%s" splits' % splitString)

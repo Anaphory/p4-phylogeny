@@ -146,14 +146,14 @@ class GeneticCode:
 
 
         else:
-            print "GeneticCode: I don't know that transl_table.  Get it from NCBI and add it!"
+            print("GeneticCode: I don't know that transl_table.  Get it from NCBI and add it!")
             sys.exit()
 
         for i in range(64):
             theCodon = string.lower(Base1[i] + Base2[i] + Base3[i])
             theAA = string.lower(AAs[i])
             self.code[theCodon] = theAA
-            if self.codonsForAA.has_key(theAA):
+            if theAA in self.codonsForAA:
                 self.codonsForAA[theAA].append(theCodon)
             else:
                 self.codonsForAA[theAA] = [theCodon]
@@ -168,10 +168,10 @@ class GeneticCode:
             self.codonsForAA['u'] = ['tga']  # selenocysteine
 
         if 0:
-            k = self.code.keys()
+            k = list(self.code.keys())
             k.sort()
             for aKey in k:
-                print "%20s  %-30s" % (aKey, self.code[aKey])
+                print("%20s  %-30s" % (aKey, self.code[aKey]))
 
     def wise2Table(self):
         """Output in a form suitable to replace ``codon.table`` in ``genewise`` in Wise2.
@@ -195,8 +195,8 @@ class GeneticCode:
             
         """
 
-        print "! this is a codon table"
-        print "! by p4, for ncbi %i" % self.transl_table
+        print("! this is a codon table")
+        print("! by p4, for ncbi %i" % self.transl_table)
         for first in "tcag":
             for second in "tcag":
                 for third in "tcag":
@@ -204,7 +204,7 @@ class GeneticCode:
                     ret = self.code[lcod]
                     if ret == '*':
                         ret = 'X'
-                    print lcod.upper(), ret.upper()
+                    print(lcod.upper(), ret.upper())
                     
                     
     def translate(self, theCodon, verbose=1):
@@ -276,7 +276,7 @@ class GeneticCode:
         assert len(theCodon) == 3
         if verbose not in [0, 1, 2]:
             gm.append("Arg verbose should be one of 0, 1, or 2.")
-            raise Glitch, gm
+            raise Glitch(gm)
         
         dnaEquateKeys =  ['b', 'd', 'h', 'k', 'm', 'n', 's', 'r', 'w', 'v', 'y']
         equates = {'b': 'cgt', 'd': 'agt', 'h': 'act', 'k': 'gt', 'm': 'ac',
@@ -287,19 +287,19 @@ class GeneticCode:
         ret = self.code.get(theCodon)
         if ret:
             if verbose >= 2:
-                print "    codon '%s' translates to '%s'" % (theCodon, ret)
+                print("    codon '%s' translates to '%s'" % (theCodon, ret))
             return ret
 
         # Ok, so not easy.  Check for valid characters.
         if theCodon[0] not in 'acgtbdhkmnsrwvy':
             gm.append("The first position of codon '%s' is not a lowercase DNA character." % theCodon)
-            raise Glitch, gm
+            raise Glitch(gm)
         if theCodon[1] not in 'acgtbdhkmnsrwvy':
             gm.append("The second position of codon '%s' is not a lowercase DNA character." % theCodon)
-            raise Glitch, gm
+            raise Glitch(gm)
         if theCodon[2] not in 'acgtbdhkmnsrwvy':
             gm.append("The third position of codon '%s' is not a lowercase DNA character." % theCodon)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Expand the ambiguities.  Eg 'gcy' becomes ['gcc', 'gct']
         expanded = []
@@ -339,17 +339,17 @@ class GeneticCode:
             tr = self.code.get(cd)
             if not tr:
                 gm.append("Could not translate expanded codon '%s'" % cd)
-                raise Glitch, gm
+                raise Glitch(gm)
             translations.append(tr)
         #print translations
         if not translations:
             gm.append("Did not get any translations from expanded codons.")
-            raise Glitch, gm
+            raise Glitch(gm)
         tSet = set(translations)
         if len(tSet) == 1:
             # Easy again
             if verbose >= 1:
-                print "    codon '%s' translates to '%s'" % (theCodon, translations[0])
+                print("    codon '%s' translates to '%s'" % (theCodon, translations[0]))
             return translations[0]
         else:
             tList = list(tSet)
@@ -357,18 +357,18 @@ class GeneticCode:
             if len(tSet) == 2:
                 if tSet == bSet:
                     if verbose >= 1:
-                        print "    codon '%s' translates to %s -- ambiguous aa 'b'" % (theCodon, tList)
+                        print("    codon '%s' translates to %s -- ambiguous aa 'b'" % (theCodon, tList))
                     return 'b'
                 elif tSet == zSet:
                     if verbose >= 1:
-                        print "    codon '%s' translates to %s -- ambiguous aa 'z'" % (theCodon, tList)
+                        print("    codon '%s' translates to %s -- ambiguous aa 'z'" % (theCodon, tList))
                     return 'z'
                 else:
                     if verbose >= 1:
-                        print "    codon '%s' translates to %s -- ambiguous -- returning 'x'" % (theCodon, tList)
+                        print("    codon '%s' translates to %s -- ambiguous -- returning 'x'" % (theCodon, tList))
                     return 'x'
             else: # more than 2
                 if verbose:
-                    print "    codon '%s' translates to %s -- ambiguous -- returning 'x'" % (theCodon, tList)
+                    print("    codon '%s' translates to %s -- ambiguous -- returning 'x'" % (theCodon, tList))
                 return 'x'
 

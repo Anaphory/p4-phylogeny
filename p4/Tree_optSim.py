@@ -1,7 +1,7 @@
 import time,os,string,sys
 import pf,func
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 import numpy
 
 
@@ -75,7 +75,7 @@ def allocCStuff(self, resetEmpiricalComps=True):
         if self.nodes[i].nodeNum != i:
             gm.append("Programming error: Problem with node number %i." % i)
             gm.append("Nodes should be numbered consecutively from zero.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     self.modelSanityCheck(resetEmpiricalComps=resetEmpiricalComps)
     if not self.data.cData:
@@ -90,14 +90,14 @@ def allocCStuff(self, resetEmpiricalComps=True):
         self.doDataPart = 1
         if not self.cTree:
             gm.append("Unable to allocate a cTree")
-            raise Glitch, gm
+            raise Glitch(gm)
         for n in self.nodes:
             n.doDataPart = 1
             #print 'about to dp_newNode (%i)' % n.nodeNum
             cNode = pf.dp_newNode(n.nodeNum, self.cTree, n.seqNum, n.isLeaf)
             if not cNode:
                 gm.append("Unable to allocate a cNode.")
-                raise Glitch, gm
+                raise Glitch(gm)
             n.cNode = cNode
     else:
         nLeaves = 0
@@ -109,7 +109,7 @@ def allocCStuff(self, resetEmpiricalComps=True):
                                    self.postOrder, self.partLikes, self.data.cData, self.model.cModel)
         if not self.cTree:
             gm.append("Unable to allocate a cTree")
-            raise Glitch, gm
+            raise Glitch(gm)
         for i in range(len(self.nodes)):
             n = self.nodes[i]
             if i in self.preOrder:
@@ -123,7 +123,7 @@ def allocCStuff(self, resetEmpiricalComps=True):
             n.cNode = pf.p4_newNode(n.nodeNum, self.cTree, n.seqNum, n.isLeaf, inTree)
             if not n.cNode:
                 gm.append("Unable to allocate a cNode")
-                raise Glitch, gm
+                raise Glitch(gm)
             
     #print "finished Tree.allocCStuff()"
 
@@ -198,7 +198,7 @@ def _commonCStuff(self, resetEmpiricalComps=True):
         gm.append("This tree has no data attached.  Before doing an optimization, likelihood")
         gm.append("calculation, or simulation, you need to do something like this:")
         gm.append("    theTree.data = theData")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     #print "self.cTree = %s" % self.cTree
     if not self.cTree:
@@ -219,7 +219,7 @@ def calcLogLike(self, verbose=1, resetEmpiricalComps=True):
     #print "about to p4_treeLogLike()..."
     self.logLike = pf.p4_treeLogLike(self.cTree, 0) # second arg is getSiteLikes
     if verbose:
-        print "Tree.calcLogLike(). %f" % self.logLike
+        print("Tree.calcLogLike(). %f" % self.logLike)
 
 
 
@@ -250,13 +250,13 @@ def optLogLike(self, verbose=1, newtAndBrentPowell=1, allBrentPowell=0, simplex=
     if (newtAndBrentPowell + allBrentPowell + simplex) != 1:
         gm = ['Tree.optLogLike()']
         gm.append("Choose 1 opt method.")
-        raise Glitch, gm
+        raise Glitch(gm)
     
     # Do the opt.
     if allBrentPowell:
         pf.p4_allBrentPowellOptimize(self.cTree)
     elif simplex:
-        from Tree import Tree
+        from .Tree import Tree
         pf.p4_simplexOptimize(self.cTree, self, Tree.simplexDump)
     else:
         pf.p4_newtSetup(self.cTree)
@@ -274,9 +274,9 @@ def optLogLike(self, verbose=1, newtAndBrentPowell=1, allBrentPowell=0, simplex=
     self.model.restoreFreePrams(prams)
 
     if verbose:
-        print "optLogLike = %f" % self.logLike
+        print("optLogLike = %f" % self.logLike)
         theEndTime = time.clock()
-        print "cpu time %s seconds." % (theEndTime - theStartTime)
+        print("cpu time %s seconds." % (theEndTime - theStartTime))
 
 ##Ignore
 def optTest(self):
@@ -302,7 +302,7 @@ def optTest(self):
             prams = pf.p4_getFreePrams(self.cTree)
             self.model.restoreFreePrams(prams)
 
-    print "time %s seconds." % (time.clock() - theStartTime)
+    print("time %s seconds." % (time.clock() - theStartTime))
 
 ##def simplexDump(self):
 ##    """Take a timepoint in the simplex optimization.
@@ -368,7 +368,7 @@ def simulate(self, calculatePatterns=True, resetSequences=True, resetNexusSetsCo
             gm = ['Tree.simulate().']
             gm.append("resetSequences is not set, but resetNexusSetsConstantMask is set,")
             gm.append("which is probably not going to work as you want.")
-            raise Glitch, gm
+            raise Glitch(gm)
         
 
 def getSiteLikes(self):
@@ -419,7 +419,7 @@ def getSiteRates(self):
             gm = ['Tree.getSiteRates()']
             gm.append("Part %i has %i gdasrvs.  Maximum 1 allowed." % (
                 partNum, len(self.model.parts[partNum].gdasrvs)))
-            raise Glitch, gm
+            raise Glitch(gm)
                       
     for partNum in range(len(self.data.parts)):
         p = self.data.parts[partNum]
@@ -441,9 +441,9 @@ def getSiteRates(self):
                 counts = numpy.zeros(self.model.parts[partNum].nGammaCat, numpy.int32)
                 for charNum in range(p.nChar):
                     counts[winningGammaCats[charNum]] += 1
-                print counts
+                print(counts)
             
         else:
-            raise Glitch, "This should not happen."
+            raise Glitch("This should not happen.")
         results.append([siteRates, gammaCats])
     return results

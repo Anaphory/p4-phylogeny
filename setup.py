@@ -16,10 +16,10 @@ from version import versionString
 # is more convenient than sys.version, but it is only in v2.
 majorVersion = int(sys.version[0])
 if majorVersion < 2:
-    print 'p4 wants Python version 2.4 or better.'
+    print('p4 wants Python version 2.4 or better.')
     sys.exit()
 if sys.version_info[1] < 4:
-    print 'p4 wants Python version 2.4 or better.'
+    print('p4 wants Python version 2.4 or better.')
     sys.exit()
 
 usePfAndNumpy = True
@@ -33,7 +33,7 @@ except ImportError:
 try:
     import readline
 except ImportError:
-    print "P4 wants a Python built with 'readline', and your Python does not appear to have it."
+    print("P4 wants a Python built with 'readline', and your Python does not appear to have it.")
     sys.exit()
 
 ############################################################
@@ -126,7 +126,7 @@ if usePfAndNumpy:
 	
 instFileName = "installation.py"
 if os.path.exists(instFileName):
-    print "The file '%s' exists, but it should not. Remove or re-name it." % instFileName
+    print("The file '%s' exists, but it should not. Remove or re-name it." % instFileName)
     sys.exit()
 
 # For use in shutil.copytree(), below
@@ -136,10 +136,10 @@ def my_ignore(adir, filenames):
 class P4_install_data(install_data):
     def run(self):
         # This is only called when installing, I think.
-        print 'P4_install_data.run() here, sitting in for install_data.run()'
+        print('P4_install_data.run() here, sitting in for install_data.run()')
         # data_files is a list of one string, defined below in setup(), ['share/doc/p4-0.xx']
-        print 'data_files = %s' % self.data_files   
-        print 'install_dir = %s' % self.install_dir # eg /usr
+        print('data_files = %s' % self.data_files)   
+        print('install_dir = %s' % self.install_dir) # eg /usr
         #fList = self.copy_tree('share', os.path.join(self.install_dir, self.data_files[0]))
         # Don't copy .svn directories
         shutil.copytree('share', 
@@ -153,7 +153,7 @@ class P4_install_data(install_data):
 
         try:
             loc = {}
-            execfile("%s" % instFileName, {}, loc)  # get the p4_lib_dir
+            exec(compile(open("%s" % instFileName).read(), "%s" % instFileName, 'exec'), {}, loc)  # get the p4_lib_dir
             p4_lib_dir = loc['p4LibDir']
             instFile = file(instFileName, 'a')
             instFile.write("p4DocDir = '%s'\n" % mySharePath)
@@ -165,13 +165,13 @@ class P4_install_data(install_data):
             compile(os.path.join(p4_lib_dir, instFileName))
             os.system("rm -f %s" % instFileName)
         except IOError:
-            print "The file '%s' cannot be found." % instFileName
+            print("The file '%s' cannot be found." % instFileName)
 
 
 class P4_install_lib(install_lib):
     def run(self):
-        print "P4_install_lib()"
-        print "self.install_dir = %s" % self.install_dir
+        print("P4_install_lib()")
+        print("self.install_dir = %s" % self.install_dir)
         instFile = file(instFileName, 'w')
         instFile.write("p4LibDir = '%s'\n" % os.path.join(self.install_dir, 'p4'))
         instFile.close()
@@ -180,8 +180,8 @@ class P4_install_lib(install_lib):
 
 class P4_install_scripts(install_scripts):
     def run(self):
-        print "P4_install_scripts()"
-        print "self.install_dir = %s" % self.install_dir
+        print("P4_install_scripts()")
+        print("self.install_dir = %s" % self.install_dir)
         instFile = file(instFileName, 'a')
         instFile.write("p4ScriptPath = '%s'\n" % os.path.join(self.install_dir, 'p4'))
         instFile.close()
@@ -235,32 +235,32 @@ else:
           ext_package="p4")
     
 if not usePfAndNumpy:
-    print "\n\n=============================================================\n"
-    print "Some parts of p4 involving likelihood calculations, mcmc, "
-    print "etc, cannot be installed.  You may not really need those parts, "
-    print "in which case fine.\n"
+    print("\n\n=============================================================\n")
+    print("Some parts of p4 involving likelihood calculations, mcmc, ")
+    print("etc, cannot be installed.  You may not really need those parts, ")
+    print("in which case fine.\n")
 
-    print "However, if you do need those parts, they have pre-requisites "
-    print "and it seems that those pre-requisites were not found.\n"
+    print("However, if you do need those parts, they have pre-requisites ")
+    print("and it seems that those pre-requisites were not found.\n")
     
     if not hasNumpy:
-        print "The 'numpy' module does not appear to be installed."
+        print("The 'numpy' module does not appear to be installed.")
     if not hasNumpyHeaders:
-        print "The numpy headers could not be found."
+        print("The numpy headers could not be found.")
         
     if not found_libgsl:
-        print "The GSL (Gnu Scientific Library) libgsl could not be found."
-        print "(If you want to install it, "
-        print "if you use a package manager, you may need to install both gsl"
-        print " and gsl-dev, for the header files.)"
+        print("The GSL (Gnu Scientific Library) libgsl could not be found.")
+        print("(If you want to install it, ")
+        print("if you use a package manager, you may need to install both gsl")
+        print(" and gsl-dev, for the header files.)")
         sys.exit()
     if found_libgsl and not found_gsl_headers:
-        print "The GSL (Gnu Scientific Library) libgsl was found."
-        print "However, the gsl header files could not be found."
-        print "If you use a package manager, maybe you need to install 'gsl-dev'?"
+        print("The GSL (Gnu Scientific Library) libgsl was found.")
+        print("However, the gsl header files could not be found.")
+        print("If you use a package manager, maybe you need to install 'gsl-dev'?")
 
-    print "\n(At least that is what setup.py thinks.  But it is not very smart."
-    print "If it is wrong, see and modify 'setup.py' accordingly.)\n"
+    print("\n(At least that is what setup.py thinks.  But it is not very smart.")
+    print("If it is wrong, see and modify 'setup.py' accordingly.)\n")
 
 ################################################################################
 

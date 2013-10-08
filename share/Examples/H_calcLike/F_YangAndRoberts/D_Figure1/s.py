@@ -23,7 +23,7 @@ for i in range(7):
 d.calcUnconstrainedLogLikelihood1()
 u = d.unconstrainedLogLikelihood
 
-print "Optimizing.  This will take a few minutes..."
+print("Optimizing.  This will take a few minutes...")
 t.optLogLike()
 t.write()
 t.draw(model=1)

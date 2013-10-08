@@ -1,7 +1,7 @@
 read('../noTRuberNoGapsNoAmbiguities.nex')
 a=var.alignments[0]
 tList = []
-print "Doing bootstrap ..."
+print("Doing bootstrap ...")
 for i in range(200):
     b = a.bootstrap()
     dm = b.compositionEuclideanDistanceMatrix()

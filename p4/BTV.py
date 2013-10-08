@@ -1,10 +1,10 @@
 import time,os,sys,random,string,math
 from p4.Tree import Tree
-from Glitch import Glitch
+from .Glitch import Glitch
 try:
-    from Tkinter import *
+    from tkinter import *
 except ImportError:
-    raise Glitch, "TV and BTV need Tkinter, and it does not seem to be installed."
+    raise Glitch("TV and BTV need Tkinter, and it does not seem to be installed.")
 
 
 def randomColour():

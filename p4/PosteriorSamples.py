@@ -1,9 +1,9 @@
-from Glitch import Glitch
-from Tree import Tree
-import Nexus
-from Var import var
+from .Glitch import Glitch
+from .Tree import Tree
+from . import Nexus
+from .Var import var
 
-import os,string,cStringIO,copy
+import os,string,io,copy
 
 class PosteriorSamples(object):
     """A container for mcmc samples from files.
@@ -92,10 +92,10 @@ class PosteriorSamples(object):
         gm = ["PosteriorSamples()  init"]
         if not isinstance(tree, Tree) or not tree.model:
             gm.append("Instantiate with a p4 tree with a model attached.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if not tree.taxNames:
             gm.append("The tree should have taxNames (in proper order!) attached.")
-            raise Glitch, gm
+            raise Glitch(gm)
                       
         self.tree = tree
 
@@ -109,14 +109,14 @@ class PosteriorSamples(object):
                 if not self.model.parts[pNum].comps[compNum].val:
                     gm.append("Comp %i in partition %i has no val set." % (compNum, pNum))
                     gm.append("Maybe fix by calculating a likelihood before?")
-                    raise Glitch, gm
+                    raise Glitch(gm)
         self.model.cModel = None
         self.runNum = int(runNum)
         self.goodPrograms = ['p4', 'mrbayes']
         lowProgram = string.lower(program)
         if program not in self.goodPrograms:
             gm.append("The program generating the files should be one of %s" % self.goodPrograms)
-            raise Glitch, gm
+            raise Glitch(gm)
         self.program = lowProgram
         self.verbose = verbose
         assert os.path.isdir(directory)
@@ -133,10 +133,10 @@ class PosteriorSamples(object):
             nPLines = len(self.pLines)
             if self.nSamples and self.nSamples == nPLines:
                 if self.verbose >= 1:
-                    print "Got %i samples." % self.nSamples
+                    print("Got %i samples." % self.nSamples)
             else:
                 gm.append("Got %i tree samples, but %i parameter samples." % (self.nSamples, nPLines))
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             #print "Got %i samples. (no free parameters)" % self.nSamples
             pass
@@ -158,7 +158,7 @@ class PosteriorSamples(object):
             f = file(fName)
         except IOError:
             gm.append("Can't find tree file '%s'" % fName)
-            raise Glitch, gm
+            raise Glitch(gm)
         fLines = f.readlines()
         f.close()
 
@@ -178,7 +178,7 @@ class PosteriorSamples(object):
             lNum += 1
             aLine = fLines[lNum].strip()
         translateLines.append(aLine)
-        translateFlob = cStringIO.StringIO(' '.join(translateLines))
+        translateFlob = io.StringIO(' '.join(translateLines))
         nx = Nexus.Nexus()
         self.translationHash = nx.readTranslateCommand(translateFlob)
         #print self.translationHash
@@ -207,7 +207,7 @@ class PosteriorSamples(object):
                 f = file(fName)
             except IOError:
                 gm.append("Can't find prams file '%s'" % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             fLines = f.readlines()
             f.close()
             lNum = 0
@@ -232,13 +232,13 @@ class PosteriorSamples(object):
                 fName = os.path.join(self.directory, fName)
             try:
                 loc = {}
-                execfile(fName, {}, loc)
+                exec(compile(open(fName).read(), fName, 'exec'), {}, loc)
                 #loc =locals()  no workee.
                 #print "loc = %s" % loc
                 self.nPrams = loc['nPrams']
                 self.pramsProfile = loc['pramsProfile']
             except IOError:
-                print "The file '%s' cannot be found." % fName
+                print("The file '%s' cannot be found." % fName)
             
 
     def _getP4SampleTree(self, sampNum):
@@ -246,8 +246,8 @@ class PosteriorSamples(object):
         var.nexus_doFastNextTok = False
         tLine = self.tLines[sampNum]
         if self.verbose >= 3:
-            print tLine
-        f = cStringIO.StringIO(tLine)
+            print(tLine)
+        f = io.StringIO(tLine)
         t = Tree()
         t.parseNexus(f, translationHash=self.translationHash, doModelComments=self.tree.model.nParts)
         var.nexus_doFastNextTok = savedDoFastNextTok
@@ -261,16 +261,16 @@ class PosteriorSamples(object):
         if self.tree.model.nFreePrams:
             pLine = self.pLines[sampNum]
             if self.verbose >= 3:
-                print pLine
+                print(pLine)
             splitPLine = pLine.split()
 
             pGenNum = int(splitPLine[0])
             splitTName = t.name.split('_')
             tGenNum = int(splitTName[1])
             if tGenNum != pGenNum:
-                raise Glitch, "something wrong. tGenNum=%i, pGenNum=%i" % (tGenNum, pGenNum)
+                raise Glitch("something wrong. tGenNum=%i, pGenNum=%i" % (tGenNum, pGenNum))
             if self.verbose >= 2:
-                print "(zero-based) sample %i is gen %i" % (sampNum, tGenNum)
+                print("(zero-based) sample %i is gen %i" % (sampNum, tGenNum))
 
             #t.model.dump()
 
@@ -323,8 +323,8 @@ class PosteriorSamples(object):
                         splIndx += 1
 
             if splIndx != len(splitPLine):
-                raise Glitch, "Something is wrong.  After reading, splIndx=%i, but len split pram line=%i" % (
-                    splIndx, len(splitPLine))
+                raise Glitch("Something is wrong.  After reading, splIndx=%i, but len split pram line=%i" % (
+                    splIndx, len(splitPLine)))
         return t
         
         
@@ -338,7 +338,7 @@ class PosteriorSamples(object):
             f = file(fName)
         except IOError:
             gm.append("Can't find tree file '%s'" % fName)
-            raise Glitch, gm
+            raise Glitch(gm)
         fLines = f.readlines()
         f.close()
 
@@ -358,7 +358,7 @@ class PosteriorSamples(object):
             lNum += 1
             aLine = fLines[lNum].strip()
         translateLines.append(aLine)
-        translateFlob = cStringIO.StringIO(' '.join(translateLines))
+        translateFlob = io.StringIO(' '.join(translateLines))
         nx = Nexus.Nexus()
         self.translationHash = nx.readTranslateCommand(translateFlob)
         #print self.translationHash
@@ -385,7 +385,7 @@ class PosteriorSamples(object):
             f = file(fName)
         except IOError:
             gm.append("Can't find prams file '%s'" % fName)
-            raise Glitch, gm
+            raise Glitch(gm)
         fLines = f.readlines()
         f.close()
 
@@ -394,7 +394,7 @@ class PosteriorSamples(object):
         aLine = fLines[lNum].strip()
         self.pramsHeader = aLine.split()
         if self.verbose >= 2:
-            print "pramsHeader: %s" % self.pramsHeader
+            print("pramsHeader: %s" % self.pramsHeader)
         assert self.pramsHeader[0] == 'Gen'
 
         # Collect pram lines
@@ -411,15 +411,15 @@ class PosteriorSamples(object):
         #print self.pLines
         self.nPrams = len(self.pramsHeader)
         if self.verbose >= 2:
-            print "pram line length is %i" % self.nPrams
+            print("pram line length is %i" % self.nPrams)
 
     def _getMrBayesSampleTree(self, sampNum):
         savedDoFastNextTok = var.nexus_doFastNextTok
         var.nexus_doFastNextTok = False
         tLine = self.tLines[sampNum]
         if self.verbose >= 3:
-            print tLine
-        f = cStringIO.StringIO(tLine)
+            print(tLine)
+        f = io.StringIO(tLine)
         t = Tree()
         t.parseNexus(f, translationHash=self.translationHash, doModelComments=self.tree.model.nParts) # doModelComments is nParts
         var.nexus_doFastNextTok = savedDoFastNextTok
@@ -432,16 +432,16 @@ class PosteriorSamples(object):
 
         pLine = self.pLines[sampNum]
         if self.verbose >= 3:
-            print pLine
+            print(pLine)
         splitPLine = pLine.split()
 
         pGenNum = int(splitPLine[0])
         splitTName = t.name.split('.')
         tGenNum = int(splitTName[1])
         if tGenNum != pGenNum:
-            raise Glitch, "something wrong. tGenNum=%i, pGenNum=%i" % (tGenNum, pGenNum)
+            raise Glitch("something wrong. tGenNum=%i, pGenNum=%i" % (tGenNum, pGenNum))
         if self.verbose >= 2:
-            print "(zero-based) sample %i is gen %i" % (sampNum, tGenNum)
+            print("(zero-based) sample %i is gen %i" % (sampNum, tGenNum))
 
         #t.model.dump()
 
@@ -456,7 +456,7 @@ class PosteriorSamples(object):
                         pNum = int(splitPramHeader)
                         pNum -= 1
                     except:
-                        raise Glitch, "could not get the part number"
+                        raise Glitch("could not get the part number")
                 thisSum = 0.0
                 for i in range(6):
                     theFloat = float(splitPLine[splIndx])
@@ -473,7 +473,7 @@ class PosteriorSamples(object):
                         pNum = int(splitPramHeader)
                         pNum -= 1
                     except:
-                        raise Glitch, "could not get the part number"
+                        raise Glitch("could not get the part number")
                 thisSum = 0.0
                 for i in range(4):
                     theFloat = float(splitPLine[splIndx])
@@ -490,7 +490,7 @@ class PosteriorSamples(object):
                         pNum = int(splitPramHeader)
                         pNum -= 1
                     except:
-                        raise Glitch, "could not get the part number"
+                        raise Glitch("could not get the part number")
                 #print "got pNum = %i" % pNum
                 #print "got splitPLine[%i] = %s" % (splIndx, splitPLine[splIndx])
                 t.model.parts[pNum].gdasrvs[0].val[0] = float(splitPLine[splIndx])
@@ -502,7 +502,7 @@ class PosteriorSamples(object):
                         pNum = int(splitPramHeader)
                         pNum -= 1
                     except:
-                        raise Glitch, "could not get the part number"
+                        raise Glitch("could not get the part number")
                 t.model.parts[pNum].pInvar.val = float(splitPLine[splIndx])
                 splIndx += 1
             elif self.pramsHeader[splIndx].startswith('m'):
@@ -512,17 +512,17 @@ class PosteriorSamples(object):
                         pNum = int(splitPramHeader)
                         pNum -= 1
                     except:
-                        raise Glitch, "could not get the part number"
+                        raise Glitch("could not get the part number")
                 t.model.parts[pNum].relRate = float(splitPLine[splIndx])
                 splIndx += 1
             else:
-                print "splIndx=%i.  Got unknown pram %s.  Fix me!" % (splIndx, self.pramsHeader[splIndx])
+                print("splIndx=%i.  Got unknown pram %s.  Fix me!" % (splIndx, self.pramsHeader[splIndx]))
                 splIndx += 1
                 
 
         if splIndx != len(splitPLine):
-            raise Glitch, "Something is wrong.  After reading, splIndx=%i, but len split pram line=%i" % (
-                splIndx, len(splitPLine))
+            raise Glitch("Something is wrong.  After reading, splIndx=%i, but len split pram line=%i" % (
+                splIndx, len(splitPLine)))
         return t
     
         

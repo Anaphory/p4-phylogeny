@@ -1,8 +1,8 @@
 import sys,os,math
-import func
-from Var import var
-from Tree import Tree
-from Glitch import Glitch
+from . import func
+from .Var import var
+from .Tree import Tree
+from .Glitch import Glitch
 
 
 class Trees(object):
@@ -29,26 +29,26 @@ class Trees(object):
     Otherwise it looks for a taxNames attribute in the first tree.
     """
 
-    from Trees_converge import trackSplitsFromTree,trackModelThingsFromTree
+    from .Trees_converge import trackSplitsFromTree,trackModelThingsFromTree
 
     def __init__(self, trees=None, taxNames=[]):
         gm = ['Trees()']
         if trees == None:
             if not var.trees:
                 gm.append("Arg trees is not given or is empty, and var.trees is empty.  No trees.")
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 self.trees = var.trees
         else:
             if type(trees) != type([]):
                 gm.append("If provided, the trees arg should be a list.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if not len(trees):
                 gm.append("The list of trees appears to be empty.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if not isinstance(trees[0], Tree):
                 gm.append("The first item in the input list is not a Tree object.")
-                raise Glitch, gm
+                raise Glitch(gm)
             self.trees = trees
         if taxNames:
             if type(taxNames) == type([]) and len(taxNames) and type(taxNames[0]) == type('string'):
@@ -67,7 +67,7 @@ class Trees(object):
             gm.append("In this case you need to feed this a taxNames list when you instantiate.")
             gm.append("Often you can get a good taxNames from yourAlignment.taxNames.")
             gm.append("(The order often matters, and generally should be same for all your analyses.)")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.taxNames = None
         self.setTaxNames(taxNames)
         self.data = None
@@ -88,8 +88,8 @@ class Trees(object):
 
         gm = ['Trees.setTaxNames()']
         if 0:
-            print gm[0]
-            print '    theTaxNames=%s' % theTaxNames
+            print(gm[0])
+            print('    theTaxNames=%s' % theTaxNames)
 
         if theTaxNames:
             self.taxNames = theTaxNames
@@ -99,8 +99,8 @@ class Trees(object):
             if len(self.trees):
                 t = self.trees[0]
             if not t:
-                print gm[0]
-                print "    No trees?"
+                print(gm[0])
+                print("    No trees?")
             if t.taxNames:
                 self.taxNames = t.taxNames
             else:
@@ -122,14 +122,14 @@ class Trees(object):
         gm = ['Trees.checkTaxNames()']
         if not self.taxNames:
             gm.append("No taxNames.")
-            raise Glitch, gm
+            raise Glitch(gm)
         for t in self.trees:
             if t.taxNames != self.taxNames:
                 if t.name:
                     gm.append("Tree %s taxNames is not the same object as self.taxNames." % t.name)
                 else:
                     gm.append("Tree taxNames is not the same object as self.taxNames.")
-                raise Glitch, gm
+                raise Glitch(gm)
         for t in self.trees:
             t.checkTaxNames()
 
@@ -137,21 +137,21 @@ class Trees(object):
     def dump(self):
         """Print summary info about self."""
         
-        print "Trees dump."
-        print "  There are %i trees." % len(self.trees)
-        print "  nTax is %i" % self.nTax
-        print "  taxNames"
+        print("Trees dump.")
+        print("  There are %i trees." % len(self.trees))
+        print("  nTax is %i" % self.nTax)
+        print("  taxNames")
         if self.nTax < 11:
             for i in range(self.nTax):
-                print "    %s" % self.taxNames[i]
+                print("    %s" % self.taxNames[i])
         else:
             for i in range(10):
-                print "    %s" % self.taxNames[i]
-            print "    ... (and more)"
+                print("    %s" % self.taxNames[i])
+            print("    ... (and more)")
         if self.data:
-            print "  There is a data object attached."
+            print("  There is a data object attached.")
         else:
-            print "  There is no data object attached."
+            print("  There is no data object attached.")
 
     def writeNexus(self, fName=None, append=0, withTranslation=0, writeTaxaBlock=1, likeMcmc=0):
         """Write the trees out in NEXUS format, in a trees block.
@@ -166,7 +166,7 @@ class Trees(object):
         if withTranslation:
             if not self.taxNames:
                 gm.append("No taxNames.  Set taxNames if you want withTranslation.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             translationHash = {}
             i = 1
@@ -188,20 +188,20 @@ class Trees(object):
                         f = open(fName, 'a')
                     except IOError:
                         gm.append("Can't open %s for appending." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 else:
                     if 0:
-                        print gm[0]
-                        print "    'append' is requested,"
-                        print "    but '%s' is not a regular file (doesn't exist?)." \
-                              % fName
-                        print "    Writing to a new file instead."
+                        print(gm[0])
+                        print("    'append' is requested,")
+                        print("    but '%s' is not a regular file (doesn't exist?)." \
+                              % fName)
+                        print("    Writing to a new file instead.")
                     try:
                         f = open(fName, 'w')
                         f.write('#NEXUS\n\n')
                     except IOError:
                         gm.append("Can't open %s for writing." % fName)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             else:
                 try:
@@ -209,7 +209,7 @@ class Trees(object):
                     f.write('#NEXUS\n\n')
                 except IOError:
                     gm.append("Can't open %s for writing." % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         if writeTaxaBlock:
             if self.taxNames:
@@ -221,7 +221,7 @@ class Trees(object):
                 f.write(';\nend;\n\n')
             else:
                 gm.append("writeTaxaBlock is set, but there is no taxNames.  How did *that* happen?!?")
-                raise Glitch, gm
+                raise Glitch(gm)
 
 
 
@@ -244,7 +244,7 @@ class Trees(object):
                     gm.append("withTranslation is turned off, but likeMcmc is turned on.")
                     gm.append("This will cause grief in TreePartitions, so is prohibited.")
                     gm.append("Both on or both off, please.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 f.write('    [&&p4 models p%i' % first.model.nParts)
                 for pNum in range(first.model.nParts):
                     f.write(' c%i.%i' % (pNum, first.model.parts[pNum].nComps))
@@ -292,7 +292,7 @@ class Trees(object):
                 flob = open(fName, 'w')
             except IOError:
                 gm.append("Can't open %s for writing." % fName)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         #flob.write(' %i\n' % len(self.trees))
         for t in self.trees:
@@ -321,7 +321,7 @@ class Trees(object):
                     else:
                         gm = ['Trees.getTreesWithSplit()']
                         gm.append("No node.br.splitKey?")
-                        raise Glitch, gm
+                        raise Glitch(gm)
         return foundTrees
 
 
@@ -338,7 +338,7 @@ class Trees(object):
         different metrics.  The metrics are given in
         ``var.topologyDistanceMetrics``"""
 
-        from DistanceMatrix import DistanceMatrix
+        from .DistanceMatrix import DistanceMatrix
         d = DistanceMatrix()
         d.names = []
         for t in self.trees:
@@ -397,8 +397,8 @@ class Trees(object):
         qd_sig = " %%-%is" % longest
 
         if latex:
-            print "\\begin{center}"
-            print "\\begin{tabular}{lrr} \\toprule"
+            print("\\begin{center}")
+            print("\\begin{tabular}{lrr} \\toprule")
             sig = "%s & %s & %s \\\\" % (name_sig, sd_sig, qd_sig)
         else:
             sig = "%s %s  %s" % (name_sig, sd_sig, qd_sig)
@@ -406,11 +406,11 @@ class Trees(object):
             nm = nn[tNum]
             sd = sdd[tNum]
             qd = qdd[tNum]
-            print sig % (nm, sd, qd)
+            print(sig % (nm, sd, qd))
         if latex:
-            print "\\bottomrule"
-            print "\\end{tabular}"
-            print "\\end{center}"
+            print("\\bottomrule")
+            print("\\end{tabular}")
+            print("\\end{center}")
 
     def treeProbabilities(self, writeNexus=False):
         """Order the trees in self by frequency of occurrence.
@@ -451,7 +451,7 @@ class Trees(object):
         #    print v
 
         #Flatten to a list, order by counts
-        skl = skd.values()
+        skl = list(skd.values())
         skl = func.sortListOfListsOnListElementNumber(skl, 0)
         skl.reverse()
 
@@ -459,7 +459,7 @@ class Trees(object):
         nTrees = sum([i[0] for i in skl])
         if nTrees != len(self.trees):
             gm.append("Programming error: all trees are not accounted for...")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Calculate frequency from counts
         trprobs = [(float(count)/float(nTrees), tree) for count, tree in skl]
@@ -519,7 +519,7 @@ class Trees(object):
 
         if not self.trees or len(self.trees) == 0:
             gm.append("No trees?")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check if consel is installed
         progs = ['makermt', 'consel', 'catpv']
@@ -532,16 +532,16 @@ class Trees(object):
                     gm.append("        %s" % p)
                 gm.append("need to be in your path.")
                 gm.append("Can't find %s" % progName)
-                raise Glitch, gm
+                raise Glitch(gm)
         
         # Check for bad arg vals
         # False equates to zero, and True equates to 1.  True does not equate to 2
         if quiet not in [0, 1, 2]:
             gm.append("arg 'quiet' should be set to one of 0 (or False), 1 (or True), or 2.  Got '%s'" % quiet)
-            raise Glitch, gm
+            raise Glitch(gm)
         if tidy not in [0, 1, 2]:
             gm.append("arg 'tidy' should be set to one of 0 (or False), 1 (or True), or 2.  Got '%s'" % tidy)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Can we make siteLikes?
         allTreesHaveData = True
@@ -552,11 +552,11 @@ class Trees(object):
         if not allTreesHaveData:
             if not self.data:
                 gm.append("You need to 'myTreesObject.data = myDataObject'")
-                raise Glitch, gm
+                raise Glitch(gm)
         for t in self.trees:
             if not t.model:
                 gm.append("Tree %s has no model." % t.name)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Attach self.data to the trees, if needed
         if not allTreesHaveData:
@@ -572,7 +572,7 @@ class Trees(object):
                     os.remove(fName)
                 else:
                     gm.append("Refusing to overwrite file %s" % fName)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         #print "Calculating siteLikes ..."
         for t in self.trees:
@@ -674,16 +674,16 @@ if var.usePfAndNumpy:
 
         if not self.trees or len(self.trees) == 0:
             gm.append("No trees?")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Can we make siteLikes?
         if not self.data:
             gm.append("No data.  You need to 'myTreesObject.data = myDataObject'")
-            raise Glitch, gm
+            raise Glitch(gm)
         for t in self.trees:
             if not t.model:
                 gm.append("Tree %s has no model." % t.name)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Attach self.data to the trees, if needed
         for t in self.trees:
@@ -697,7 +697,7 @@ if var.usePfAndNumpy:
 
         nTrees = len(self.trees)
         for t in self.trees:
-            t.siteLikes = map(math.log, t.siteLikes)
+            t.siteLikes = list(map(math.log, t.siteLikes))
         nChar = len(self.trees[0].siteLikes)
 
         theSeed = 0
@@ -717,11 +717,11 @@ if var.usePfAndNumpy:
 
         #print winners
 
-        print "\nRELL bootstrap results"
-        print "======================"
+        print("\nRELL bootstrap results")
+        print("======================")
         for i in range(nTrees):
             t = self.trees[i]
-            print "%3i   %20s  %1.3f" % (i, t.name, (float(winners[i])/float(bootCount)))
+            print("%3i   %20s  %1.3f" % (i, t.name, (float(winners[i])/float(bootCount))))
 
 
     Trees.rell = rell

@@ -1,14 +1,14 @@
 import func,pf
-from Var import var
+from .Var import var
 import math,random,copy,numpy
-from Glitch import Glitch
+from .Glitch import Glitch
 import sys
 
 class Chain(object):
 
     # Import methods in other files
-    from Chain_propose1 import proposeRoot3, proposeBrLen, proposeLocal, proposeETBR_Blaise,  proposeETBR,  proposePolytomy, proposeAddEdge, _getCandidateNodesForDeleteEdge, proposeDeleteEdge
-    from Chain_propose2 import proposeCompWithSlider, proposeCompWithDirichlet, proposeRjComp, proposeSplitComp, proposeMergeComp, proposeRMatrixWithSlider, proposeRjRMatrix, proposeSplitRMatrix, proposeMergeRMatrix, proposeGdasrv,proposePInvar, proposeRelRate, proposeCompLocation, proposeRMatrixLocation, proposeGdasrvLocation, proposeCmd1CompDir, proposeCmd1Comp0Dir, proposeCmd1AllCompDir, proposeCmd1Alpha
+    from .Chain_propose1 import proposeRoot3, proposeBrLen, proposeLocal, proposeETBR_Blaise,  proposeETBR,  proposePolytomy, proposeAddEdge, _getCandidateNodesForDeleteEdge, proposeDeleteEdge
+    from .Chain_propose2 import proposeCompWithSlider, proposeCompWithDirichlet, proposeRjComp, proposeSplitComp, proposeMergeComp, proposeRMatrixWithSlider, proposeRjRMatrix, proposeSplitRMatrix, proposeMergeRMatrix, proposeGdasrv,proposePInvar, proposeRelRate, proposeCompLocation, proposeRMatrixLocation, proposeGdasrvLocation, proposeCmd1CompDir, proposeCmd1Comp0Dir, proposeCmd1AllCompDir, proposeCmd1Alpha
 
     def __init__(self, aMcmc):
         self.mcmc = aMcmc
@@ -49,7 +49,7 @@ class Chain(object):
         #self.lastProposal = None
         ret = self.verifyIdentityOfTwoTreesInChain()
         if ret == var.DIFFERENT:
-            raise Glitch, "Chain.init().  Programming error. The prop tree should be identical to the cur tree, and it is not."
+            raise Glitch("Chain.init().  Programming error. The prop tree should be identical to the cur tree, and it is not.")
 
 
 
@@ -158,7 +158,7 @@ class Chain(object):
 
         else:
             gm.append('Unlisted proposal.name=%s  Fix me.' % theProposal.name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if theProposal.doAbort:
             return 0.0
@@ -201,7 +201,7 @@ class Chain(object):
                 #print "%g" % theDiff
                 if theDiff > 1.e-9:
                     gm.append("Chain.propose().  '%s' Bad like calc.  theDiff = %g" % (theProposal.name, theDiff))
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             logLikeRatio = self.propTree.logLike - self.curTree.logLike
 
@@ -473,9 +473,9 @@ class Chain(object):
                 pf.p4_setPrams(self.propTree.cTree, -1)
                 logLike2 = pf.p4_treeLogLike(self.propTree.cTree, 0)
                 if math.fabs(logLike1 - logLike2) > 0.001:
-                    print "propose brLen bad likes calc. %f %f" % (logLike1, logLike2)
+                    print("propose brLen bad likes calc. %f %f" % (logLike1, logLike2))
                 else:
-                    print "propose brLen likes ok --  %f" % logLike1
+                    print("propose brLen likes ok --  %f" % logLike1)
                 sys.exit()
 
         elif theProposal.name == 'eTBR':
@@ -490,13 +490,13 @@ class Chain(object):
 
                 # Debugging litter ...
                 if 0 and self.mcmc.gen == 270:
-                    print
+                    print()
                     self.propTree.draw()
                     #self.propTree.node(16).br.lenChanged = 1
                     #self.propTree.node(17).br.lenChanged = 1
                     for n in self.propTree.iterNodesNoRoot():
                         if n.br.lenChanged:
-                            print "    node %2i br.lenChanged" % n.nodeNum
+                            print("    node %2i br.lenChanged" % n.nodeNum)
                             #n.br.textDrawSymbol = 'C'
                     #self.propTree.draw()
 
@@ -516,7 +516,7 @@ class Chain(object):
                 if 0 and self.mcmc.gen == 270:
                     for n in self.propTree.iterNodes():
                         if n.flag:
-                            print "    node %2i flag" % n.nodeNum
+                            print("    node %2i flag" % n.nodeNum)
                             #if n.br:
                             #    n.br.textDrawSymbol = 'f'
                     #self.propTree.draw()
@@ -551,7 +551,7 @@ class Chain(object):
                 for pNum in range(self.propTree.model.nParts):
                     for n in self.propTree.iterNodesNoRoot():
                         n.br.lenChanged = False
-                        raise Glitch, "this doesn't work for more than one part"
+                        raise Glitch("this doesn't work for more than one part")
                         n.flag = 0
                     self.propTree.root.flag = 0
                     for n in self.propTree.iterPostOrder():
@@ -628,11 +628,11 @@ class Chain(object):
 
         else:
             gm.append('Unlisted proposal.name=%s  Fix me.' % theProposal.name)
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
         if theProposal.doAbort:
-            raise Glitch, "programming error.  we should not be here.  proposal %s" % theProposal.name
+            raise Glitch("programming error.  we should not be here.  proposal %s" % theProposal.name)
             
         else:
             self.propTree.logLike = sum(self.propTree.partLikes)
@@ -648,8 +648,8 @@ class Chain(object):
                     pf.p4_treeLogLike(self.curTree.cTree, 0)
                     y = sum(self.curTree.partLikes)
                     if math.fabs(x - y) > 0.00001:
-                        print "***************************** gen %i, bad curTree here b" % self.mcmc.gen
-                        print x, y
+                        print("***************************** gen %i, bad curTree here b" % self.mcmc.gen)
+                        print(x, y)
                     #else:
                     #    print "***************************** no difference to curTree here b"
                 if 1:
@@ -658,8 +658,8 @@ class Chain(object):
                     pf.p4_treeLogLike(self.propTree.cTree, 0)
                     y = sum(self.propTree.partLikes)
                     if math.fabs(x - y) > 0.00001:
-                        print "***************************** gen %i, bad propTree here b" % self.mcmc.gen
-                        print x, y
+                        print("***************************** gen %i, bad propTree here b" % self.mcmc.gen)
+                        print(x, y)
                     #else:
                     #    print "***************************** no difference to propTree here b"
 
@@ -684,7 +684,7 @@ class Chain(object):
                 #print "%g" % theDiff
                 if theDiff > 1.e-9:
                     gm.append("gen %i, Bad like calc.  '%s', theDiff = %g" % (self.mcmc.gen, theProposal.name, theDiff))
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
             logLikeRatio = self.propTree.logLike - self.curTree.logLike
 
@@ -740,7 +740,7 @@ class Chain(object):
                         thisNNodes += 1
                 if c.nNodes != thisNNodes:
                     gm.append("curTree  comp.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                    raise Glitch, gm
+                    raise Glitch(gm)
             for mtNum in range(self.propTree.model.parts[pNum].nComps):
                 c = self.propTree.model.parts[pNum].comps[mtNum]
                 thisNNodes = 0
@@ -749,7 +749,7 @@ class Chain(object):
                         thisNNodes += 1
                 if c.nNodes != thisNNodes:
                     gm.append("propTree  comp.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                    raise Glitch, gm
+                    raise Glitch(gm)
             this_k = 0
             for mtNum in range(self.curTree.model.parts[pNum].nComps):
                 c = self.curTree.model.parts[pNum].comps[mtNum]
@@ -757,7 +757,7 @@ class Chain(object):
                     this_k += 1
             if self.curTree.model.parts[pNum].rjComp_k != this_k:
                 gm.append("curTree. rjComp_k=%i, this_k=%i" % (self.curTree.model.parts[pNum].rjComp_k, this_k))
-                raise Glitch, gm
+                raise Glitch(gm)
             this_k = 0
             for mtNum in range(self.propTree.model.parts[pNum].nComps):
                 c = self.propTree.model.parts[pNum].comps[mtNum]
@@ -765,7 +765,7 @@ class Chain(object):
                     this_k += 1
             if self.propTree.model.parts[pNum].rjComp_k != this_k:
                 gm.append("propTree rjComp_k=%i, this_k=%i" % (self.propTree.model.parts[pNum].rjComp_k, this_k))
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Same for rjRMatrix
         checkRjR = False
@@ -783,7 +783,7 @@ class Chain(object):
                                 thisNNodes += 1
                         if c.nNodes != thisNNodes:
                             gm.append("curTree  rMatrix.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if c.nNodes:
                             thisK0_cur += 1
                     thisK0_prop = 0
@@ -795,12 +795,12 @@ class Chain(object):
                                 thisNNodes += 1
                         if c.nNodes != thisNNodes:
                             gm.append("propTree  rMatrix.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if c.nNodes:
                             thisK0_prop += 1
                     if thisK0_cur != thisK0_prop:
                         gm.append("part %i, checkRjR: thisK0_cur %i, thisK0_prop %i" % (pNum, thisK0_cur, thisK0_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     this_k_cur = 0
                     for mtNum in range(self.curTree.model.parts[pNum].nRMatrices):
                         c = self.curTree.model.parts[pNum].rMatrices[mtNum]
@@ -808,7 +808,7 @@ class Chain(object):
                             this_k_cur += 1
                     if self.curTree.model.parts[pNum].rjRMatrix_k != this_k_cur:
                         gm.append("curTree. rjRMatrix_k=%i, this_k=%i" % (self.curTree.model.parts[pNum].rjRMatrix_k, this_k_cur))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     this_k_prop = 0
                     for mtNum in range(self.propTree.model.parts[pNum].nRMatrices):
                         c = self.propTree.model.parts[pNum].rMatrices[mtNum]
@@ -817,23 +817,23 @@ class Chain(object):
                     if self.propTree.model.parts[pNum].rjRMatrix_k != this_k_prop:
                         gm.append("propTree rjRMatrix_k=%i, this_k=%i" % (
                                       self.propTree.model.parts[pNum].rjRMatrix_k, this_k_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
                     if this_k_cur != this_k_prop:
                         gm.append("part %i, checkRjR: this_k_cur %i, this_k_prop %i" % (pNum, this_k_cur, this_k_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if thisK0_cur > this_k_cur:
                         gm.append("part %i, checkRjR: thisK0_cur %i, this_k_cur %i" % (pNum, thisK0_cur, this_k_cur))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                    
 
         if 0:
             ret = self.verifyIdentityOfTwoTreesInChain(doSplitKeys=self.mcmc.constraints)
             if ret == var.DIFFERENT:
                 gm.append("Trees differ at start of chain.")
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
-                print "trees are the same -- ok"
+                print("trees are the same -- ok")
                 pass
 
         acceptMove = False
@@ -843,11 +843,11 @@ class Chain(object):
                 #print "before proposal. curTree %f, %s   propTree %f, %s" % (
                 #    self.curTree.logLike, self.curTree.partLikes, self.propTree.logLike, self.propTree.partLikes)
                 if math.fabs(self.curTree.logLike - self.propTree.logLike) > 0.0001:
-                    print "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Differs before proposal"
+                    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ Differs before proposal")
                 if math.fabs(self.curTree.logLike - sum(self.curTree.partLikes)) > 0.0001:
-                    print "7777777777777777777777777777777777777777777777777777777777 bad Cur Tree"
+                    print("7777777777777777777777777777777777777777777777777777777777 bad Cur Tree")
                 if math.fabs(self.propTree.logLike - sum(self.propTree.partLikes)) > 0.0001:
-                    print "8888888888888888888888888888888888888888888888888888888888 bad Prop Tree"
+                    print("8888888888888888888888888888888888888888888888888888888888 bad Prop Tree")
                 #print self.propTree.partLikes, type(self.propTree.partLikes)
                 assert type(self.propTree.partLikes) == type(self.propTree.preOrder)
                 assert type(self.curTree.partLikes) == type(self.curTree.preOrder)
@@ -872,7 +872,7 @@ class Chain(object):
                 if nnBrLenChanged or nnFlags:
                     gm.append('gen %i, proposal %s' % (self.mcmc.gen, aProposal.name))
                     gm.append('nnBrLenChanged %s, nnFlags %s' % (nnBrLenChanged, nnFlags))
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 # The curTree should never have these set
                 nnBrLenChanged = []
@@ -886,7 +886,7 @@ class Chain(object):
                 if nnBrLenChanged or nnFlags:
                     gm.append('curTree, gen %i' % self.mcmc.gen)
                     gm.append('nnBrLenChanged %s, nnFlags %s' % (nnBrLenChanged, nnFlags))
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 
                               
 
@@ -903,8 +903,8 @@ class Chain(object):
             while 1:
                 safety += 1
                 if safety > 100:
-                    print "Attempted %i '%s' proposals, and they all failed." % (safety, aProposal.name)
-                    print "Giving up."
+                    print("Attempted %i '%s' proposals, and they all failed." % (safety, aProposal.name))
+                    print("Giving up.")
                     return True # ie failure
 
                 if var.doMcmcSp: # the speedy version
@@ -921,7 +921,7 @@ class Chain(object):
                     ret = self.verifyIdentityOfTwoTreesInChain(doSplitKeys=self.mcmc.constraints)
                     if ret == var.DIFFERENT:
                         gm.append("Bad restore of propTree after doAbort.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     else:
                         #print "ok"
                         pass
@@ -962,7 +962,7 @@ class Chain(object):
                 ret = self.verifyIdentityOfTwoTreesInChain(doSplitKeys=self.mcmc.constraints)
                 if ret == var.DIFFERENT:
                     gm.append("Trees differ after doAbort.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 else:
                     #print "ok"
                     pass
@@ -1045,13 +1045,13 @@ class Chain(object):
                     diff = math.fabs(previousA - a.logLike)
                     if diff > 1.e-15:
                         gm.append("Chain.gen(%i).  LogLikes (a) do not match.  diff=%f (%g)" % (self.mcmc.gen, diff, diff))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     previousB = b.logLike
                     b.calcLogLike(verbose=0)
                     diff = math.fabs(previousB - b.logLike)
                     if diff > 1.e-15:
                         gm.append("Chain.gen(%i).  LogLikes (b) do not match. diff=%f (%g)" % (self.mcmc.gen, diff, diff))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 if 0 and self.mcmc.gen == 34:
                     a.calcLogLike()
                     b.calcLogLike()
@@ -1078,13 +1078,13 @@ class Chain(object):
                     diff = math.fabs(previousA - a.logLike)
                     if diff > 1.e-15:
                         gm.append("Chain.gen().  LogLikes (a) do not match.  diff=%f (%g)" % (diff, diff))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     previousB = b.logLike
                     b.calcLogLike(verbose=0)
                     diff = math.fabs(previousB - b.logLike)
                     if diff > 1.e-15:
                         gm.append("Chain.gen().  LogLikes (b) do not match. diff=%f (%g)" % (diff, diff))
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             # This group is one part only.
             elif aProposal.name in ['compLocation', 'rMatrixLocation', 'gdasrvLocation']:
@@ -1092,10 +1092,10 @@ class Chain(object):
                 pNum = aProposal.pNum
 
                 if 0 and self.mcmc.gen == 136:
-                    print "k curTree:"
-                    print self.curTree.model.parts[pNum].bQETneedsReset
-                    print "propTree:"
-                    print self.propTree.model.parts[pNum].bQETneedsReset
+                    print("k curTree:")
+                    print(self.curTree.model.parts[pNum].bQETneedsReset)
+                    print("propTree:")
+                    print(self.propTree.model.parts[pNum].bQETneedsReset)
 
                 b.partLikes[pNum] = a.partLikes[pNum]
                 a.copyToTree(b)
@@ -1183,7 +1183,7 @@ class Chain(object):
                 
             else:
                 gm.append('Unlisted proposal.name = %s  Fix me.' % aProposal.name)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         if 0:
             # This needs testTree.  copyToTree() is in Tree.py, and
@@ -1193,29 +1193,29 @@ class Chain(object):
             self.curTree.model.copyValsTo(self.testTree.model)
             self.testTree.calcLogLike(verbose=False)
             myDiff = self.curTree.logLike - self.testTree.logLike
-            print "diff = %f" % myDiff
+            print("diff = %f" % myDiff)
             if 1 and self.mcmc.gen == 13:
                 #print "Too big!"
-                print "Comparing topology stuff with Tree.verifyIdentityWith() ..."
+                print("Comparing topology stuff with Tree.verifyIdentityWith() ...")
                 ret = self.curTree.verifyIdentityWith(self.testTree, False)  # python level only, false for 'doSplitKeys'
                 if ret == var.DIFFERENT:
-                    print "verifyIdentityOfTwoTreesInChain() tree topology stuff differs"
+                    print("verifyIdentityOfTwoTreesInChain() tree topology stuff differs")
                 else:
-                    print "topology stuff seems to be the same"
-                print "Python-level: Verify model prams, with Model.verifyValsWith."
+                    print("topology stuff seems to be the same")
+                print("Python-level: Verify model prams, with Model.verifyValsWith.")
                 ret = self.curTree.model.verifyValsWith(self.testTree.model) # python level only
                 if ret == var.DIFFERENT:
-                    print "verifyIdentityOfTwoTreesInChain() model stuff differs"
+                    print("verifyIdentityOfTwoTreesInChain() model stuff differs")
                 else:
-                    print "model stuff appears to be the same"
+                    print("model stuff appears to be the same")
                 
                 # cStuff.  This does model prams, tree and node stuff.
-                print "about to pf.p4_verifyIdentityOfTwoTrees(self.curTree.cTree, self.testTree.cTree)"
+                print("about to pf.p4_verifyIdentityOfTwoTrees(self.curTree.cTree, self.testTree.cTree)")
                 ret = pf.p4_verifyIdentityOfTwoTrees(self.curTree.cTree, self.testTree.cTree)
-                print "got ret %s" % ret
+                print("got ret %s" % ret)
             diffEpsi = 0.01
             if myDiff > diffEpsi or myDiff < -diffEpsi:
-                raise Glitch, "diff too big"
+                raise Glitch("diff too big")
             
               
             
@@ -1231,21 +1231,21 @@ class Chain(object):
             isBad = False
             for n in self.propTree.iterNodesNoRoot():
                 if n.br.lenChanged:
-                    print "p node %2i, br.lenChanged" % n.nodeNum
+                    print("p node %2i, br.lenChanged" % n.nodeNum)
                     isBad = True
                 if n.flag:
-                    print "p node %2i, flag" % n.nodeNum
+                    print("p node %2i, flag" % n.nodeNum)
                     isBad = True
             for  n in self.curTree.iterNodesNoRoot():
                 if n.br.lenChanged:
-                    print "c node %2i, br.lenChanged" % n.nodeNum
+                    print("c node %2i, br.lenChanged" % n.nodeNum)
                     isBad = True
                 if n.flag:
-                    print "c node %2i, flag" % n.nodeNum
+                    print("c node %2i, flag" % n.nodeNum)
                     isBad = True
             if isBad:
                 gm.append("br.lenChanged or flag should not be set at this point.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         #if 1:
         if (self.mcmc.gen + 1) % 100 == 0: # every hundred gens
@@ -1260,7 +1260,7 @@ class Chain(object):
                 #    gm.append("This appears to be the first proposal.")
                 gm.append("This proposal: %s, accepted=%s, topologyChanged=%s" % (
                     aProposal.name, aProposal.accepted, aProposal.topologyChanged))
-                raise Glitch, gm
+                raise Glitch(gm)
             #else:
             #    print "trees are the same at bottom of gen(), gen %i" % self.mcmc.gen
             #    print "x curTree ...."
@@ -1286,8 +1286,8 @@ class Chain(object):
                 if 1:
                     self.curTree.draw(model=True)
 
-                    print
-                    print self.curTree.model.parts[pNum].bQETneedsReset
+                    print()
+                    print(self.curTree.model.parts[pNum].bQETneedsReset)
                     
                     for pNum in range(self.curTree.model.nParts):
                         for compNum in [0, 1]:
@@ -1325,7 +1325,7 @@ class Chain(object):
                         thisNNodes += 1
                 if c.nNodes != thisNNodes:
                     gm.append("curTree  comp.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                    raise Glitch, gm
+                    raise Glitch(gm)
             for mtNum in range(self.propTree.model.parts[pNum].nComps):
                 c = self.propTree.model.parts[pNum].comps[mtNum]
                 thisNNodes = 0
@@ -1334,7 +1334,7 @@ class Chain(object):
                         thisNNodes += 1
                 if c.nNodes != thisNNodes:
                     gm.append("propTree  comp.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                    raise Glitch, gm
+                    raise Glitch(gm)
             this_k = 0
             for mtNum in range(self.curTree.model.parts[pNum].nComps):
                 c = self.curTree.model.parts[pNum].comps[mtNum]
@@ -1342,7 +1342,7 @@ class Chain(object):
                     this_k += 1
             if self.curTree.model.parts[pNum].rjComp_k != this_k:
                 gm.append("curTree. rjComp_k=%i, this_k=%i" % (self.curTree.model.parts[pNum].rjComp_k, this_k))
-                raise Glitch, gm
+                raise Glitch(gm)
             this_k = 0
             for mtNum in range(self.propTree.model.parts[pNum].nComps):
                 c = self.propTree.model.parts[pNum].comps[mtNum]
@@ -1350,7 +1350,7 @@ class Chain(object):
                     this_k += 1
             if self.propTree.model.parts[pNum].rjComp_k != this_k:
                 gm.append("propTree rjComp_k=%i, this_k=%i" % (self.propTree.model.parts[pNum].rjComp_k, this_k))
-                raise Glitch, gm
+                raise Glitch(gm)
 
                         
         if checkRjR:
@@ -1366,7 +1366,7 @@ class Chain(object):
                                 thisNNodes += 1
                         if c.nNodes != thisNNodes:
                             gm.append("curTree  rMatrix.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if c.nNodes:
                             thisK0_cur += 1
                     thisK0_prop = 0
@@ -1378,12 +1378,12 @@ class Chain(object):
                                 thisNNodes += 1
                         if c.nNodes != thisNNodes:
                             gm.append("propTree  rMatrix.nNodes=%i, but thisNNodes=%i" % (c.nNodes, thisNNodes))
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         if c.nNodes:
                             thisK0_prop += 1
                     if thisK0_cur != thisK0_prop:
                         gm.append("part %i, checkRjR: thisK0_cur %i, thisK0_prop %i" % (pNum, thisK0_cur, thisK0_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     this_k_cur = 0
                     for mtNum in range(self.curTree.model.parts[pNum].nRMatrices):
                         c = self.curTree.model.parts[pNum].rMatrices[mtNum]
@@ -1391,7 +1391,7 @@ class Chain(object):
                             this_k_cur += 1
                     if self.curTree.model.parts[pNum].rjRMatrix_k != this_k_cur:
                         gm.append("curTree. rjRMatrix_k=%i, this_k=%i" % (self.curTree.model.parts[pNum].rjRMatrix_k, this_k_cur))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     this_k_prop = 0
                     for mtNum in range(self.propTree.model.parts[pNum].nRMatrices):
                         c = self.propTree.model.parts[pNum].rMatrices[mtNum]
@@ -1400,14 +1400,14 @@ class Chain(object):
                     if self.propTree.model.parts[pNum].rjRMatrix_k != this_k_prop:
                         gm.append("propTree rjRMatrix_k=%i, this_k=%i" % (
                                       self.propTree.model.parts[pNum].rjRMatrix_k, this_k_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
                     if this_k_cur != this_k_prop:
                         gm.append("part %i, checkRjR: this_k_cur %i, this_k_prop %i" % (pNum, this_k_cur, this_k_prop))
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if thisK0_cur > this_k_cur:
                         gm.append("part %i, checkRjR: thisK0_cur %i, this_k_cur %i" % (pNum, thisK0_cur, this_k_cur))
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
 
     def verifyIdentityOfTwoTreesInChain(self, doSplitKeys=False):

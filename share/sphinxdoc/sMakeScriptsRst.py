@@ -21,7 +21,7 @@ possibilities are obvious.
 gm = ["func.recipes()"]
 if not var.examplesDir:
     gm.append("Can't find the Examples directory.")
-    raise Glitch, gm
+    raise Glitch(gm)
 recipesDir = os.path.join(var.examplesDir, 'W_recipes')
 
 myRelPath = os.path.relpath(recipesDir)
@@ -49,8 +49,8 @@ for fNum in range(len(fList)):
 #.. literalinclude:: pyplots/ellipses.py
 
 start = start[1:]
-print start
-print
+print(start)
+print()
 #print ".. literalinclude:: %s/sCon.py" % pre
 
 for rNum in range(len(recipesList)):
@@ -59,9 +59,9 @@ for rNum in range(len(recipesList)):
     if heading.endswith('.'):
         heading = heading[:-1]
     uLine = '-' * len(heading)
-    print heading
-    print uLine
-    print
-    print ".. literalinclude:: %s" % fList[rNum]
-    print
+    print(heading)
+    print(uLine)
+    print()
+    print(".. literalinclude:: %s" % fList[rNum])
+    print()
     

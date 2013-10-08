@@ -1,8 +1,8 @@
-import sys,re,string,os,cStringIO
-import func
+import sys,re,string,os,io
+from . import func
 import copy
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 from subprocess import Popen,PIPE
 
 class Sequence(object):
@@ -33,7 +33,7 @@ class Sequence(object):
     # __nonzero__(), then "assert self" will raise an AssertionError,
     # basing that response on the result of len(self).  Having
     # __nonzero__() makes "assert self" work.
-    def __nonzero__(self):
+    def __bool__(self):
         return True
     def __len__(self):
         if self.sequence:
@@ -43,15 +43,15 @@ class Sequence(object):
 
     def dump(self):
         """Print rubbish about self."""
-        print '%15s: %s' % ('name', self.name)
-        if self.comment: print '%15s: %s' % ('comment', self.comment)
+        print('%15s: %s' % ('name', self.name))
+        if self.comment: print('%15s: %s' % ('comment', self.comment))
         #if self.dataType == 'dna':
             #if self.transl_table:
             #    print "%15s: %s' % ('transl_table", self.transl_table)
         if self.sequence:
-            print '%15s: %s' % ('sequence', self.sequence[:25]),
-            if len(self.sequence) > 25: print "..."
-            else: print ''
+            print('%15s: %s' % ('sequence', self.sequence[:25]), end=' ')
+            if len(self.sequence) > 25: print("...")
+            else: print('')
 
     def dupe(self):
         """Return a duplicate of self."""
@@ -114,7 +114,7 @@ class Sequence(object):
                     gm.append("Got uppercase '%s' How did that happen? -- can only handle lowercase." % c)
                 else:
                     gm.append("Sequence.reverseComplement().  Got char '%s' What is it?" % c)
-                raise Glitch, gm
+                raise Glitch(gm)
             
         self.sequence = ''.join(self.sequence)
                 
@@ -197,14 +197,14 @@ class Sequence(object):
         gm = ['Sequence.translate()']
         if self.dataType != 'dna':
             gm.append("Self should be a DNA Sequence")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if self.nChar % 3 != 0:
             gm.append("The length of self should be a multiple of 3")
-            raise Glitch, gm
+            raise Glitch(gm)
         nTriplets = self.nChar / 3
 
-        from GeneticCode import GeneticCode
+        from .GeneticCode import GeneticCode
         gc = GeneticCode(transl_table)
 
         prSeq = Sequence()
@@ -220,11 +220,11 @@ class Sequence(object):
             if theCodon == '---':
                 protSeq[j] = '-'
             elif theCodon.count('-'):
-                print "    seq %s, position %4i, dnaSeq %4i, codon '%s' is incomplete" % (self.name, j, (j*3), theCodon)
+                print("    seq %s, position %4i, dnaSeq %4i, codon '%s' is incomplete" % (self.name, j, (j*3), theCodon))
             elif theCodon == 'nnn':
                 if nnn_is_gap:
-                    print "    seq %s, position %4i, dnaSeq %4i, codon '%s' translating to a gap ('-')" % (
-                        self.name, j, (j*3), theCodon)
+                    print("    seq %s, position %4i, dnaSeq %4i, codon '%s' translating to a gap ('-')" % (
+                        self.name, j, (j*3), theCodon))
                     protSeq[j] = '-'
                 else:
                     protSeq[j] = 'x'
@@ -232,11 +232,11 @@ class Sequence(object):
                 protSeq[j] = gc.translate(theCodon)
                 if checkStarts and j == 0:
                     if theCodon in gc.startList:
-                        print "    Seq %s. The first codon, '%s', is a start codon" % (
-                            self.name, theCodon)
+                        print("    Seq %s. The first codon, '%s', is a start codon" % (
+                            self.name, theCodon))
                     else:
-                        print "    Seq %s. The first codon, '%s', is not a start codon" % (
-                            self.name, theCodon)
+                        print("    Seq %s. The first codon, '%s', is not a start codon" % (
+                            self.name, theCodon))
 
         # Get rid of stop translation '*'
         if prSeq.sequence[-1] == '*':
@@ -285,7 +285,7 @@ class SequenceList(object):
     def makeSequenceForNameDict(self):
         self.sequenceForNameDict = {}
         for s in self.sequences:
-            assert not self.sequenceForNameDict.has_key(s.name), "duped name %s" % s.name
+            assert s.name not in self.sequenceForNameDict, "duped name %s" % s.name
             self.sequenceForNameDict[s.name] = s
 
     def _readFastaFile(self, flob):
@@ -380,7 +380,7 @@ class SequenceList(object):
             #print mySeq.sequence
             if string.count(mySeq.sequence, '.'):
                 gm.append("Dots don't work in a fasta file, do they?")
-                raise Glitch, gm
+                raise Glitch(gm)
             mySeq.sequence = string.translate(mySeq.sequence, toLowerTransTable,
                                           string.digits + string.whitespace + '\0')
             dType = func.isDnaRnaOrProtein(mySeq.sequence)
@@ -408,11 +408,11 @@ class SequenceList(object):
                     mySeq.comment = mySeq.headLineList[1]
         if 0:
             for mySeq in self.sequences:
-                print '%20s  %-30s' % ('name', mySeq.name)
-                print '%20s  %-30s' % ('comment', mySeq.comment)
-                print '%20s  %-30s' % ('sequence', mySeq.sequence)
-                print '%20s  %-30s' % ('dataType', mySeq.dataType)
-                print ''
+                print('%20s  %-30s' % ('name', mySeq.name))
+                print('%20s  %-30s' % ('comment', mySeq.comment))
+                print('%20s  %-30s' % ('sequence', mySeq.sequence))
+                print('%20s  %-30s' % ('dataType', mySeq.dataType))
+                print('')
                 
 
         # check for invalid chars
@@ -423,39 +423,39 @@ class SequenceList(object):
                     j = 0
                     while j < len(s.sequence):
                         if s.sequence[j] not in var.validDnaChars:
-                            print "bad character '%s' in (zero-based) dna sequence %s " % \
-                                                        (s.sequence[j], self.sequences.index(s))
-                            print "          sequence name: %s" % s.name
-                            print "          at (zero-based) position %s" % j
+                            print("bad character '%s' in (zero-based) dna sequence %s " % \
+                                                        (s.sequence[j], self.sequences.index(s)))
+                            print("          sequence name: %s" % s.name)
+                            print("          at (zero-based) position %s" % j)
                             bads = bads + 1
                             if bads > 10:
-                                print "...and possibly others"
+                                print("...and possibly others")
                                 break
                         j = j + 1
                     if bads > 10:
                         break
                 if bads:
                     gm.append("Got bad characters.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             if self.sequences[0].dataType == 'protein':
                 for s in self.sequences:
                     j = 0
                     while j < len(s.sequence):
                         if s.sequence[j] not in var.validProteinChars:
-                            print "bad character '%s' in (zero-based) protein sequence %s " % \
-                                                        (s.sequence[j], self.sequences.index(s))
-                            print "          sequence name: %s" % s.name
-                            print "          at (zero-based) position %s" % j
+                            print("bad character '%s' in (zero-based) protein sequence %s " % \
+                                                        (s.sequence[j], self.sequences.index(s)))
+                            print("          sequence name: %s" % s.name)
+                            print("          at (zero-based) position %s" % j)
                             bads = bads + 1
                             if bads > 10:
-                                print "...and possibly others"
+                                print("...and possibly others")
                                 break
                         j = j + 1
                     if bads > 10:
                         break
                 if bads:
                     gm.append("Got bad characters.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
         flob.close()
 
 
@@ -511,19 +511,19 @@ class SequenceList(object):
             if aLine[3] != ';':
                 gm.append("First line is: %s" % aLine.rstrip())
                 gm.append("4th char should be ';'")
-                raise Glitch, gm
+                raise Glitch(gm)
             twoChars = aLine[1:3]
             if twoChars not in ['P1']:
                 gm.append("First line is: %s" % aLine.rstrip())
                 gm.append("Code characters '%s' are not recognized / implemented.  Fix me?" % twoChars)
-                raise Glitch, gm
+                raise Glitch(gm)
             
             seqObj = Sequence()
             if twoChars == 'P1':
                 seqObj.dataType = 'protein'
             else:
                 gm.append("Pir datatype code '%s' is not implemented.  Fix me." % twoChars)
-                raise Glitch, gm
+                raise Glitch(gm)
             seqObj.sequence = []  # So I can append lines.  I'll change it back to a string later
             splLine = aLine.split(';')
             seqObj.name = splLine[1]
@@ -541,7 +541,7 @@ class SequenceList(object):
                 #    print "No comment line for %s" % seqObj.name
             except IndexError:
                 gm.append("premature end to pir file, in sequence %s" % seqObj.name)
-                raise Glitch, gm
+                raise Glitch(gm)
             
             while 1:
                 lNum += 1
@@ -552,7 +552,7 @@ class SequenceList(object):
                     break
                 if not aLine:
                     gm.append("Misplaced blank line in pir sequence %s" % seqObj.name)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 if aLine[0] == '>':
                     break
                 seqObj.sequence.append(aLine)
@@ -568,16 +568,16 @@ class SequenceList(object):
         for seqObj in self.sequences:
             if string.count(seqObj.sequence, '.'):
                 gm.append("Dots don't work in a pir file, do they?")
-                raise Glitch, gm
+                raise Glitch(gm)
             seqObj.sequence = string.translate(seqObj.sequence, toLowerTransTable,
                                           string.digits + string.whitespace + '\0')
         if 0:
             for seqObj in self.sequences:
-                print '%20s  %-30s' % ('name', seqObj.name)
-                print '%20s  %-30s' % ('comment', seqObj.comment)
-                print '%20s  %-30s' % ('sequence', seqObj.sequence)
-                print '%20s  %-30s' % ('dataType', seqObj.dataType)
-                print ''
+                print('%20s  %-30s' % ('name', seqObj.name))
+                print('%20s  %-30s' % ('comment', seqObj.comment))
+                print('%20s  %-30s' % ('sequence', seqObj.sequence))
+                print('%20s  %-30s' % ('dataType', seqObj.dataType))
+                print('')
 
         # check for invalid chars
         if len(self.sequences) > 0:
@@ -587,39 +587,39 @@ class SequenceList(object):
                     j = 0
                     while j < len(s.sequence):
                         if s.sequence[j] not in var.validDnaChars:
-                            print "bad character '%s' in (zero-based) dna sequence %s " % \
-                                                        (s.sequence[j], self.sequences.index(s))
-                            print "          sequence name: %s" % s.name
-                            print "          at (zero-based) position %s" % j
+                            print("bad character '%s' in (zero-based) dna sequence %s " % \
+                                                        (s.sequence[j], self.sequences.index(s)))
+                            print("          sequence name: %s" % s.name)
+                            print("          at (zero-based) position %s" % j)
                             bads = bads + 1
                             if bads > 10:
-                                print "...and possibly others"
+                                print("...and possibly others")
                                 break
                         j = j + 1
                     if bads > 10:
                         break
                 if bads:
                     gm.append("Got bad characters.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             if self.sequences[0].dataType == 'protein':
                 for s in self.sequences:
                     j = 0
                     while j < len(s.sequence):
                         if s.sequence[j] not in var.validProteinChars:
-                            print "bad character '%s' in (zero-based) protein sequence %s " % \
-                                                        (s.sequence[j], self.sequences.index(s))
-                            print "          sequence name: %s" % s.name
-                            print "          at (zero-based) position %s" % j
+                            print("bad character '%s' in (zero-based) protein sequence %s " % \
+                                                        (s.sequence[j], self.sequences.index(s)))
+                            print("          sequence name: %s" % s.name)
+                            print("          at (zero-based) position %s" % j)
                             bads = bads + 1
                             if bads > 10:
-                                print "...and possibly others"
+                                print("...and possibly others")
                                 break
                         j = j + 1
                     if bads > 10:
                         break
                 if bads:
                     gm.append("Got bad characters.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
         flob.close()
         return self  # ie success
 
@@ -684,7 +684,7 @@ class SequenceList(object):
 
         """
 
-        from Alignment import Alignment
+        from .Alignment import Alignment
         a = Alignment()
         a.fName = self.fName
         import copy
@@ -725,29 +725,29 @@ class SequenceList(object):
                     try:
                         f = open(fName, 'a')
                     except IOError:
-                        print complaintHead
-                        print "    Can't open %s for appending." % fName
+                        print(complaintHead)
+                        print("    Can't open %s for appending." % fName)
                         sys.exit()
                 else:
                     if 0:
-                        print complaintHead
-                        print "    'append' is requested,"
-                        print "    but '%s' is not a regular file (maybe it doesn't exist?)." \
-                              % fName
-                        print "    Writing to a new file instead."
+                        print(complaintHead)
+                        print("    'append' is requested,")
+                        print("    but '%s' is not a regular file (maybe it doesn't exist?)." \
+                              % fName)
+                        print("    Writing to a new file instead.")
                     try:
                         f = open(fName, 'w')
                     except IOError:
-                        print complaintHead
-                        print "    Can't open %s for writing." % fName
+                        print(complaintHead)
+                        print("    Can't open %s for writing." % fName)
                         sys.exit()
 
             else:
                 try:
                     f = open(fName, 'w')
                 except IOError:
-                    print complaintHead
-                    print "    Can't open %s for writing." % fName
+                    print(complaintHead)
+                    print("    Can't open %s for writing." % fName)
                     sys.exit()
 
         if seqNum == None:
@@ -776,12 +776,12 @@ class SequenceList(object):
             try:
                 theInt = int(seqNum)
                 if theInt < 0 or theInt >= len(self.sequences):
-                    print complaintHead
-                    print "    seqNum %i is out of range." % seqNum
+                    print(complaintHead)
+                    print("    seqNum %i is out of range." % seqNum)
                     sys.exit()
             except ValueError:
-                print complaintHead
-                print "    seqNum should be an integer."
+                print(complaintHead)
+                print("    seqNum should be an integer.")
                 sys.exit()
             s = self.sequences[theInt]
             f.write('>%s' % s.name)
@@ -825,9 +825,9 @@ class SequenceList(object):
             else:
                 snDict[s.name] = 1
         nDupes = 0
-        for k,v in snDict.iteritems():
+        for k,v in snDict.items():
             if v > 1:
-                print "Got %2i copies of sequence name %s" % (v, k)
+                print("Got %2i copies of sequence name %s" % (v, k))
                 nDupes += 1
         if nDupes:
             gm = ["SequenceList.checkNamesForDupes()"]
@@ -836,31 +836,31 @@ class SequenceList(object):
             gm.append("Got %i duplicate sequence names." % nDupes)
             gm.append("(If you want to turn off checking, set ")
             gm.append("var.doCheckForDuplicateSequenceNames to False)")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
     def dump(self):
         if isinstance(self, SequenceList):
-            print "\nSequenceList dump:"
+            print("\nSequenceList dump:")
             if self.fName:
-                print "  File name is %s" % self.fName
+                print("  File name is %s" % self.fName)
         if len(self.sequences) == 1:
-            print "  There is 1 sequence"
+            print("  There is 1 sequence")
         else:
-            print "  There are %s sequences" % len(self.sequences)
+            print("  There are %s sequences" % len(self.sequences))
 
         nSeqsToDo = len(self.sequences)
         if nSeqsToDo > 12:
             nSeqsToDo = 10
         for i in range(nSeqsToDo):
             if isinstance(self, SequenceList):
-                print "  %3i %5s %s" % (i, len(self.sequences[i].sequence), self.sequences[i].name)
+                print("  %3i %5s %s" % (i, len(self.sequences[i].sequence), self.sequences[i].name))
             else: # Alignment, don't print sequence lengths
-                print "  %3i   %s" % (i, self.sequences[i].name)
+                print("  %3i   %s" % (i, self.sequences[i].name))
             # self.sequences[i].dump()
         if len(self.sequences) > nSeqsToDo:
-            print "  ... and %i others..." % (len(self.sequences) - nSeqsToDo)
-        print ''
+            print("  ... and %i others..." % (len(self.sequences) - nSeqsToDo))
+        print('')
 
 
 
@@ -875,7 +875,7 @@ class SequenceList(object):
         gm = ['SequenceList.renameForPhylip()']
         if os.path.exists(dictFName):
             gm.append("The dictionary file '%s' already exists." % dictFName)
-            raise Glitch, gm
+            raise Glitch(gm)
         if hasattr(self, 'taxNames'):
             originalNames = self.taxNames
         else:
@@ -898,17 +898,17 @@ class SequenceList(object):
         gm = ["SequenceLists.restoreNamesFromRenameForPhylip()"]
         if os.path.exists(dictFName):
             import __main__
-            execfile(dictFName, __main__.__dict__,  __main__.__dict__)
+            exec(compile(open(dictFName).read(), dictFName, 'exec'), __main__.__dict__,  __main__.__dict__)
             from __main__ import p4_renameForPhylip_dict
         else:
             gm.append("The dictionary file '%s' can't be found." % dictFName)
-            raise Glitch, gm
+            raise Glitch(gm)
         for s in self.sequences:
-            if p4_renameForPhylip_dict.has_key(s.name):
+            if s.name in p4_renameForPhylip_dict:
                 s.name = p4_renameForPhylip_dict[s.name]
             else:
                 gm.append("The dictionary does not contain a key for '%s'." % s.name)
-                raise Glitch, gm
+                raise Glitch(gm)
         del(__main__.p4_renameForPhylip_dict)
         del(__main__.p4_renameForPhylip_originalNames)
 
@@ -925,7 +925,7 @@ class SequenceList(object):
         the same as the order in self.
 
         """
-        flob = cStringIO.StringIO()
+        flob = io.StringIO()
         self.writeFasta(fName=flob)
         p = Popen(["muscle"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ret = p.communicate(input=flob.getvalue())
@@ -949,14 +949,14 @@ class SequenceList(object):
         the same as the order in self.
 
         """
-        flob = cStringIO.StringIO()
+        flob = io.StringIO()
         self.writeFasta(fName=flob)
         p = Popen(["clustalo", "-i", "-"], stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ret = p.communicate(input=flob.getvalue())
         #ret = p.communicate()
         if ret[1]:
-            print ret
-            raise Glitch, "clustalo()  Something wrong here ..."
+            print(ret)
+            raise Glitch("clustalo()  Something wrong here ...")
         flob.close()
         a = func.readAndPop(ret[0])
         a.makeSequenceForNameDict()

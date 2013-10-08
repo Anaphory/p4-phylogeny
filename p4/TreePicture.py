@@ -1,6 +1,6 @@
 import string,os
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 
 """This class is used by Tree.draw(), Tree.eps(), and Tree.svg().
 This week, there is no 'user-interface' for it, other than those two
@@ -18,10 +18,10 @@ class TreePicture(object):
                         gm.append("Only 1 node in this tree, so it can't be drawn.")
                     else:
                         gm.append("No nodes.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             except AttributeError:
                 gm.append("Expecting a Tree instance.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             self.tree = theTree
             if self.tree:
@@ -66,7 +66,7 @@ class TreePicture(object):
                 #print "n=%s, n.parent=%s" % (n.nodeNum, n.parent)
                 #print "n.parent.xPos=%s, n.br.len=%s, self.addToBrLen=%s" % (n.parent.xPos, n.br.len, self.addToBrLen)
                 if n.parent.xPos == None:
-                    raise Glitch, "Programming error. n.parent.xPos is None"
+                    raise Glitch("Programming error. n.parent.xPos is None")
                 n.xPos = n.parent.xPos + n.br.len + self.addToBrLen
                     
 
@@ -83,32 +83,32 @@ class TreePicture(object):
                 try:
                     n.yPos = (n.leftChild.yPos + n.rightmostChild().yPos) / 2.0
                 except:
-                    print "-" * 50
-                    print "TreePicture.setPos()  got an exception."
-                    print "self.postOrder is %s" % self.tree.postOrder
-                    print "n.nodeNum=%i, n.name=%s " % (n.nodeNum, n.name)
+                    print("-" * 50)
+                    print("TreePicture.setPos()  got an exception.")
+                    print("self.postOrder is %s" % self.tree.postOrder)
+                    print("n.nodeNum=%i, n.name=%s " % (n.nodeNum, n.name))
                     
                     if not n.leftChild:
-                        print "There is no n.leftChild"
+                        print("There is no n.leftChild")
                     else:
-                        print "n.leftChild.nodeNum ", n.leftChild.nodeNum
-                        print "n.leftChild.isLeaf=%s" % n.leftChild.isLeaf
-                        print "n.leftChild.yPos ", n.leftChild.yPos
-                    print "n.rightmostChild().nodeNum ", n.rightmostChild().nodeNum
-                    print "n.rightmostChild().isLeaf=%s" % n.rightmostChild().isLeaf
-                    print "n.rightmostChild().yPos ", n.rightmostChild().yPos
-                    raise Glitch, gm
+                        print("n.leftChild.nodeNum ", n.leftChild.nodeNum)
+                        print("n.leftChild.isLeaf=%s" % n.leftChild.isLeaf)
+                        print("n.leftChild.yPos ", n.leftChild.yPos)
+                    print("n.rightmostChild().nodeNum ", n.rightmostChild().nodeNum)
+                    print("n.rightmostChild().isLeaf=%s" % n.rightmostChild().isLeaf)
+                    print("n.rightmostChild().yPos ", n.rightmostChild().yPos)
+                    raise Glitch(gm)
 
         if self.tree.root.isLeaf:
             self.tree.root.yPos = self.tree.root.leftChild.yPos
 
         if 0:
-            print "index   isLeaf        xPos         yPos"
+            print("index   isLeaf        xPos         yPos")
             for n in self.tree.iterNodes():
-                print "%4i" % n.nodeNum,
-                print "%8i" % n.isLeaf,
-                print "%12s" % n.xPos,
-                print "%12s" % n.yPos
+                print("%4i" % n.nodeNum, end=' ')
+                print("%8i" % n.isLeaf, end=' ')
+                print("%12s" % n.xPos, end=' ')
+                print("%12s" % n.yPos)
 
         # Find maxX
         self.maxX = 0.0
@@ -118,7 +118,7 @@ class TreePicture(object):
 
         if self.maxX < 1.e-100:
             gm.append("maxX (%f, %g) is too small.  Can't draw it." % (self.maxX, self.maxX))
-            raise Glitch, gm
+            raise Glitch(gm)
         # Find maxY
         self.maxY = 0.0
         for n in self.tree.iterNodes():
@@ -127,7 +127,7 @@ class TreePicture(object):
         #print "maxX is %f, maxY is %f" % (self.maxX, self.maxY)
         if self.maxY < 1.e-100:
             gm.append("maxY (%f, %g) is too small.  How did that happen?" % (self.maxY, self.maxY))
-            raise Glitch, gm
+            raise Glitch(gm)
         
 
         
@@ -151,11 +151,11 @@ class TreePicture(object):
                         if n.isLeaf:
                             extras = 0
                             if self.textShowNodeNums:
-                                extras += len(`n.nodeNum`) + 1 # 1 for the colon
+                                extras += len(repr(n.nodeNum)) + 1 # 1 for the colon
                         else:
                             if self.textShowNodeNums:
                                 extras = 0 # So we do over-write a vertical line in text draw
-                                extras += len(`n.nodeNum`) + 1 # 1 for the colon
+                                extras += len(repr(n.nodeNum)) + 1 # 1 for the colon
                             else:
                                 extras = 1 # So we do not over-write a vertical line in text draw
 
@@ -166,7 +166,7 @@ class TreePicture(object):
         # Same idea for the root name.  It will extend to the left.
         if self.tree.root.xPos != 0:
             gm.append("Root xPos is not zero.  Fix me.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         if not self.tree.root.name:
             rootNameLength = 0
@@ -214,7 +214,7 @@ class TreePicture(object):
                     else:
                         gm.append("The picture is not wide enough to fit the node names.")
                         gm.append("Increase the width.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
             #print "before: xScale is %f" % self.xScale
             makeAdjustments = 1
@@ -295,17 +295,17 @@ class TreePicture(object):
             if not n.isLeaf:
                 if 0:
                     if n == self.tree.root:
-                        print "root leftChild = %i, rightmostChild = %i" % \
-                              (n.leftChild.nodeNum, n.rightmostChild().nodeNum)
-                        print "line from %f %f" % \
-                              ((n.xPos), (n.leftChild.yPos))
-                        print "       to %f %f" % \
-                              ((n.xPos), (n.rightmostChild().yPos))
+                        print("root leftChild = %i, rightmostChild = %i" % \
+                              (n.leftChild.nodeNum, n.rightmostChild().nodeNum))
+                        print("line from %f %f" % \
+                              ((n.xPos), (n.leftChild.yPos)))
+                        print("       to %f %f" % \
+                              ((n.xPos), (n.rightmostChild().yPos)))
                     else:
-                        print "nodeNum %i, rootNameContribution = %s, xOrigin= %s, n.xPos = %s, self.xScale=%s," % (
-                            n.nodeNum, self.rootNameContribution, self.xOrigin, n.xPos, self.xScale)
-                        print "self.yOrigin=%s, n.leftChild.yPos=%s, self.yScale=%s" % (
-                            self.yOrigin, n.leftChild.yPos, self.yScale)
+                        print("nodeNum %i, rootNameContribution = %s, xOrigin= %s, n.xPos = %s, self.xScale=%s," % (
+                            n.nodeNum, self.rootNameContribution, self.xOrigin, n.xPos, self.xScale))
+                        print("self.yOrigin=%s, n.leftChild.yPos=%s, self.yScale=%s" % (
+                            self.yOrigin, n.leftChild.yPos, self.yScale))
                 if self.svg:
                     stringList.append('<line x1="%.0f" y1="%.0f" x2="%.0f" y2="%.0f"/>\n' % (
                         self.rootNameContribution + self.xOrigin + (n.xPos * self.xScale), self.yOrigin - (n.leftChild.yPos * self.yScale),
@@ -441,8 +441,8 @@ class TreePicture(object):
         self.width = int(round(self.width))
         self.yOrigin = 0.0
         if 0:
-            print "xOrigin = %s, yOrigin = %s" % (self.xOrigin, self.yOrigin)
-            print "xScale = %s, yScale = %s" % (self.xScale, self.yScale)
+            print("xOrigin = %s, yOrigin = %s" % (self.xOrigin, self.yOrigin))
+            print("xScale = %s, yScale = %s" % (self.xScale, self.yScale))
 
         nRows = 0
         for n in self.tree.iterNodes():
@@ -452,13 +452,13 @@ class TreePicture(object):
         nRows += 1
 
         if 0:
-            print "index   isLeaf        xPos         yPos"
+            print("index   isLeaf        xPos         yPos")
             for n in self.tree.iterNodes():
-                print "%4i" % n.nodeNum,
-                print "%8i" % n.isLeaf,
-                print "%12s" % n.xPos,
-                print "%12s" % n.yPos
-            print "%s rows" % nRows
+                print("%4i" % n.nodeNum, end=' ')
+                print("%8i" % n.isLeaf, end=' ')
+                print("%12s" % n.xPos, end=' ')
+                print("%12s" % n.yPos)
+            print("%s rows" % nRows)
 
         # Make a field of blanks on which to draw
         stringList = []
@@ -534,7 +534,7 @@ class TreePicture(object):
         for n in self.tree.iterInternalsNoRoot():
             theName = ''
             if self.textShowNodeNums:
-                theName = `n.nodeNum`
+                theName = repr(n.nodeNum)
             #print "x %s" % theName
             if self.showInternalNodeNames and n.name:
                 if self.textShowNodeNums:

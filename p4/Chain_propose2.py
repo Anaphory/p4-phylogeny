@@ -1,8 +1,8 @@
 """More Chain 'propose' methods."""
 
 import func,pf
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 import math,random
 import numpy
 
@@ -16,7 +16,7 @@ def proposeCompWithSlider(self, theProposal):
     # mt.val is a list, not a numpy array
     #assert type(mt.val) == numpy.ndarray
 
-    indxs = random.sample(range(dim), 2)
+    indxs = random.sample(list(range(dim)), 2)
     currentAplusB = mt.val[indxs[0]] + mt.val[indxs[1]]
     thisMin = var.PIVEC_MIN / currentAplusB
     thisMax = 1. - thisMin
@@ -42,7 +42,7 @@ def proposeCompWithSlider(self, theProposal):
         safety += 1
         if safety > 100:
             gm.append("Did more than 100 reflections -- something is wrong.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if y < thisMin:
             y = thisMin + (thisMin - y)
         elif y > thisMax:
@@ -86,7 +86,7 @@ def proposeCompWithDirichlet(self, theProposal):
     
     self.logProposalRatio = 0.0
 
-    rangeDim = range(dim)
+    rangeDim = list(range(dim))
     mySum = 0.0
     for stNum in rangeDim:
         mySum += newVal[stNum] * theProposal.tuning
@@ -205,7 +205,7 @@ def proposeSplitComp(self, theProposal):
                   for j in range(dim)]
             break
         except OverflowError:
-            print "Overflow error in splitComp() (%2i)" % safety
+            print("Overflow error in splitComp() (%2i)" % safety)
             safety += 1
             if safety >= 100:
                 theProposal.doAbort = True
@@ -238,7 +238,7 @@ def proposeSplitComp(self, theProposal):
                 gm.append("m0 is %s" % m0)
                 gm.append("top = %f" % top)
                 gm.append("bottom = %f" % bottom)
-                raise Glitch, gm
+                raise Glitch(gm)
             m1.append(m0[j] * myexp)
 
         m2 = []
@@ -258,7 +258,7 @@ def proposeSplitComp(self, theProposal):
                 gm.append("m0 is %s" % m0)
                 gm.append("top = %f" % top)
                 gm.append("bottom = %f" % bottom)
-                raise Glitch, gm
+                raise Glitch(gm)
             m2.append(m0[j] * myexp)
 
     if 0:
@@ -274,20 +274,20 @@ def proposeSplitComp(self, theProposal):
             gm.append("m0 = %s" % m0)
             gm.append("log_m1 = %s" % log_m1)
             gm.append('overflow m1')
-            raise Glitch, gm
+            raise Glitch(gm)
         try:
             m2 = [math.exp(it) for it in log_m2]
         except OverflowError:
             gm.append("m0 = %s" % m0)
             gm.append("log_m2 = %s" % log_m2)
             gm.append("overflow m2")
-            raise Glitch, gm
+            raise Glitch(gm)
     
     if 0:
-        print m0
-        print m1
-        print m2
-        print 
+        print(m0)
+        print(m1)
+        print(m2)
+        print() 
         
     s1 = sum(m1)
     s2 = sum(m2)
@@ -426,7 +426,7 @@ def proposeMergeComp(self, theProposal):
         pool = [c for c in mp.comps if c.rj_isInPool]
         gm.append('len of pool = %i (should be the same as rjComp_k)' % len(pool))
         gm.append("rjComp_k, the pool size, should be more than 1 for a merge.  This isn't.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Choose two comps (to make into one).  They must be in the pool.
     pool = [c for c in mp.comps if c.rj_isInPool]
@@ -592,7 +592,7 @@ def proposeRMatrixWithSlider(self, theProposal):
         assert type(mt.val) == numpy.ndarray
 
         nRates = len(mt.val)  # eg 6 for dna gtr, not 5
-        indxs = random.sample(range(nRates), 2)
+        indxs = random.sample(list(range(nRates)), 2)
         currentAplusB = mt.val[indxs[0]] + mt.val[indxs[1]]
         thisMin = var.RATE_MIN / currentAplusB
         thisMax = 1. - thisMin
@@ -618,7 +618,7 @@ def proposeRMatrixWithSlider(self, theProposal):
             safety += 1
             if safety > 20:
                 gm.append("Did more than 20 reflections -- something is wrong.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if y < thisMin:
                 y = thisMin + (thisMin - y)
             elif y > thisMax:
@@ -733,11 +733,11 @@ def proposeSplitRMatrix(self, theProposal):
                   for j in range(rDim)]
             break
         except OverflowError:
-            print "Overflow error in splitRMatrix() (%2i)" % safety
+            print("Overflow error in splitRMatrix() (%2i)" % safety)
             safety += 1
             if safety >= 100:
                 theProposal.doAbort = True
-                print "Too many overflows in splitComp.  Aborting!"
+                print("Too many overflows in splitComp.  Aborting!")
                 return
             uu = [random.normalvariate(0., 1.) for i in range(rDim)]
 
@@ -759,7 +759,7 @@ def proposeSplitRMatrix(self, theProposal):
                 gm.append("m0 is %s" % m0)
                 gm.append("top = %f" % top)
                 gm.append("bottom = %f" % bottom)
-                raise Glitch, gm
+                raise Glitch(gm)
             m1.append(m0[j] * myexp)
 
         m2 = []
@@ -778,7 +778,7 @@ def proposeSplitRMatrix(self, theProposal):
                 gm.append("m0 is %s" % m0)
                 gm.append("top = %f" % top)
                 gm.append("bottom = %f" % bottom)
-                raise Glitch, gm
+                raise Glitch(gm)
             m2.append(m0[j] * myexp)
             
         
@@ -922,7 +922,7 @@ def proposeMergeRMatrix(self, theProposal):
         pool = [c for c in mp.rMatrices if c.rj_isInPool]
         gm.append('len of pool = %i (should be the same as rjRMatrix_k)' % len(pool))
         gm.append("rjRMatrix_k, the pool size, should be more than 1 for a merge.  This isn't.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Choose two rMatrices (to make into one).  They must be in the pool.
     pool = [c for c in mp.rMatrices if c.rj_isInPool]
@@ -1165,7 +1165,7 @@ def proposeCompLocation(self, theProposal):
     proposedNum = random.choice(validCompNumbers)
     if 0 and self.mcmc.gen == 399:
         self.propTree.draw()
-        print "proposeCompLocation().  node %i, before=%i, new=%s" % (theNode.nodeNum, currentNum, proposedNum)
+        print("proposeCompLocation().  node %i, before=%i, new=%s" % (theNode.nodeNum, currentNum, proposedNum))
     self.propTree.model.parts[theProposal.pNum].comps[currentNum].nNodes -= 1
     self.propTree.model.parts[theProposal.pNum].comps[proposedNum].nNodes += 1
     theNode.parts[theProposal.pNum].compNum = proposedNum

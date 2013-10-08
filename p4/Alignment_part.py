@@ -1,8 +1,8 @@
 import string
 import pf
-from Glitch import Glitch
-from Var import var
-from Part import Part
+from .Glitch import Glitch
+from .Var import var
+from .Part import Part
 
 def _initParts(self):
     gm = ['Alignment._initParts()']
@@ -12,7 +12,7 @@ def _initParts(self):
             del(p)
     self.parts = []
     if self.equates:
-        eqSymb = self.equates.keys()
+        eqSymb = list(self.equates.keys())
         eqSymb.sort()
         eqSymb = string.join(eqSymb, '')
     else:
@@ -30,7 +30,7 @@ def _initParts(self):
             gm.append("-no symbols")
         elif not self.dim:
             gm.append("-dim not set")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if not self.nexusSets or not self.nexusSets.charPartition: # its all one part
         aPart = Part()
@@ -46,47 +46,47 @@ def _initParts(self):
         assert aPart.nChar
 
         if 0:
-            print gm[0]
-            print "    symbols=%s" % self.symbols
+            print(gm[0])
+            print("    symbols=%s" % self.symbols)
 
         aPart.cPart = pf.newPart(len(self.sequences), self.length,
                                      eqSymb, self.symbols)
         if not aPart or not aPart.cPart:
             gm.append("Failed to get memory for part.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Make the equates table
         verbose = 0
         equatesTable = []
         if verbose:
-            print "equates is %s" % self.equates
-            print "eqSymb is %s" % eqSymb # the keys
-            print "symbols is %s" % self.symbols
+            print("equates is %s" % self.equates)
+            print("eqSymb is %s" % eqSymb) # the keys
+            print("symbols is %s" % self.symbols)
         for i in range(len(eqSymb)):
-            if verbose: print "%3s: " % eqSymb[i],
+            if verbose: print("%3s: " % eqSymb[i], end=' ')
             e = self.equates[eqSymb[i]]
-            if verbose: print "%8s : " % e,
+            if verbose: print("%8s : " % e, end=' ')
             for s in self.symbols:
                 if s in e:
-                    if verbose: print "%1i" % 1,
+                    if verbose: print("%1i" % 1, end=' ')
                     equatesTable.append('1')
                 else:
-                    if verbose: print "%1i" % 0,
+                    if verbose: print("%1i" % 0, end=' ')
                     equatesTable.append('0')
-            if verbose: print ''
+            if verbose: print('')
         equatesTable = string.join(equatesTable, '')
         if verbose:
-            print "\n\nequatesTable:"
-            print equatesTable
+            print("\n\nequatesTable:")
+            print(equatesTable)
         pf.pokeEquatesTable(aPart.cPart, equatesTable)
 
         sList = []
         for s in self.sequences:
             sList.append(s.sequence)
         if 0:
-            print gm[0]
-            print "sList = %s" % sList
-            print "joined = %s" % string.join(sList, '')
+            print(gm[0])
+            print("sList = %s" % sList)
+            print("joined = %s" % string.join(sList, ''))
         pf.pokeSequences(aPart.cPart, string.join(sList, ''))
         #print "about to makePatterns ..."
         pf.makePatterns(aPart.cPart)
@@ -129,7 +129,7 @@ def initDataParts(self):
             gm.append("-no symbols")
         elif not self.dim:
             gm.append("-dim not set")
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
     if not self.nexusSets or not self.nexusSets.charPartition: # its all one part
@@ -158,7 +158,7 @@ def resetSequencesFromParts(self):
     if (not self.parts) or len(self.parts) == 0:
         gm = ["Alignment.resetSequencesFromParts()"]
         gm.append("No parts.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if not var.doDataPart:
         if len(self.parts) == 1 and self.parts[0].name == 'all':
@@ -191,7 +191,7 @@ def resetSequencesFromParts(self):
             for pNum in range(len(self.parts)):
                 for sNum in range(len(self.sequences)):
                     partSeq = self.parts[pNum].sequenceString(sNum)
-                    print partSeq
+                    print(partSeq)
                     spot = 0
                     m = self.nexusSets.charPartition.subsets[pNum].mask
                     s = self.sequences[sNum]
@@ -243,7 +243,7 @@ def resetPartsContentFromSequences(self):
             pass
         else:
             gm.append('Something is wrong with the nexusSets or its charPartition')
-            raise Glitch, gm
+            raise Glitch(gm)
         for i in range(len(self.parts)):
             cpSubset = self.nexusSets.charPartition.subsets[i]
             aPart = self.parts[i]
@@ -272,4 +272,4 @@ def resetPartsContentFromSequences(self):
 
     else:
         gm.append("No parts.")
-        raise Glitch, gm
+        raise Glitch(gm)

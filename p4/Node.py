@@ -1,5 +1,5 @@
-import func
-from Var import var
+from . import func
+from .Var import var
 
 class NodeBranchPart(object):
     def __init__(self):

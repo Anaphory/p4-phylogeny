@@ -58,13 +58,13 @@ stm.setInTreeTaxBits()
 #stm.dump()
 stm.setInTreeInternalBits()
 stm.maybeFlipInTreeBits()
-print
+print()
 stm.setBigTInternalBits()
 sd = stm.getSymmDiff()
-print sd
+print(sd)
 rfDist = bigT.inputTreesToSuperTreeDistances(var.trees, doSd=True, doScqdist=False)
-print rfDist
-print "====="
+print(rfDist)
+print("=====")
 
 if 0:
     for i in range(2000):

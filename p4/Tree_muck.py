@@ -1,9 +1,9 @@
-from Var import var
+from .Var import var
 import string,math,random,copy,os
 import types
-import func
-from Glitch import Glitch
-from Node import Node,NodeBranch
+from . import func
+from .Glitch import Glitch
+from .Node import Node,NodeBranch
 if var.usePfAndNumpy:
     import numpy
 
@@ -17,7 +17,7 @@ def node(self, specifier):
 
     gm = ['Tree.node()']
 
-    if type(specifier) == types.IntType:
+    if type(specifier) == int:
         nodeNum = specifier
     elif var.usePfAndNumpy and type(specifier) == numpy.int32:
         nodeNum = specifier
@@ -26,22 +26,22 @@ def node(self, specifier):
             return specifier
         else:
             gm.append("The specifier is a node object, but is not part of self.")
-            raise Glitch, gm
-    elif type(specifier) == types.StringType:   # if its a string
+            raise Glitch(gm)
+    elif type(specifier) == bytes:   # if its a string
         for n in self.iterNodes():
             if n.name == specifier:
                 return n
         if nodeNum == None:    # if we haven't found a node matching the specier...
             gm.append("Specifier string '%s' is not a node name.  What gives?" % specifier)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     else:
         gm.append("I don't understand the specifier '%s', type '%s'." % (specifier, type(specifier)))
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if nodeNum < 0 or nodeNum >= len(self.nodes):
         gm.append("The node number is out of range.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     return self.nodes[nodeNum]
 
@@ -55,12 +55,12 @@ def rotateAround(self, specifier):
     gm = ['Tree.rotateAround()']
     rotateNode = self.node(specifier)
     if rotateNode.isLeaf:
-        print gm[0]
-        print "    The rotateNode is a terminal node.  Not doing anything ..."
+        print(gm[0])
+        print("    The rotateNode is a terminal node.  Not doing anything ...")
         return
     if rotateNode.getNChildren() == 1:
-        print gm[0]
-        print "    The rotateNode has only one child.  Not doing anything..."
+        print(gm[0])
+        print("    The rotateNode has only one child.  Not doing anything...")
         return
 
     # set up to unattach the rightmost child, and reattach at the left
@@ -170,12 +170,12 @@ def reRoot(self, specifier, moveInternalName=True, stompRootName=True, checkBiRo
             gm.append("want to reRoot() it.  You can remove the bifurcating root")
             gm.append("with yourTree.removeRoot().  If you really want to reRoot()")
             gm.append("with a bifurcating root, set checkBiRoot=False in the reRoot() args.")
-            raise Glitch, gm
+            raise Glitch(gm)
     if self.root.isLeaf and not self.root.name:
         gm.append("The root is a leaf, but has no name.")
         gm.append("So when you reRoot() it, some other leaf will have no name.")
         gm.append("That is a recipe for trouble, and is not allowed.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     newRoot = self.node(specifier)
     oldRoot = self.root
@@ -186,15 +186,15 @@ def reRoot(self, specifier, moveInternalName=True, stompRootName=True, checkBiRo
         if self.root.name and not self.root.isLeaf:
             if stompRootName:
                 if stompRootName != 2:
-                    print "Notice.  Tree.reRoot(stompRootName) is set, so the root name '%s' is being zapped..." % self.root.name
-                    print "(Set stompRootName=2 to do this silently ...)"
+                    print("Notice.  Tree.reRoot(stompRootName) is set, so the root name '%s' is being zapped..." % self.root.name)
+                    print("(Set stompRootName=2 to do this silently ...)")
                 self.root.name = None
             else:
                 gm.append("Setting 'moveInternalName' implies keeping node names with their branches.")
                 gm.append("The root in this tree has a name, but has no branch.")
                 gm.append("So that does not work.")
                 gm.append("Set arg stompRootName to work around this.")
-                raise Glitch, gm
+                raise Glitch(gm)
         if self.root.isLeaf and self.root.leftChild.name:
             assert self.root.name
             gm.append("The current root is a leaf, with a name.")
@@ -203,7 +203,7 @@ def reRoot(self, specifier, moveInternalName=True, stompRootName=True, checkBiRo
             gm.append("So when the tree gets re-rooted, that internal node name  should stay with its branch, not its node.")
             gm.append("But the rerooted branch will already have a name-- the current root name.")
             gm.append("So that does not work.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     path = [newRoot]
     theParent = newRoot.parent
@@ -211,9 +211,9 @@ def reRoot(self, specifier, moveInternalName=True, stompRootName=True, checkBiRo
         path.append(theParent)
         theParent = theParent.parent
     if 0:
-        print "path from the newRoot to the oldRoot:"
+        print("path from the newRoot to the oldRoot:")
         for i in path:
-            print "   %i" % i.nodeNum
+            print("   %i" % i.nodeNum)
 
     while len(path):
         # We reverse the path above.  Its last entry is a child of the old root.
@@ -280,12 +280,12 @@ def reRoot(self, specifier, moveInternalName=True, stompRootName=True, checkBiRo
 
         # The splitKey is still good, but the rawSplitKey needs updating.
         if fixRawSplitKeys and oldRoot.br.rawSplitKey:
-            oldRoot.br.rawSplitKey = 0L
+            oldRoot.br.rawSplitKey = 0
             if oldRoot.leftChild:
                 for n in oldRoot.iterChildren():
                     oldRoot.br.rawSplitKey += n.br.rawSplitKey
             else:
-                oldRoot.br.rawSplitKey = 1L << self.taxNames.index(oldRoot.name)  # "<<" is left-shift
+                oldRoot.br.rawSplitKey = 1 << self.taxNames.index(oldRoot.name)  # "<<" is left-shift
 
     self.preAndPostOrderAreValid = 0
 
@@ -305,7 +305,7 @@ def removeRoot(self):
     newRoot = None
     if not oldRoot.leftChild:
         gm.append("The root has no children.")
-        raise Glitch, gm
+        raise Glitch(gm)
     
     if var.usePfAndNumpy:
         self.deleteCStuff()
@@ -392,7 +392,7 @@ def removeRoot(self):
         gm.append("The root has more than two children.")
         gm.append("Removing the root with more than two children is not implemented.")
         gm.append("Are you even sure you want to do that?")
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
     oldRoot.wipe()
@@ -402,7 +402,7 @@ def removeRoot(self):
         self.root = newRoot
     else:
         gm.append("No newRoot?   Programming error.")
-        raise Glitch, gm
+        raise Glitch(gm)
     for i in range(len(self.nodes)):
         self.nodes[i].nodeNum = i
     self.preOrder = None
@@ -479,11 +479,11 @@ def removeNode(self, specifier, alsoRemoveSingleChildParentNode=True, alsoRemove
 
     rNode = self.node(specifier)
     if rNode == self.root:
-        print gm[0]
-        print "    The specified node appears to be the root."
-        print "    Removing everything above the root would leave nothing."
-        print "    I assume that you do not want to do that."
-        print "    So I'm not doing that."
+        print(gm[0])
+        print("    The specified node appears to be the root.")
+        print("    Removing everything above the root would leave nothing.")
+        print("    I assume that you do not want to do that.")
+        print("    So I'm not doing that.")
         #self.draw()
         #print "the specifier was %s" % specifier
         #print "the specified node was node number %i" % rNode.nodeNum
@@ -538,7 +538,7 @@ def removeNode(self, specifier, alsoRemoveSingleChildParentNode=True, alsoRemove
             else:
                 gm.append("leftSib is None.  This shouldn't happen")
                 gm.append("Programming error?")
-                raise Glitch, gm
+                raise Glitch(gm)
 
     haveRemovedSingleChildRoot = False
     if not isOriginallySingleChildRoot:
@@ -699,14 +699,14 @@ def pruneSubTreeWithoutParent(self, specifier, allowSingleChildNode=False):
     rNode = self.node(specifier)
     if rNode == self.root:
         gm.append("The specified node is the root.")
-        raise Glitch, gm
+        raise Glitch(gm)
     rNodeParnt = rNode.parent
     if not allowSingleChildNode:
         if rNodeParnt.getNChildren() < 3:
             #self.draw()
             gm.append("The arg allowSingleChildNode is turned off.")
             gm.append("This would be for those cases where the parent of the subTree has more than 2 children.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     #self.deleteCStuff()
 
@@ -749,7 +749,7 @@ def reconnectSubTreeWithoutParent(self, stNode, newParent, beforeNode=None):
     newParent = self.node(newParent)
     if not newParent.leftChild:
         gm.append("Can't attach to a leaf.")
-        raise Glitch, gm
+        raise Glitch(gm)
     stNode.parent = newParent
     if beforeNode == None:  # easy -- just add it to the rightmost child.
         theRMChildOfNewParent = newParent.rightmostChild()
@@ -758,7 +758,7 @@ def reconnectSubTreeWithoutParent(self, stNode, newParent, beforeNode=None):
         bNode = self.node(beforeNode)
         if bNode.parent != newParent:
             gm.append("The parent of the 'beforeNode' should be the newParent.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if newParent.leftChild == bNode:
             newParent.leftChild = stNode
         else:
@@ -789,14 +789,14 @@ def addNodeBetweenNodes(self, specifier1, specifier2):
         pass
     elif aNode1 == aNode2:
         gm.append("The two specified nodes are the same.")
-        raise Glitch, gm
+        raise Glitch(gm)
     elif aNode2 == aNode1.parent:
         temp = aNode1
         aNode1 = aNode2
         aNode2 = temp
     else:
         gm.append("The 2 specified nodes should have a parent-child relationship")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     self.deleteCStuff()
 
@@ -857,10 +857,10 @@ def allBiRootedTrees(self):
 
     if self.root.getNChildren() < 3:
         gm.append("Self root should be of degree > 2.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not self.taxNames:
         gm.append("Self (ie the tree) needs to have taxNames set.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     tList = []
     for i in range(len(self.nodes)):
@@ -874,7 +874,7 @@ def allBiRootedTrees(self):
             t.name = 'r%i' % n.nodeNum
             tList.append(t)
 
-    from Trees import Trees
+    from .Trees import Trees
     tt = Trees(trees=tList, taxNames=self.taxNames)
     return tt
 
@@ -948,7 +948,7 @@ def randomizeTopology(self, randomBrLens=True):
     gm = ["Tree.randomizeTopology()"]
     if self.root.getNChildren() != 3 or not self.isFullyBifurcating():
         gm.append("Should be a fully bifurcating tree, this week.  Fix me?")
-        raise Glitch, gm
+        raise Glitch(gm)
     if self.cTree:
         self.deleteCStuff()
     nTax = self.nTax
@@ -1050,14 +1050,14 @@ def randomizeTopology(self, randomBrLens=True):
             oldLeftSib = None
         if 0:
             if oldLeftSib:
-                print "oldLeftSib = %i" % oldLeftSib.nodeNum
+                print("oldLeftSib = %i" % oldLeftSib.nodeNum)
             else:
-                print "oldLeftSib = None"
-            print "lChildSib = %i" % lChildSib.nodeNum
+                print("oldLeftSib = None")
+            print("lChildSib = %i" % lChildSib.nodeNum)
             if oldLChildSibSib:
-                print "oldLChildSibSib = %i" % oldLChildSibSib.nodeNum
+                print("oldLChildSibSib = %i" % oldLChildSibSib.nodeNum)
             else:
-                print "oldLChildSibSib = None"
+                print("oldLChildSibSib = None")
 
         if oldLeftSib:
             oldLeftSib.sibling = n
@@ -1128,7 +1128,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
 
     if not self.taxNames:
         gm.append("This method needs self.taxNames.")
-        raise Glitch, gm
+        raise Glitch(gm)
     self.checkTaxNames()
 
     f = open(thePaupLogFileName, 'r')
@@ -1136,7 +1136,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
         aLine = f.readline()
         if not aLine:
             gm.append("No Bipartitions line in %s?" % thePaupLogFileName)
-            raise Glitch, gm
+            raise Glitch(gm)
         if aLine.startswith('Bipartitions found'):
             #print aLine
             break
@@ -1170,7 +1170,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
         #print "a Got Line ==>%s<==" % aLine
         if not aLine:
             gm.append('Unexpected end of file.')
-            raise Glitch, gm
+            raise Glitch(gm)
         aLine = aLine.rstrip()
         #print "b Got Line ==>%s<==" % aLine
         if len(aLine):
@@ -1194,7 +1194,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
                     keyCounter = 0
                 elif cycleType == FIRST_CYCLE:
                     gm.append('This should never happen.')
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 else:
                     cycleType = FIRST_CYCLE
                     #print "We are now in the first cycle"
@@ -1206,7 +1206,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
                     gm.append("Unequal key lengths?!?")
                     gm.append("thisKeyLength = %i" % thisKeyLength)
                     gm.append("%s" % aLine)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
                 if cycleType == FIRST_CYCLE:
                     theKeys.append(aLine)
@@ -1215,7 +1215,7 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
                     keyCounter = keyCounter + 1
                     if keyCounter > nKeys:
                         gm.append("Too many keys.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                 elif cycleType == LAST_CYCLE:
                     # It will usually be a line like: ...*....*.     67.83  67.9%
                     # But it will sometimes be a line like: ...*....*.        68
@@ -1232,20 +1232,20 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
                         gm.append("Unequal key lengths?!?")
                         gm.append("thisKeyLength = %i" % thisKeyLength)
                         gm.append("%s" % theKey)
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     if accumulatedKeyLength:
                         theKeys[keyCounter] = theKeys[keyCounter] + theKey
                         theHash[theKeys[keyCounter]] = theSupport
                         keyCounter = keyCounter + 1
                         if keyCounter > nKeys:
                             gm.append("Too many keys.")
-                            raise Glitch, gm
+                            raise Glitch(gm)
                     else:  # LAST_CYCLE is also the FIRST_CYCLE, ie the table is in one section.
                         theKeys.append(theKey)
                         theHash[theKey] = theSupport
                 else:
                     gm.append("This should never happen.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             else:
                 pass # Skip lines with numbers
         else: # a blank line
@@ -1267,10 +1267,10 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
     f.close()
 
     if 0:
-        print "Finished getting split strings, and supports"
-        print "Got %i items in the hash" % len(theHash)
-        print "accumulatedKeyLength = %i" % accumulatedKeyLength
-        print "nKeys = %i" % nKeys
+        print("Finished getting split strings, and supports")
+        print("Got %i items in the hash" % len(theHash))
+        print("accumulatedKeyLength = %i" % accumulatedKeyLength)
+        print("nKeys = %i" % nKeys)
         #self.draw()
 
     # I will need to make splitStrings (in dot-star notation) from
@@ -1282,12 +1282,12 @@ def readBipartitionsFromPaupLogFile(self, thePaupLogFileName):
         if n != self.root:
             if not n.isLeaf:
                 theNodeSplitString = func.getSplitStringFromKey(n.br.splitKey, self.nTax)
-                if theHash.has_key(theNodeSplitString):
+                if theNodeSplitString in theHash:
                     if hasattr(n.br, 'support') and n.br.support is not None:
                         gm.append("Node %i already has a br.support." % n.nodeNum)
                         gm.append("I am refusing to clobber it with the split support.")
                         gm.append("Either fix the tree or fix this method.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     n.br.support = float(theHash[theNodeSplitString])
     return theHash
 
@@ -1311,7 +1311,7 @@ def renameForPhylip(self, dictFName='p4_renameForPhylip_dict.py'):
     gm = ['Tree.renameForPhylip()']
     if os.path.exists(dictFName):
         gm.append("The dictionary file '%s' already exists." % dictFName)
-        raise Glitch, gm
+        raise Glitch(gm)
     d = {}
     if self.taxNames:
         d2 = {}
@@ -1358,25 +1358,25 @@ def restoreNamesFromRenameForPhylip(self, dictFName='p4_renameForPhylip_dict.py'
     gm = ["Tree.restoreNamesFromRenameForPhylip()"]
     if os.path.exists(dictFName):
         import __main__
-        execfile(dictFName, __main__.__dict__,  __main__.__dict__)
+        exec(compile(open(dictFName).read(), dictFName, 'exec'), __main__.__dict__,  __main__.__dict__)
         from __main__ import p4_renameForPhylip_dict,p4_renameForPhylip_originalNames
     else:
         gm.append("The dictionary file '%s' can't be found." % dictFName)
-        raise Glitch, gm
+        raise Glitch(gm)
     for n in self.iterNodes():
         if n.isLeaf:
-            if p4_renameForPhylip_dict.has_key(n.name):
+            if n.name in p4_renameForPhylip_dict:
                 n.name = p4_renameForPhylip_dict[n.name]
             else:
                 gm.append("The dictionary does not contain a key for '%s'." % n.name)
-                raise Glitch, gm
+                raise Glitch(gm)
     if p4_renameForPhylip_originalNames:
         self.taxNames = p4_renameForPhylip_originalNames
     else:
         if self.taxNames:
             gm.append("self.taxNames is set, and should be replaced, but")
             gm.append("p4_renameForPhylip_originalNames is None. ?!?")
-            raise Glitch, gm
+            raise Glitch(gm)
     del(__main__.p4_renameForPhylip_dict)
     del(__main__.p4_renameForPhylip_originalNames)
 
@@ -1404,16 +1404,16 @@ def restoreDupeTaxa(self, dictFileName='p4DupeSeqRenameDict.py', asMultiNames=Tr
     gm = ['Tree.restoreDupeTaxa()']
     if not os.path.isfile(dictFileName):
         gm.append("Can't find dict file '%s'" % dictFileName)
-        raise Glitch, gm
+        raise Glitch(gm)
     loc = {}
-    execfile(dictFileName, {}, loc)
+    exec(compile(open(dictFileName).read(), dictFileName, 'exec'), {}, loc)
     try:
         p4DupeSeqRenameDict = loc['p4DupeSeqRenameDict']
     except KeyError:
         gm.append("Can't get the dictionary named 'p4DupeSeqRenameDict' from the dict file.")
     #print p4DupeSeqRenameDict
 
-    kk = p4DupeSeqRenameDict.keys()
+    kk = list(p4DupeSeqRenameDict.keys())
     #print kk
 
     if asMultiNames:
@@ -1569,9 +1569,9 @@ def dupeSubTree(self, dupeNodeSpecifier, up, doBrLens=True, doSupport=True):
     
     dupeNode = self.node(dupeNodeSpecifier)
     if dupeNode == self.root and not up:
-        print "The dupeNode is self.root, and you want a subtree below that?!?"
+        print("The dupeNode is self.root, and you want a subtree below that?!?")
         sys.exit()
-    from Tree import Tree
+    from .Tree import Tree
     st = Tree()
     if up:
         n = Node()
@@ -1637,7 +1637,7 @@ def dupeSubTree(self, dupeNodeSpecifier, up, doBrLens=True, doSupport=True):
                     if hasattr(selfNode.br, 'support'):
                         n.br.support = selfNode.br.support
                     else:
-                        print "Warning: dupeSubTree() doSupport is turned on, but node %i has no support." % selfNode.nodeNum
+                        print("Warning: dupeSubTree() doSupport is turned on, but node %i has no support." % selfNode.nodeNum)
             n.nodeNum = i
             nodeNumDict[selfNode.nodeNum] = i
             n.isLeaf = selfNode.isLeaf
@@ -1933,27 +1933,27 @@ def nni(self, upperNodeSpec=None):
     upperChildren = [n for n in upperNode.iterChildren()]
     if len(upperChildren) < 2:
         gm.append("upperNode needs to have at least 2 children.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if upperNode.parent:
         lowerNode = upperNode.parent
     else:
         gm.append("upperNode needs to have a parent node.")
-        raise Glitch, gm
+        raise Glitch(gm)
     lowerChildren = [n for n in lowerNode.iterChildren() if n != upperNode]
     if 0:
         if lowerNode.parent:
             if len(lowerChildren) < 1:
                 gm.append("The lower node has a parent.")
                 gm.append("It needs at least one more child besides the upperNode.")
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             if len(lowerChildren) < 2:
                 gm.append("The lower node does not have a parent.")
                 gm.append("It needs at least 2 children besides the upperNode.")
-                raise Glitch, gm
+                raise Glitch(gm)
     if len(lowerChildren) < 1:
         gm.append("The lower node needs at least one more child besides the upperNode.")
-        raise Glitch, gm
+        raise Glitch(gm)
         
     upperSubTreeNode = random.choice(upperChildren)
     lowerSubTreeNode = random.choice(lowerChildren)
@@ -1982,11 +1982,11 @@ def checkThatAllSelfNodesAreInTheTree(self, verbose=False, andRemoveThem=False):
     inSelfNodesButNotInTree = list(selfNodesSet.difference(treeSet))
     if verbose:
         if inSelfNodesButNotInTree:
-            print "These nodes are in self.nodes, but not part of the tree."
+            print("These nodes are in self.nodes, but not part of the tree.")
             for n in inSelfNodesButNotInTree:
-                print n.nodeNum
+                print(n.nodeNum)
         else:
-            print "All nodes in self.nodes are also in the tree."
+            print("All nodes in self.nodes are also in the tree.")
     if inSelfNodesButNotInTree and andRemoveThem:
         for n in inSelfNodesButNotInTree:
             self.nodes.remove(n)
@@ -2062,7 +2062,7 @@ def spr(self, pruneNode=None, above=True, graftNode=None):
     # This is only for fully bifurcating trees.
     if not self.isFullyBifurcating():
         gm.append("This method is only for fully bifurcating trees.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     pnNode = self.node(pruneNode)
     grNode = self.node(graftNode)
@@ -2093,13 +2093,13 @@ def spr(self, pruneNode=None, above=True, graftNode=None):
             gm.append("grNode %i is part of the pruned subtree below %i-%i.  No workee!" % (
                 grNode.nodeNum, pnNodeParnt.nodeNum, pnNode.nodeNum))
             
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # Prune it from the tree.
     if pnNodeParnt == self.root:
         if grNode.parent == self.root: # as well,
             gm.append("prune node and graft node both have root as parent -- ie same origin and destination.")
-            raise Glitch, gm
+            raise Glitch(gm)
         # Check if removal of the subtree will result in only 2 taxa
         singles = 0
         for ch in self.root.iterChildren():
@@ -2108,7 +2108,7 @@ def spr(self, pruneNode=None, above=True, graftNode=None):
                     singles += 1
         if singles == 2:
             gm.append("Removing subtree at %i will leave only 2 taxa." % pnNode.nodeNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         newRoot = None
         for ch in self.root.iterChildren():
@@ -2168,7 +2168,7 @@ def spr(self, pruneNode=None, above=True, graftNode=None):
 
     # To look at the pruned tree, before grafting ...
     if 0:
-        print "removal of subtree at %i-%i gives .." % (pnNodeParnt.nodeNum, pnNode.nodeNum)
+        print("removal of subtree at %i-%i gives .." % (pnNodeParnt.nodeNum, pnNode.nodeNum))
         self._nTax = 0
         self.preAndPostOrderAreValid = 0
         self.draw()  # This won't work unless preAndPostOrderAreValid set to 0
@@ -2212,7 +2212,7 @@ def spr(self, pruneNode=None, above=True, graftNode=None):
 
     # To look at the tree after grafting ...
     if 0:
-        print "grafting the subtree at grNode %i gives ..." % grNode.nodeNum
+        print("grafting the subtree at grNode %i gives ..." % grNode.nodeNum)
         self._nTax = 0
         self.preAndPostOrderAreValid = 0
         self.draw()  # This won't work unless preAndPostOrderAreValid set to 0
@@ -2267,8 +2267,8 @@ def randomSpr(self):
                      pNode is not n2]
     if 0:
         self.draw()
-        print "above=%s, pNode %i, " % (myAbove, pNode.nodeNum), subtreeNodeNums
-        print possibles
+        print("above=%s, pNode %i, " % (myAbove, pNode.nodeNum), subtreeNodeNums)
+        print(possibles)
         sys.exit()
 
     safety = 0
@@ -2289,7 +2289,7 @@ def randomSpr(self):
             continue
         break
     if safety >= giveUp:
-        print "pNode is %i, above=%s" % (pNode.nodeNum, myAbove)
+        print("pNode is %i, above=%s" % (pNode.nodeNum, myAbove))
         self.draw()
         raise Glitch
     #print "spr()  pruneNum %i, above=%s, graftNum %i" % (pNode.nodeNum, myAbove, gNNum)

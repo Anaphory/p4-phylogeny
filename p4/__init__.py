@@ -63,37 +63,37 @@ import sys, os, glob
 ##            except:
 ##                raise
 
-from Var import var
-import func
-from func import read # Make this one top-level, as it is used so often
+from .Var import var
+from . import func
+from .func import read # Make this one top-level, as it is used so often
 #import p3rlcompleter  # Although pyrepl sounds very interesting ...
 
-from Alignment import Alignment
+from .Alignment import Alignment
 if var.usePfAndNumpy:
     import numpy
-    from Data import Data
-    from Model import Model
-    from Mcmc import Mcmc
-    from McmcCheckPointReader import McmcCheckPointReader
-    from Chain import Chain
-    from STMcmc import STMcmc,STMcmcCheckPointReader
-from DistanceMatrix import DistanceMatrix
-from SequenceList import Sequence,SequenceList
-from Tree import Tree
-from Node import Node,NodeBranch
+    from .Data import Data
+    from .Model import Model
+    from .Mcmc import Mcmc
+    from .McmcCheckPointReader import McmcCheckPointReader
+    from .Chain import Chain
+    from .STMcmc import STMcmc,STMcmcCheckPointReader
+from .DistanceMatrix import DistanceMatrix
+from .SequenceList import Sequence,SequenceList
+from .Tree import Tree
+from .Node import Node,NodeBranch
 #from Nexus import Nexus
-from TreePartitions import TreePartitions
-from Trees import Trees
-from Numbers import Numbers
-from Glitch import Glitch
-from Quartet import QuartetSet, Quartet
-from ReducedStrictConsensus import Reduced, Intersection
-from Triplets import Aho
-from LeafSupport import LeafSupport
-from Constraints import Constraints
-from QuartetJoining import QuartetJoining
-from PosteriorSamples import PosteriorSamples
-from Var import Var  # To provide access to the property docstrings.
+from .TreePartitions import TreePartitions
+from .Trees import Trees
+from .Numbers import Numbers
+from .Glitch import Glitch
+from .Quartet import QuartetSet, Quartet
+from .ReducedStrictConsensus import Reduced, Intersection
+from .Triplets import Aho
+from .LeafSupport import LeafSupport
+from .Constraints import Constraints
+from .QuartetJoining import QuartetJoining
+from .PosteriorSamples import PosteriorSamples
+from .Var import Var  # To provide access to the property docstrings.
 
 
 # Read in user-defined p4 stuff on startup.  These might be var
@@ -115,9 +115,9 @@ if 1:
     verboseStartupFiles = False # Turn on for debugging...
     if 0:  # If you want it, turn it on.
         try:
-            execfile(os.environ['P4_STARTUP'])
+            exec(compile(open(os.environ['P4_STARTUP']).read(), os.environ['P4_STARTUP'], 'exec'))
             if verboseStartupFiles:
-                print '\n\n ***** ...have read p4 config file from $P4_STARTUP *****'
+                print('\n\n ***** ...have read p4 config file from $P4_STARTUP *****')
         except KeyError:
             pass
         except IOError:
@@ -141,8 +141,8 @@ if 1:
             if pyFileNames:
                 for fName in pyFileNames:
                     if verboseStartupFiles:
-                        print '...reading %s' % fName
-                    execfile(fName)
+                        print('...reading %s' % fName)
+                    exec(compile(open(fName).read(), fName, 'exec'))
     del(fName)
     del(pathPat)
     del(pyFileNames)

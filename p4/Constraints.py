@@ -1,5 +1,5 @@
-import func
-from Glitch import Glitch
+from . import func
+from .Glitch import Glitch
 
 class Constraints(object):
     """A container for tree topology constraints.
@@ -32,11 +32,11 @@ class Constraints(object):
     def __init__(self, taxNames, constraintTree):
         
         if constraintTree.root.getNChildren() == 2:
-            raise Glitch, 'The constraint tree should not have a bifurcating root.'
+            raise Glitch('The constraint tree should not have a bifurcating root.')
         self.tree = constraintTree
         self.tree.taxNames = taxNames
         self.tree.reRoot(self.tree.taxNames[0], moveInternalName=False)
-        self.allOnes = 2L**(self.tree.nTax) - 1
+        self.allOnes = 2**(self.tree.nTax) - 1
 
         self.tree.makeSplitKeys()
         self.constraints = []
@@ -48,12 +48,12 @@ class Constraints(object):
         
 
     def dump(self):
-        print 'Constraints.dump()'
-        print 'taxNames:'
+        print('Constraints.dump()')
+        print('taxNames:')
         for i in range(self.tree.nTax):
-            print '    %3i  %s' % (i, self.tree.taxNames[i])
-        print 'constraints:'
+            print('    %3i  %s' % (i, self.tree.taxNames[i]))
+        print('constraints:')
         for i in self.constraints:
-            print func.getSplitStringFromKey(i, self.tree.nTax)
+            print(func.getSplitStringFromKey(i, self.tree.nTax))
         self.tree.draw()
 

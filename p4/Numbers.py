@@ -1,7 +1,7 @@
 import os,sys,math,string
-import func
-from Glitch import Glitch
-from Var import var
+from . import func
+from .Glitch import Glitch
+from .Var import var
 if var.usePfAndNumpy:
     import numpy
     
@@ -55,9 +55,9 @@ class Numbers(object):
         try:
             theBinSize = float(binSize)
         except (ValueError,TypeError):
-            raise Glitch, "Arg binSize, if set, should be a float."
+            raise Glitch("Arg binSize, if set, should be a float.")
         if theBinSize <= 0.0:
-            raise Glitch, "Arg binSize, if set, should be a positive float."
+            raise Glitch("Arg binSize, if set, should be a positive float.")
         self._binSize = theBinSize
             
     def _delBinSize(self):
@@ -79,7 +79,7 @@ class Numbers(object):
                 self.skip = int(skip)
             except (ValueError, TypeError):
                 gm.append("Args col and skip must be ints")
-                raise Glitch, gm
+                raise Glitch(gm)
 
             flob = file(inThing)
             theLines = flob.readlines()
@@ -114,14 +114,14 @@ class Numbers(object):
                         except IndexError:
                             gm.append("Line '%s'.  " % string.rstrip(aLine))
                             gm.append("Can't get the item at (zero-based) index %i  " % col) 
-                            raise Glitch, gm
+                            raise Glitch(gm)
                         try:
                             aFloat = float(theOne)
                             self.data.append(aFloat)
                         except (ValueError, TypeError):
                             gm.append("Line '%s'.  " % string.rstrip(aLine))
                             gm.append("Can't make sense of '%s'" % theOne)
-                            raise Glitch, gm
+                            raise Glitch(gm)
         elif type(inThing) == type([]):
             for thing in inThing:
                 try:
@@ -130,10 +130,10 @@ class Numbers(object):
                 except (ValueError,TypeError):
                     gm.append("Can't make sense of '%s'" % thing)
                     gm.append("I was expecting a float.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
         else:
             gm.append("Can't understand inThing.  Should be a file or a list.")
-            raise Glitch, gm
+            raise Glitch(gm)
         #print "got %i data points" % len(self.data)
         #print self.data
         
@@ -214,12 +214,12 @@ class Numbers(object):
             self.nBins += 1
 
         if 0:
-            print "binSize= %f" % self.binSize
-            print "self.max = %f, self.min = %f, niceMin=%f" % (self.max, self.min, niceMin)
-            print "padMin=%s, theMin=%s, padMax=%s, theMax=%s" % (padMin, theMin, padMax, theMax)
-            print "self.range = %f" % self.range
-            print "theMax - niceMin = %f" % (theMax - niceMin)
-            print "self.nBins = %i" % self.nBins
+            print("binSize= %f" % self.binSize)
+            print("self.max = %f, self.min = %f, niceMin=%f" % (self.max, self.min, niceMin))
+            print("padMin=%s, theMin=%s, padMax=%s, theMax=%s" % (padMin, theMin, padMax, theMax))
+            print("self.range = %f" % self.range)
+            print("theMax - niceMin = %f" % (theMax - niceMin))
+            print("self.nBins = %i" % self.nBins)
             #sys.exit()
 
         # Make the bins
@@ -273,29 +273,29 @@ class Numbers(object):
             if not self.range:
                 self.dump()
                 gm.append("The data are all the same.  max=min.  That will not work.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         self._makeBins(padMin, padMax)
         if not self.bins:
             gm.append("No bins.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if verbose:
-            print "%i data points, min=%s, max=%s, binSize=%s, nBins=%i" % (
-                len(self.data), self.min, self.max, self.binSize, self.nBins)
+            print("%i data points, min=%s, max=%s, binSize=%s, nBins=%i" % (
+                len(self.data), self.min, self.max, self.binSize, self.nBins))
             if padMin != None or padMax != None:
-                print "padMin=%s, padMax=%s" % (padMin, padMax)
-            print "%i points at min, %i points at max" % (self.data.count(self.min), self.data.count(self.max))
+                print("padMin=%s, padMax=%s" % (padMin, padMax))
+            print("%i points at min, %i points at max" % (self.data.count(self.min), self.data.count(self.max)))
             for bin in self.bins:
-                print " %-8s  %i" % (bin[0], bin[1]) 
+                print(" %-8s  %i" % (bin[0], bin[1])) 
 
 
     def dump(self):
-        print "%i data points, " % len(self.data),
-        print "min=%s, " % self.min,
-        print "max=%s, " % self.max,
-        print "mean=%s, " % self.mean(),
-        print "binSize=%s, " % self.binSize,
-        print "nBins=%s" % self.nBins
+        print("%i data points, " % len(self.data), end=' ')
+        print("min=%s, " % self.min, end=' ')
+        print("max=%s, " % self.max, end=' ')
+        print("mean=%s, " % self.mean(), end=' ')
+        print("binSize=%s, " % self.binSize, end=' ')
+        print("nBins=%s" % self.nBins)
      
 
     def plot(self, term='x11'):
@@ -368,7 +368,7 @@ if var.usePfAndNumpy:
 
         if 0:
             numpy.exp(ar, ar)
-            print ar
+            print(ar)
             m = sum(ar) / len(ar)
             return math.log(m)
 
@@ -379,7 +379,7 @@ if var.usePfAndNumpy:
             y = x
             y -= scaler
             if y < -100.0:
-                print "Numbers.arithmeticMeanOfLogs()  Ignoring outlier  %f" % x
+                print("Numbers.arithmeticMeanOfLogs()  Ignoring outlier  %f" % x)
                 continue
             else:
                 x = numpy.exp(y)
@@ -424,7 +424,7 @@ if var.usePfAndNumpy:
             y -= scaler
             #print "x=%f, y = %f" % (x, y)
             if y < -100.0:
-                print "Numbers.harmonicMeanOfLogs()  Ignoring outlier %f" % -x
+                print("Numbers.harmonicMeanOfLogs()  Ignoring outlier %f" % -x)
                 continue
             else:
                 x = numpy.exp(y)

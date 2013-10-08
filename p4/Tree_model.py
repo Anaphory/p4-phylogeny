@@ -1,13 +1,13 @@
 """Various Tree methods for defining models."""
 
-from Data import Data
-from Alignment import Part
-from Node import NodeBranch,NodePart,NodeBranchPart
-from Model import Model
-from Glitch import Glitch
+from .Data import Data
+from .Alignment import Part
+from .Node import NodeBranch,NodePart,NodeBranchPart
+from .Model import Model
+from .Glitch import Glitch
 import random
 import func,sys,math,pf
-from Var import var
+from .Var import var
 import numpy
 
 def _setData(self, theData):
@@ -31,7 +31,7 @@ def _setData(self, theData):
         pass
     else:
         gm.append("Set data only to a Data object, or None, ok?")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if self.data or self.model:
         # Normally there won't be anything to delete, but you never know...
@@ -50,7 +50,7 @@ def _setData(self, theData):
     
         if not self.taxNames:
             gm.append("Self has model, but no taxNames.  Programming error.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check for same number of taxa
         treeNTax = len(self.taxNames)
@@ -58,7 +58,7 @@ def _setData(self, theData):
         if self.nTax != dataNTax:
             gm.append("The number of taxa in the tree (%s)" % treeNTax)
             gm.append("is not the same as in the data (%s)" % dataNTax)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check for mis-matched taxNames
         isBad = 0
@@ -81,28 +81,28 @@ def _setData(self, theData):
                     gm.append("    %25s    %25s" % (theData.taxNames[i], self.taxNames[i]))
                 else:
                     gm.append("    %25s    %25s  ***" % (theData.taxNames[i], self.taxNames[i]))
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Same number of parts
         if len(theData.parts) != self.model.nParts:
             gm.append("nParts mis-match.  len(theData.parts)=%i, model.nParts=%i" % (
                 len(theData.parts), self.model.nParts))
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check dims and symbols in the parts
         for pNum in range(self.model.nParts):
             if theData.parts[pNum].dim != self.model.parts[pNum].dim:
                 gm.append("Parts dim mis-match.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if theData.parts[pNum].symbols != self.model.parts[pNum].symbols:
                 gm.append("Parts symbols mis-match.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Set seqNum
         for n in self.iterLeavesNoRoot():
             if n.seqNum != self.taxNames.index(n.name):
                 gm.append("seqNums do not match up with taxNames.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
         self._data = theData
 
@@ -122,7 +122,7 @@ def _setData(self, theData):
         if treeNTax != dataNTax:
             gm.append("The number of taxa in the tree (%s)" % treeNTax)
             gm.append("is not the same as in the data (%s)" % dataNTax)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Check for mis-matched taxNames
         isBad = 0
@@ -145,7 +145,7 @@ def _setData(self, theData):
                     gm.append("    %25s  %25s" % (theData.taxNames[i], treeTaxNames[i]))
                 else:
                     gm.append("*** %25s  %25s" % (theData.taxNames[i], treeTaxNames[i]))
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # attach
         self.taxNames = theData.taxNames
@@ -195,7 +195,7 @@ def _setModel(self, theModel):
         gm.append("Attempt to set Tree.model to '%s'.  " % theModel)
         gm.append("Don't set the model to anything other than 'None' or a Model, ok?  ")
         gm.append("(And generally the user only sets it to None.)  ")
-        raise Glitch, gm
+        raise Glitch(gm)
     #if theModel and self._model:  # Why do I do this?
     #    gm.append("The tree already has a model object; I am refusing to clobber it.")
     #    gm.append("Perhaps use a (perhaps duplicate) tree with no model.")
@@ -210,7 +210,7 @@ def _delModel(self):
     gm.append("Caught an attempt to delete self.model, but")
     gm.append("self.model is a property, so you shouldn't delete it.")
     gm.append("But you can set it to None if you like.")
-    raise Glitch, gm
+    raise Glitch(gm)
 
 model = property(lambda self: self._model, _setModel, _delModel)
 
@@ -221,7 +221,7 @@ def _checkModelThing(self, partNum, symbol, complaintHead):
     gm = [complaintHead]
     if not self.data:
         gm.append("No data.  Set the data first.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if not self.model:
         # When you _setData(), a model object of suitable dimensions
@@ -232,16 +232,16 @@ def _checkModelThing(self, partNum, symbol, complaintHead):
         
     if partNum < 0 or partNum >= self.model.nParts:
         gm.append("Zero-based partNum (%s) is out of range (of %s parts)" % (partNum, self.model.nParts))
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if symbol:
         if type(symbol) != type('s') or len(symbol) != 1:
             gm.append("Symbols must be 1-length strings.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if symbol == '?':
             gm.append("Got assigned text drawing symbol '?'.")
             gm.append("Don't use it-- it is reserved for missing modelThings")
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
 
@@ -297,7 +297,7 @@ def newComp(self, partNum=0, free=0, spec='empirical', val=None, symbol=None):
     # spec
     if spec not in var.compSpecs:
         gm.append("The spec should be one of %s" % var.compSpecs)
-        raise Glitch, gm
+        raise Glitch(gm)
     mt.spec = spec
 
     mt.num = len(self.model.parts[partNum].comps)
@@ -320,18 +320,18 @@ def newComp(self, partNum=0, free=0, spec='empirical', val=None, symbol=None):
     elif spec == 'specified':
         if not val:
             gm.append("Specified comp, but no val.")
-            raise Glitch, gm
+            raise Glitch(gm)
         try:
             val = list(val)
         except TypeError:
             gm.append("The 'val' arg should be a list or tuple.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if len(val) == dim or len(val) == dim - 1:
             pass
         else:
             gm.append("Bad length for val arg.  Should be dim or dim-1 long.")
             gm.append("(Dim for this part is %i)" % dim)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # I allow val's of dim or dim-1.
         if len(val) == dim - 1:
@@ -341,7 +341,7 @@ def newComp(self, partNum=0, free=0, spec='empirical', val=None, symbol=None):
             else:
                 gm.append("Bad comp vals %s" % val)
                 gm.append("sum to 1.0 or more.")
-                raise Glitch, gm
+                raise Glitch(gm)
         else: # len = dim
             theSum = sum(val)
             theDiff = math.fabs(theSum - 1.0)
@@ -355,16 +355,16 @@ def newComp(self, partNum=0, free=0, spec='empirical', val=None, symbol=None):
                 gm.append("does not sum to 1.0")
                 gm.append("The sum = %f" % theSum)
                 gm.append("abs(1.0 - theSum) = %g" % theDiff)
-                raise Glitch, gm
+                raise Glitch(gm)
 
         # Are any specified values less than PIVEC_MIN?
         needsNormalizing = 0
         for i in range(len(val)):
             thisVal = val[i]
             if thisVal < var.PIVEC_MIN:
-                print gm[0]
-                print "    Specifying a comp of zero for a character is not allowed."
-                print "    Re-setting to %g" % var.PIVEC_MIN
+                print(gm[0])
+                print("    Specifying a comp of zero for a character is not allowed.")
+                print("    Re-setting to %g" % var.PIVEC_MIN)
                 val[i] = var.PIVEC_MIN
                 needsNormalizing = 1
 
@@ -375,7 +375,7 @@ def newComp(self, partNum=0, free=0, spec='empirical', val=None, symbol=None):
             if math.fabs(sum(val) - 1.0) > 5.e-16: 
                 gm.append("Bad comp vals %s" % val)
                 gm.append("does not sum to 1.0")
-                raise Glitch, gm
+                raise Glitch(gm)
         #print "sum(val) - 1.0 = %f (%g)" % (sum(val) - 1.0, sum(val) - 1.0)
         mt.val = val
 
@@ -581,7 +581,7 @@ def newRMatrix(self, partNum=0, free=0, spec='ones', val=None, symbol=None):
     if spec not in var.rMatrixSpecs:
         gm.append("Got unknown rMatrix spec '%s'." % spec)
         gm.append("Should be one of: %s" % var.rMatrixSpecs)
-        raise Glitch, gm
+        raise Glitch(gm)
     mt.spec = spec
     mt.num = len(self.model.parts[partNum].rMatrices)
     if symbol:
@@ -607,14 +607,14 @@ def newRMatrix(self, partNum=0, free=0, spec='ones', val=None, symbol=None):
                     v /= v.sum()
             elif var.rMatrixNormalizeTo1 and len(val) == goodLen - 1:
                 gm.append("var.rMatrixNormalizeTo1 is set, val length should be %i, got %i" % (goodLen, len(val)))
-                raise Glitch, gm
+                raise Glitch(gm)
             else:
                 gm.append("Bad length for arg val.  Length %i, should be %i" % (len(val), goodLen))
-                raise Glitch, gm
+                raise Glitch(gm)
         else:
             gm.append("spec is 'specified', but there are no specified rMatrix values.")
             gm.append("Specify rMatrix values by eg val=[2.0, 3.0, 4.0, 5.0,6.0]")
-            raise Glitch, gm
+            raise Glitch(gm)
     elif spec == 'ones':
         v = numpy.array([1.0] * goodLen)
         if var.rMatrixNormalizeTo1:
@@ -636,10 +636,10 @@ def newRMatrix(self, partNum=0, free=0, spec='ones', val=None, symbol=None):
         if self.data.parts[partNum].dataType != 'protein':
             gm.append("A protein matrix has been specified, but the dataType for part %i is %s." % (
                 partNum, self.data.parts[partNum].dataType))
-            raise Glitch, gm
+            raise Glitch(gm)
         if free:
             gm.append('The rMatrix should not be free if it is an empirical protein matrix.')
-            raise Glitch, gm
+            raise Glitch(gm)
 
     mt.val = v  # type numpy.ndarray, or None for protein
     return mt
@@ -652,7 +652,7 @@ def newGdasrv(self, partNum=0, free=0, val=None, symbol=None):
 
     if not self.model:
         gm.append("Set the data first.  Eg myTree.data = Data()")
-        raise Glitch, gm
+        raise Glitch(gm)
     
     if self.model.cModel:
         self.deleteCStuff()
@@ -662,31 +662,31 @@ def newGdasrv(self, partNum=0, free=0, val=None, symbol=None):
         gm.append("For this part (%s), the number of nGammaCat has been set to 1." % partNum)
         gm.append("So gdasrv won't work.")
         gm.append("You can set the nGammaCat with yourTree.setNGammaCat(partNum=x, nGammaCat=y)")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # check val
     if val == None:
         gm.append("Please specify a val, a positive float.")
-        raise Glitch, gm
+        raise Glitch(gm)
     try:
         v = float(val)
     except:
         gm.append("Arg val must be a float.  Got '%s'" % val)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # This week, we have in defines.h
     #define GAMMA_SHAPE_MIN 0.000001
     #define GAMMA_SHAPE_MAX 300.0
     if v <= 0.000001 or v >= 300.0:
         gm.append("Arg val must be between 0.000001 and 300.  Got %f" % v)
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
     self._checkModelThing(partNum, symbol, gm[0])
 
     if self.model.parts[partNum].isMixture:
         gm.append("Don't do this if it is a mixture.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     mt = Gdasrv()
     mt.nGammaCat = self.model.parts[partNum].nGammaCat
@@ -717,11 +717,11 @@ def setPInvar(self, partNum=0, free=0, val=0.0):
         v = float(val)
     except:
         gm.append("Arg val must be a float.  Got '%s'" % val)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if v < 0.0 or v >= 1.0:
         gm.append("Arg val must be zero or more, and less than 1.  Got %f" % v)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     self._checkModelThing(partNum, None, complaintHead)
     if self.model.cModel:
@@ -742,11 +742,11 @@ def setRelRate(self, partNum=0, val=0.0):
         v = float(val)
     except:
         gm.append("Arg val must be a float.  Got '%s'" % val)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if v <= 0.0 or v >= 1000.0:
         gm.append("Arg val must be more than zero, and less than 1000 (arbitrarily).  Got %f" % v)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     self._checkModelThing(partNum, None, complaintHead)
     if self.model.cModel:
@@ -770,7 +770,7 @@ def setModelThing(self, theModelThing, node=None, clade=1):
 
     if self.model.parts[theModelThing.partNum].isMixture:
         gm.append("Don't do this if the part uses a mixture model.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if theModelThing and \
            (isinstance(theModelThing, Comp) or \
@@ -781,7 +781,7 @@ def setModelThing(self, theModelThing, node=None, clade=1):
         gm.append("Expecting a model thing instance of some sort.")
         gm.append("Ie a comp, rMatrix, or gdasrv, instance.")
         gm.append("Got theModelThing = %s" % theModelThing)
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if self.model.cModel:
         self.deleteCStuff()
@@ -805,10 +805,10 @@ def setModelThing(self, theModelThing, node=None, clade=1):
             isBad = 1
     else: # This will never happen-- we checked above.  Overkill.
         gm.append("I don't recognise theModelThing.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if isBad:
         gm.append("The modelThing can only be set on the tree that made it.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     # For the root, we set comps and nothing else.  For other nodes we
     # set anything.
@@ -858,7 +858,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
 
     if not self.model or not self.model.nParts:
         gm.append("No model parts?")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if self.model.cModel:
         self.deleteCStuff()
@@ -867,13 +867,13 @@ def setModelThingsRandomly(self, forceRepresentation=2):
     if type(forceRepresentation) != type(1) or forceRepresentation < 1:
         gm.append("Arg 'forceRepresentation' should be 1 or more.")
         gm.append("Got forceRepresentation = %s" % forceRepresentation)
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
     for i in self.preOrder:
         if i == var.NO_ORDER:
             gm.append("This method does not work if any nodes are not used in the tree.")
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for pNum in range(self.model.nParts):
         mp = self.model.parts[pNum]
@@ -888,7 +888,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
                 gm.append("Part %i" % pNum)
                 gm.append("There are not enough nodes (%i) to put %i" % (nNodes, mp.nComps))
                 gm.append("comps on at least forceRepresentation (%i) nodes." % forceRepresentation)
-                raise Glitch, gm
+                raise Glitch(gm)
             nList = self.nodes[:]
             random.shuffle(nList)
             # get the forceRepresentation out of the way first
@@ -901,7 +901,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
                 n.parts[pNum].compNum = random.randrange(mp.nComps)
         else:
             gm.append("No comps in part %i" % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Second do rMatrices
         if mp.nRMatrices == 1:
@@ -914,7 +914,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
                 gm.append("Part %i" % pNum)
                 gm.append("There are not enough nodes (%i) to put %i" % (nNodes, mp.nRMatrices))
                 gm.append("rMatrices on at least forceRepresentation (%i) nodes." % forceRepresentation)
-                raise Glitch, gm
+                raise Glitch(gm)
             nList = self.nodes[:]
             nList.remove(self.root)
             random.shuffle(nList)
@@ -929,7 +929,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
 
         else:
             gm.append("No rMatrices in part %i" % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
         # Third do gdasrvs
         if mp.nGammaCat > 1:
@@ -943,7 +943,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
                     gm.append("Part %i" % pNum)
                     gm.append("There are not enough nodes (%i) to put %i" % (nNodes, mp.nGdasrvs))
                     gm.append("gdasrvs on at least forceRepresentation (%i) nodes." % forceRepresentation)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 nList = self.nodes[:]
                 nList.remove(self.root)
                 random.shuffle(nList)
@@ -957,7 +957,7 @@ def setModelThingsRandomly(self, forceRepresentation=2):
                     n.br.parts[pNum].gdasrvNum = random.randrange(mp.nGdasrvs)
             else:
                 gm.append("No gdasrvs in part %i and yet nGammaCat > 1" % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
 
     #self.dump(model=True)
 
@@ -971,17 +971,17 @@ def setModelThingsNNodes(self):
 
     if not self.model or not self.model.nParts:
         gm.append("No model parts?")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for pNum in range(self.model.nParts):
         mp = self.model.parts[pNum]
 
         if not mp.nComps:
             gm.append("No comps in model part %i." % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
         elif not mp.nRMatrices:
             gm.append("No rMatrices in model part %i." % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for pNum in range(self.model.nParts):
         mp = self.model.parts[pNum]
@@ -1016,7 +1016,7 @@ def setModelThingsNNodes(self):
                     mp.gdasrvs[n.br.parts[pNum].gdasrvNum].nNodes += 1
             else:
                 gm.append("No gdasrvs in part %i" % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
 
 def summarizeModelThingsNNodes(self):
     """Summarize nNodes for all modelThings if isHet"""
@@ -1025,23 +1025,23 @@ def summarizeModelThingsNNodes(self):
 
     if not self.model or not self.model.nParts:
         gm.append("No model parts?")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not self.model.isHet:
         gm.append("This method is for hetero models")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for pNum in range(self.model.nParts):
         mp = self.model.parts[pNum]
 
         if not mp.nComps:
             gm.append("No comps in model part %i." % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
         elif not mp.nRMatrices:
             gm.append("No rMatrices in model part %i." % pNum)
-            raise Glitch, gm
+            raise Glitch(gm)
 
     for pNum in range(self.model.nParts):
-        print "\n%6s %s:" % ("Part", pNum)
+        print("\n%6s %s:" % ("Part", pNum))
         mp = self.model.parts[pNum]
 
         # First do comps
@@ -1050,16 +1050,16 @@ def summarizeModelThingsNNodes(self):
         elif mp.nComps > 1:
             for mtNum in range(mp.nComps):
                 #print "  comp %i nNodes=%i" % (mtNum, mp.comps[mtNum].nNodes)
-                print "%16s %i %s = %i" % ("composition", mtNum, "nNodes",
-                                            mp.comps[mtNum].nNodes)
+                print("%16s %i %s = %i" % ("composition", mtNum, "nNodes",
+                                            mp.comps[mtNum].nNodes))
 
         # Second do rMatrices
         if mp.nRMatrices == 1:
             pass
         elif mp.nRMatrices > 1:
             for mtNum in range(mp.nRMatrices):
-                print "%16s %i %s = %i" % ("rate matrix", mtNum,
-                    "nNodes", mp.rMatrices[mtNum].nNodes)
+                print("%16s %i %s = %i" % ("rate matrix", mtNum,
+                    "nNodes", mp.rMatrices[mtNum].nNodes))
 
         # Third do gdasrvs
         if mp.nGammaCat > 1:
@@ -1067,10 +1067,10 @@ def summarizeModelThingsNNodes(self):
                 pass
             elif mp.nGdasrvs > 1:
                 for mtNum in range(mp.nGdasrvs):
-                    print "  gdasrv %i nNodes =%i" % (mtNum, mp.gdasrvs[mtNum].nNodes)
+                    print("  gdasrv %i nNodes =%i" % (mtNum, mp.gdasrvs[mtNum].nNodes))
             else:
                 gm.append("No gdasrvs in part %i" % pNum)
-                raise Glitch, gm
+                raise Glitch(gm)
 
 
 
@@ -1079,7 +1079,7 @@ def setTextDrawSymbol(self, theSymbol='-', node=None, clade=1):
 
     if not theSymbol or type(theSymbol) != type('c') or len(theSymbol) != 1:
         gm.append("theSymbol should be a single character string.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     if not node:
         theNode = self.root
@@ -1101,27 +1101,27 @@ def setNGammaCat(self, partNum=0, nGammaCat=1):
     gm = ['\nTree.setNGammaCat()']
     if not self.data or not self.model:
         gm.append("No data?")
-        raise Glitch, gm
+        raise Glitch(gm)
     if self.model.cModel:
         self.deleteCStuff()
     if partNum < 0 or partNum >= self.model.nParts:
         gm.append("PartNum %s is out of range of %s parts." % (partNum, self.model.nParts))
-        raise Glitch, gm
+        raise Glitch(gm)
     if self.model.parts[partNum].isMixture:
         gm.append("Don't do this if the part uses a mixture model.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     try:
         x = int(nGammaCat)
     except ValueError:
         gm.append("'%s' does not appear to be an integer." % i)
-        raise Glitch, gm
+        raise Glitch(gm)
     if x < 1:
         gm.append("nGammaCat should not be less than 1.")
-        raise Glitch, gm
+        raise Glitch(gm)
     elif x > 16:
         gm.append("nGammaCat '%s' exceeds the arbitrary limit of 16." % x)
-        raise Glitch, gm
+        raise Glitch(gm)
     self.model.parts[partNum].nGammaCat = nGammaCat
 
 
@@ -1258,7 +1258,7 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
         if partIsBad:
             gm.append("  (Indices are zero-based.)")
             gm += complaints
-            raise Glitch, gm
+            raise Glitch(gm)
 
 
         # Check if comp values have been set.
@@ -1303,8 +1303,8 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
             if not mt.freqs or not mt.rates:
                 complaints.append('    This week, you must specify mixture freqs and rates.')
                 partIsBad = 1
-            print 'mt.freqs = %s' % mt.freqs
-            print 'mt.rates = %s' % mt.rates
+            print('mt.freqs = %s' % mt.freqs)
+            print('mt.rates = %s' % mt.rates)
             if len(mt.freqs) != len(mt.rates):
                 complaints.append('    Lengths of mixture freqs and rates differ.')
                 partIsBad = 1
@@ -1335,7 +1335,7 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
                     theSum += mt.freqs[i] * mt.rates[i]
                 if theSum < 1.0 - 1.0e-9 or theSum > 1.0 + 1.0e-9:
                     gm.append("Failed to normalize mixture rates.  Sum = %19.17f" % theSum)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 #else:
                 #    print "...successfully normalized mixture rates."
                 #print "Freqs = %s" % mt.freqs
@@ -1480,17 +1480,17 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
         for p in self.model.parts:
             p.relRate *= fact
         if 0:
-            print "RelativeRates (adjusted for length)"
+            print("RelativeRates (adjusted for length)")
             for i in range(self.model.nParts):
                 p = self.model.parts[i]
-                print "  part %s,  nChar %5s, relRate %s" % (p.num, self.data.parts[i].nChar, p.relRate)
+                print("  part %s,  nChar %5s, relRate %s" % (p.num, self.data.parts[i].nChar, p.relRate))
         if 1:
             total = 0.0
             for i in range(self.model.nParts):
                 total += (self.model.parts[i].relRate * (float(self.data.parts[i].nChar) / float(totDataLen)))
             if abs(total - 1.0) > 1.0e-12:
                 gm.append('Error in relativeRate calculation (total=%s).' % total)
-                raise Glitch, gm
+                raise Glitch(gm)
 
     #print "modelSanityCheck. relRatesAreFree=%s, doRelRates=%s" % (self.model.relRatesAreFree, self.model.doRelRates)
 
@@ -1499,10 +1499,10 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
         if p.tSCovarion:
             if p.nComps > 1 or p.nRMatrices > 1 or p.nGammaCat > 1:
                 gm.append("When tSCovarion is on, there should be no heterogeneity in comps, rMatrices, and gdasrv.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if p.pInvar.val > 0.0 or p.pInvar.free:
                 gm.append("When tSCovarion is on, you can't use pInvar.  Turn it off.")
-                raise Glitch, gm
+                raise Glitch(gm)
 
     # model.nFreePrams
     self.model.nFreePrams = 0
@@ -1533,7 +1533,7 @@ def modelSanityCheck(self, resetEmpiricalComps=True):
     if isBad:
         gm.append("(Indices are zero-based.)")
         gm += complaints
-        raise Glitch, gm
+        raise Glitch(gm)
 
 
 
@@ -1549,10 +1549,10 @@ def setEmpiricalComps(self):
     gm = [complaintHead]
     if not self.model:
         gm.append("This tree has no model.")
-        raise Glitch, gm
+        raise Glitch(gm)
     if not self.data:
         gm.append("This tree has no data.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     for mp in self.model.parts:
         for c in mp.comps:
@@ -1590,7 +1590,7 @@ def setEmpiricalComps(self):
                         gm.append("yourTree.setModelThingsRandomly()")
                         gm.append("Or maybe its an extra comp in an RJ MCMC? -- If so, fix")
                         gm.append("the comp val to eg 'equal'.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
                     
                 c.val = self.data.parts[mp.num].composition(seqNums) # dim long, not dim - 1
                 #print "  seqNums=%s, c.val=%s" % (seqNums, c.val)
@@ -1610,7 +1610,7 @@ def setEmpiricalComps(self):
                     gm.append("Something is very wrong here.  Empirical comp vals should sum to 1.0")
                     gm.append("The sum of the comp vals for part %s, comp %s, is %s" % (mp.num, c.num, theSum))
                     gm.append("Probably the sequences from which the composition was taken were blank.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                     
                 if needsNormalizing or abs(theSum - 1.0) > 1e-16:
                     for i in range(len(c.val)):
@@ -1650,7 +1650,7 @@ class Gdasrv(object):
             gm = ["Gdasrv._setVal()"]
             gm.append("Attempt to set Gdasrv.val (ie alpha) to %g" % theVal)
             gm.append("However, we cannot calculate the discrete categories with a value so low.")
-            raise Glitch, gm
+            raise Glitch(gm)
         self._val[0] = theVal
         self.calcRates()
 

@@ -1,6 +1,6 @@
-from Glitch import Glitch
+from .Glitch import Glitch
 import pf,func
-from Var import var
+from .Var import var
 
 
 class Part:
@@ -29,11 +29,11 @@ class Part:
         #self.invarArray = None
 
     def dump(self):
-        print "        Part dump:"
-        print "            alignment = %s" % self.alignment
-        print "            nChar = %s" % self.nChar
-        print "            cPart = %s" % self.cPart
-        print "            name = %s" % self.name
+        print("        Part dump:")
+        print("            alignment = %s" % self.alignment)
+        print("            nChar = %s" % self.nChar)
+        print("            cPart = %s" % self.cPart)
+        print("            name = %s" % self.name)
         if self.cPart:
             pf.dumpPart(self.cPart)
 
@@ -43,18 +43,18 @@ class Part:
         #print "About to start part composition()"
         gm = ['Part: composition()']
         if not sequenceNumberList:
-            sequenceNumberList = range(self.nTax)
+            sequenceNumberList = list(range(self.nTax))
         else:
             if type(sequenceNumberList) != type([1,2]):
                 gm.append("The sequenceNumberList should be a list, ok?")
-                raise Glitch, gm
+                raise Glitch(gm)
             for i in sequenceNumberList:
                 if type(i) != type(1):
                     gm.append("The sequenceNumberList should be integers, ok?")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 if i < 0 or i > self.nTax - 1:
                     gm.append("Item '%i' in sequenceNumberList is out of range" % i)
-                    raise Glitch, gm
+                    raise Glitch(gm)
 
         if not self.cPart:
             self.alignment._initParts()

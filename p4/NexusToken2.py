@@ -1,7 +1,7 @@
 import pf
-from Var import var
+from .Var import var
 import numpy,string
-from Glitch import Glitch
+from .Glitch import Glitch
 
 """A faster version of nextTok(), using memory allocated (once only)
 using numpy, and using functions written in C.  The slow, pure
@@ -89,7 +89,7 @@ def safeNextTok(flob, caller=None):
             gm = ["safeNextTok()"]
         gm.append("Premature Death.")
         gm.append("Ran out of understandable things to read in nexus file.")
-        raise Glitch, gm
+        raise Glitch(gm)
     else:
         return t
 
@@ -117,7 +117,7 @@ def nexusSkipPastBlockEnd(flob):
                         gm.append("Got nothing.")
                     else:
                         gm.append("Got '%s'" % tok2)
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 return
             elif lowTok == ';':  # for pathological cases where the last command is a ';' by itself.
                 continue
@@ -128,4 +128,4 @@ def nexusSkipPastBlockEnd(flob):
     gm = [complaintHead]
     gm.append("Failed to find either 'end' or 'endblock'")
     gm.append("Premature end of file?")
-    raise Glitch, gm
+    raise Glitch(gm)

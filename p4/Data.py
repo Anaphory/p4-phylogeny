@@ -1,8 +1,8 @@
-from Alignment import Alignment
+from .Alignment import Alignment
 import sys,time,os
 import pf,func
-from Var import var
-from Glitch import Glitch
+from .Var import var
+from .Glitch import Glitch
 
 
 class Data:
@@ -76,13 +76,13 @@ class Data:
             else:
                 if type(alignments) != type([]):
                     gm.append("The 'alignments' arg should be a list or a single Alignment object.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 for a in alignments:
                     if isinstance(a, Alignment):
                         pass
                     else:
                         gm.append("Something in the 'alignments' arg was not an Alignment.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
             self._fill(alignments)
         elif alignments == []:
             pass
@@ -96,37 +96,37 @@ class Data:
     def dump(self):
         """Print rubbish about self."""
         
-        print "Data dump"
+        print("Data dump")
         if self.nParts == 1:
             if var.doDataPart:
-                print "    There is 1 dataPart"
+                print("    There is 1 dataPart")
             else:
-                print "    There is 1 part"
+                print("    There is 1 part")
         else:
             if var.doDataPart:
-                print "    There are %i dataParts" % self.nParts
+                print("    There are %i dataParts" % self.nParts)
             else:
-                print "    There are %i parts" % self.nParts
+                print("    There are %i parts" % self.nParts)
 
         for p in self.parts:
-            print "        name=%s, nChar %i, dataType %s, cPart %s" % \
-                  (p.name, p.nChar, p.dataType, p.cPart)
+            print("        name=%s, nChar %i, dataType %s, cPart %s" % \
+                  (p.name, p.nChar, p.dataType, p.cPart))
 
-        print "    There are %i taxa" % self.nTax
+        print("    There are %i taxa" % self.nTax)
 
         if len(self.alignments) == 1:
-            print "    There is 1 alignment"
+            print("    There is 1 alignment")
         else:
-            print "    There are %i alignments" % len(self.alignments)
+            print("    There are %i alignments" % len(self.alignments))
 
 
         if self.cData:
-            print "    The cData is %s" % self.cData
+            print("    The cData is %s" % self.cData)
         else:
-            print "    There is no cData"
+            print("    There is no cData")
 
         if self.unconstrainedLogLikelihood:
-            print "    The unconstrainedLogLikelihood is %s" % self.unconstrainedLogLikelihood
+            print("    The unconstrainedLogLikelihood is %s" % self.unconstrainedLogLikelihood)
         else:
             pass
 
@@ -147,7 +147,7 @@ class Data:
         # Make a part out of the first alignment.
         if not len(self.alignments):
             gm.append("There are no alignments")
-            raise Glitch, gm
+            raise Glitch(gm)
         a = self.alignments[0]
         if var.doDataPart:
             a.initDataParts()
@@ -155,7 +155,7 @@ class Data:
             a._initParts()
         if not len(a.parts):
             gm.append("First alignment failed to make a part")
-            raise Glitch, gm
+            raise Glitch(gm)
         self.taxNames = a.taxNames
         self.nTax = len(self.taxNames)
         for p in a.parts:
@@ -171,14 +171,14 @@ class Data:
                     gm.append('(New alignment from file %s.)' % a.fName)
                 gm.append("From the first alignment, nTax is %s." % self.nTax)
                 gm.append("However, (zero-based) alignment %i has %i sequences." % (aligNum, len(a.sequences)))
-                raise Glitch, gm
+                raise Glitch(gm)
             if self.nTax != len(a.taxNames):
                 gm.append("Additional alignment appears to be not the same size as the first alignment.")
                 if a.fName:
                     gm.append('(New alignment from file %s.)' % a.fName)
                 gm.append("From the first alignment, nTax is %s." % self.nTax)
                 gm.append("However, (zero-based) alignment %i has %i taxNames." % (aligNum, len(a.taxNames)))
-                raise Glitch, gm
+                raise Glitch(gm)
             for i in range(self.nTax):
                 if self.taxNames[i] != a.taxNames[i]:
                     gm.append("Name mis-match in (zero-based) taxon number %i," % i)
@@ -187,7 +187,7 @@ class Data:
                         gm.append('(New alignment from file %s.)' % a.fName)
                     gm.append("Newly-added alignment taxname %s is not the" % a.taxNames[i])
                     gm.append("    same as first alignment taxname %s" % self.taxNames[i])
-                    raise Glitch, gm
+                    raise Glitch(gm)
             if var.doDataPart:
                 a.initDataParts()
             else:
@@ -196,7 +196,7 @@ class Data:
                 gm.append("Additional alignment failed to make a part.")
                 if a.fName:
                     gm.append('(New alignment from file %s.)' % a.fName)
-                raise Glitch, gm
+                raise Glitch(gm)
             for p in a.parts:
                 self.parts.append(p)
             self.nParts = len(self.parts)
@@ -225,7 +225,7 @@ class Data:
         if len(self.alignments) > 1:
             gm = ["Data.calcUnconstrainedLogLikelihood()"]
             gm.append("This method is not implemented for more than one alignment.")
-            raise Glitch, gm
+            raise Glitch(gm)
         if self.nParts == 1:  # no problem
             self.unconstrainedLogLikelihood = pf.getUnconstrainedLogLike(self.parts[0].cPart)
         else:
@@ -268,7 +268,7 @@ class Data:
         if self.cData:
             gm = ["Data._setCStuff()"]
             gm.append("This should only be called if self.cData does not exist!")
-            raise Glitch, gm
+            raise Glitch(gm)
         else:
             if var.doDataPart:
                 self.cData = pf.dp_newData(self.nTax, self.nParts)
@@ -314,15 +314,15 @@ class Data:
             if a.parts:
                 a.resetSequencesFromParts()
             else:
-                raise Glitch, "Alignment has no parts."
+                raise Glitch("Alignment has no parts.")
 
 
 
     def compoSummary(self):
         """A verbose composition summary, one for each data partition."""
 
-        print "\n\nData composition summary"
-        print "========================\n"
+        print("\n\nData composition summary")
+        print("========================\n")
 
         # Make a name format (eg '%12s') that is long enough for the longest name
         longestNameLen = 7 # to start
@@ -333,11 +333,11 @@ class Data:
 
         for i in range(len(self.parts)):
             p = self.parts[i]
-            print "Part %i" % i
-            print "%s" % (' ' * (longestNameLen + 1)),
+            print("Part %i" % i)
+            print("%s" % (' ' * (longestNameLen + 1)), end=' ')
             for j in range(len(p.symbols)):
-                print "%10s" % p.symbols[j],
-            print "%10s" % 'nSites'
+                print("%10s" % p.symbols[j], end=' ')
+            print("%10s" % 'nSites')
             #print ''
             #cumulativeComps = [0.0] * len(p.symbols)
             grandTotalNSites = 0
@@ -346,26 +346,26 @@ class Data:
                 #print "tax %s, part.composition() returns %s" % (k, c)
                 nSites = pf.partSequenceSitesCount(p.cPart, k)
                 grandTotalNSites = grandTotalNSites + nSites
-                print nameFormat % self.taxNames[k],
+                print(nameFormat % self.taxNames[k], end=' ')
 
                 # Usually sum(c) will be 1.0, unless the sequence is
                 # empty.  We don't want to test "if sum(c) == 0.0:" or
                 # "if sum(c):" cuz of small numbers.
                 if sum(c) > 0.99:
                     for j in range(len(p.symbols)):
-                        print "%10.4f" % c[j],
+                        print("%10.4f" % c[j], end=' ')
                         #cumulativeComps[j] = cumulativeComps[j] + (c[j] * nSites)
                 else: # Empty sequence, all zeros.  Write dashes.
                     for j in range(len(p.symbols)):
-                        print "%10s" % '-',
-                print "%10s" % nSites
+                        print("%10s" % '-', end=' ')
+                print("%10s" % nSites)
             c = p.composition()
-            print nameFormat % 'mean',
+            print(nameFormat % 'mean', end=' ')
             for j in range(len(p.symbols)):
-                print "%10.4f" % c[j],
+                print("%10.4f" % c[j], end=' ')
             #print "%10s" % grandTotalNSites
-            print "%10.4f" % (float(grandTotalNSites)/self.nTax)
-            print "\n"
+            print("%10.4f" % (float(grandTotalNSites)/self.nTax))
+            print("\n")
 
 
 
@@ -483,19 +483,19 @@ class Data:
         if skipTaxNums != None:
             if type(skipTaxNums) != type([]):
                 gm.append("skipTaxNums should be a list of lists.")
-                raise Glitch, gm
+                raise Glitch(gm)
             if len(skipTaxNums) != self.nParts:
                 gm.append("skipTaxNums should be a list of lists, nParts long.")
-                raise Glitch, gm
+                raise Glitch(gm)
             for s in skipTaxNums:
                 if type(s) != type([]):
                     gm.append("skipTaxNums should be a list of lists.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
                 for i in s:
                     if type(i) != type(1):
                         gm.append("skipTaxNums inner list items should be tax numbers.")
                         gm.append("Got %s" % i)
-                        raise Glitch, gm
+                        raise Glitch(gm)
 
         # Check for blank sequences.  Its a pain to force the user to do this.
         hasBlanks = False
@@ -517,7 +517,7 @@ class Data:
             gm.append("These sequence numbers were found to be blank. They should be excluded.")
             gm.append("%s" % blankSeqNums)
             gm.append("Set the arg skipTaxNums to this list.")
-            raise Glitch, gm
+            raise Glitch(gm)
                       
 
         for partNum in range(self.nParts):
@@ -541,7 +541,7 @@ class Data:
                         gm.append("(I could do that automatically, but it is best if *you* do it, explicitly.)")
                         gm.append("You can use the Alignment method checkForBlankSequences(listSeqNumsOfBlanks=True)")
                         gm.append("to help you get those inner lists.")
-                        raise Glitch, gm
+                        raise Glitch(gm)
             #print "comps=", comps
 
 
@@ -558,16 +558,16 @@ class Data:
             for j in range(len(theSumOfRows)):
                 if theSumOfRows[j] == 0.0:
                     gm.append("Zero in a row sum.  Programming error.")
-                    raise Glitch, gm
+                    raise Glitch(gm)
             for j in range(len(theSumOfCols)):
                 if theSumOfCols[j] == 0.0:
                     if skipColumnZeros:
                         columnZeros.append(j)
                     else:
                         if verbose:
-                            print gm[0]
-                            print "    Zero in a column sum."
-                            print "    And skipColumnZeros is not set, so I am refusing to do it at all."
+                            print(gm[0])
+                            print("    Zero in a column sum.")
+                            print("    And skipColumnZeros is not set, so I am refusing to do it at all.")
                         isOk = 0
                         nColumnZeros += 1
 
@@ -590,12 +590,12 @@ class Data:
                             if j in columnZeros:
                                 if skipColumnZeros:
                                     if verbose and not alreadyGivenZeroWarning:
-                                        print gm[0]
-                                        print "    Skipping (zero-based) column number(s) %s, which sum to zero." % columnZeros
+                                        print(gm[0])
+                                        print("    Skipping (zero-based) column number(s) %s, which sum to zero." % columnZeros)
                                         alreadyGivenZeroWarning = 1
                                 else:
                                     gm.append("Programming error.")
-                                    raise Glitch, gm
+                                    raise Glitch(gm)
                             else:
                                 theDiff = comps[k][j] - theExpected[k][j]
                                 xSq_row += (theDiff * theDiff) / theExpected[k][j]
@@ -607,16 +607,16 @@ class Data:
                 dof = (p.dim - len(columnZeros) - 1) * (len(comps) - 1)
                 prob = pf.chiSquaredProb(xSq, dof)
                 if verbose:
-                    print "Part %i: Chi-square = %f, (dof=%i) P = %f" % (partNum, xSq, dof, prob)
+                    print("Part %i: Chi-square = %f, (dof=%i) P = %f" % (partNum, xSq, dof, prob))
                     if getRows:
                         #print "        rows = %s" % xSq_rows
-                        print "%20s  %7s  %s" % ('taxName', 'xSq_row', 'P (like puzzle)')
+                        print("%20s  %7s  %s" % ('taxName', 'xSq_row', 'P (like puzzle)'))
                         for tNum in range(self.nTax):
                             if not skipTaxNums or tNum not in skipTaxNums[partNum]:
                                 thisProb = pf.chiSquaredProb(xSq_rows[tNum], self.parts[partNum].dim - 1)
-                                print "%20s  %7.5f  %7.5f" % (self.taxNames[tNum], xSq_rows[tNum], thisProb)
+                                print("%20s  %7.5f  %7.5f" % (self.taxNames[tNum], xSq_rows[tNum], thisProb))
                             else:
-                                print "%20s    ---      ---" % self.taxNames[tNum]
+                                print("%20s    ---      ---" % self.taxNames[tNum])
                 if getRows:
                     results.append([xSq, dof, prob, xSq_rows])
                 else:
@@ -624,7 +624,7 @@ class Data:
             else: # ie not isOk, ie there is a zero in a column sum
                 results.append(None) # Maybe a bad idea.  Maybe it should just die, above.
         if nColumnZeros and verbose:
-            print "There were %i column zeros." % nColumnZeros
+            print("There were %i column zeros." % nColumnZeros)
         return results
 
 
@@ -711,9 +711,9 @@ class Data:
         d._setCStuff()
 
         if 0:
-            print "\nSELF\n===="
+            print("\nSELF\n====")
             self.dump()
-            print "\n\nNEW DATA\n========"
+            print("\n\nNEW DATA\n========")
             d.dump()
             raise Glitch
 
@@ -730,9 +730,9 @@ class Data:
                     newSeed = int(seed)
                     pf.gsl_rng_set(var.gsl_rng, newSeed)
                 except ValueError:
-                    print gm[0]
-                    print "    The seed should be convertable to an integer"
-                    print "    Using the process id instead."
+                    print(gm[0])
+                    print("    The seed should be convertable to an integer")
+                    print("    Using the process id instead.")
                     pf.gsl_rng_set(var.gsl_rng,  os.getpid())
             else:
                 pf.gsl_rng_set(var.gsl_rng,  os.getpid())

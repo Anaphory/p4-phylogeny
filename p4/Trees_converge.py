@@ -1,6 +1,6 @@
 # A couple of Trees methods.  The first one works.
 
-from Glitch import Glitch
+from .Glitch import Glitch
 
 def trackSplitsFromTree(self, theTree, windowSize=200, stride=100, fName='trackSplitsOut.py'):
     """See how slits from theTree changes over the trees in self.
@@ -29,7 +29,7 @@ def trackSplitsFromTree(self, theTree, windowSize=200, stride=100, fName='trackS
         else:
             n.name = "(%s)" % n.br.splitKey
     theTree.draw()
-    print "The drawing above shows the splitKeys that are being tracked."
+    print("The drawing above shows the splitKeys that are being tracked.")
 
     if fName:
         f = file(fName, 'w')
@@ -62,13 +62,13 @@ def trackSplitsFromTree(self, theTree, windowSize=200, stride=100, fName='trackS
     kk = []
     for n in theTree.iterInternalsNoRoot():
         theSplitKey = n.br.splitKey
-        print "=" * 50
-        print "Looking at split %s" % theSplitKey
+        print("=" * 50)
+        print("Looking at split %s" % theSplitKey)
         kk.append(theSplitKey)
         tracks[theSplitKey] = []
         startTNum = 0
         while len(self.trees) - startTNum >= windowSize:
-            print 'trees %4i to %4i: ' % (startTNum, (startTNum + windowSize) - 1),
+            print('trees %4i to %4i: ' % (startTNum, (startTNum + windowSize) - 1), end=' ')
             theTrees = self.trees[startTNum:(startTNum + windowSize)]
 
             nTrees = len(theTrees)
@@ -76,7 +76,7 @@ def trackSplitsFromTree(self, theTree, windowSize=200, stride=100, fName='trackS
             for t in theTrees:
                 if theSplitKey in t.splitKeys:
                     splitCount += 1
-            print ' nTrees=%3i, splitCount= %3i' % (nTrees, splitCount)
+            print(' nTrees=%3i, splitCount= %3i' % (nTrees, splitCount))
             tracks[theSplitKey].append([startTNum + (0.5 * windowSize), (float(splitCount)/nTrees)])
             startTNum += stride
     if fName:
@@ -91,7 +91,7 @@ def trackModelThingsFromTree(self, theTree, windowSize=200, stride=100, fName='t
     gm = [complaintHead]
 
     gm.append("This method is not working yet.")
-    raise Glitch, gm
+    raise Glitch(gm)
     
     theTree.makeSplitKeys()
 
@@ -103,7 +103,7 @@ def trackModelThingsFromTree(self, theTree, windowSize=200, stride=100, fName='t
             n.name = "(%s)" % n.br.splitKey
     theTree.splitKeys = [n.br.splitKey for n in theTree.iterNodesNoRoot()]
     theTree.draw()
-    print "The drawing above shows the splitKeys that are being tracked."
+    print("The drawing above shows the splitKeys that are being tracked.")
 
     f = file(fName, 'w')
     textDrawList = theTree.textDrawList()
@@ -126,7 +126,7 @@ def trackModelThingsFromTree(self, theTree, windowSize=200, stride=100, fName='t
         gm.append("The first tree has no modelInfo.")
         gm.append("The trees should have been read in with")
         gm.append("var.doTreeReadMcmcModelUsageComments turned on.")
-        raise Glitch, gm
+        raise Glitch(gm)
 
     mi = self.trees[0].modelInfo
 
@@ -141,10 +141,10 @@ def trackModelThingsFromTree(self, theTree, windowSize=200, stride=100, fName='t
             t.splitKeys = [n.br.splitKey for n in t.iterNodesNoRoot()]
             #print '\nsplitKeys = %s' % t.splitKeys
 
-    from Trees import Trees  # I need to make Trees objects below.  This very method
+    from .Trees import Trees  # I need to make Trees objects below.  This very method
                              # is a Trees method, so importing Trees should
                              # generally not be needed.  But I can't do this earlier.
-    from TreePartitions import TreePartitions
+    from .TreePartitions import TreePartitions
 
     # The root buisiness is not implemented yet.  The way I do it
     # should be guided by theTree, the reference tree.  It is rooted
@@ -152,19 +152,19 @@ def trackModelThingsFromTree(self, theTree, windowSize=200, stride=100, fName='t
     # trees were rooted on that node, and what the compCounts were.
     startTNum = 0
     while len(self.trees) - startTNum >= windowSize:
-        print "Trees %6i -- %6i" % (startTNum, (startTNum + windowSize))
+        print("Trees %6i -- %6i" % (startTNum, (startTNum + windowSize)))
         tt2 = Trees(self.trees[startTNum:(startTNum + windowSize)], taxNames=self.taxNames)
         tp = TreePartitions(tt2)
         for pNum in range(mi.nParts):
-            print "  Part %i, nComps=%i" % (pNum, mi.parts[pNum].nComps)
+            print("  Part %i, nComps=%i" % (pNum, mi.parts[pNum].nComps))
             if mi.parts[pNum].nComps > 1:
                 #for s in tp.splits:
                 #    if s.key in theTree.splitKeys:
                 #        print "    Split key: %12s, compCounts=%s" % (s.key, s.modelUsage.parts[pNum].compCounts)
                 for k in theTree.splitKeys:
-                    if tp.splitsHash.has_key(k):
+                    if k in tp.splitsHash:
                         s = tp.splitsHash[k]
-                        print "    Split key: %12s, compCounts=%s" % (k, s.modelUsage.parts[pNum].compCounts)
+                        print("    Split key: %12s, compCounts=%s" % (k, s.modelUsage.parts[pNum].compCounts))
         startTNum += stride
         
     f.close()

@@ -12,7 +12,7 @@ class Glitch(Exception):
     
     def __init__(self, msg='', flavour=''):
         myIndent = ' ' * 4
-        if type(msg) in [types.StringType, types.UnicodeType]:
+        if type(msg) in [bytes, str]:
             #self.msg = '\n\n' + textwrap.fill(msg, 70, initial_indent=myIndent, subsequent_indent=myIndent)
             try:
                 if msg.startswith('\n\n'):
@@ -25,7 +25,7 @@ class Glitch(Exception):
                 firstLine = ''
             self.msg = firstLine
             
-        elif type(msg) == types.ListType:
+        elif type(msg) == list:
             try:
                 if msg[0].startswith('\n\n'):
                     firstLine = '%s' % msg[0]
@@ -37,7 +37,7 @@ class Glitch(Exception):
                 firstLine = ''
             niceMsgList = [firstLine]
             for i in range(len(msg))[1:]:
-                if type(msg[i]) in [types.StringType, types.UnicodeType]:
+                if type(msg[i]) in [bytes, str]:
                     #  If it is short, use it as is.  If it is long, wrap it.
                     if len(msg[i]) < 66:
                         niceMsgList.append(myIndent + msg[i])
