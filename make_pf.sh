@@ -23,7 +23,7 @@
 
 rm -f p4/pf.so
 
-python setup.py build_ext -i
+python2 setup.py build_ext -i
 #env ARCHFLAGS='-arch x86_64' python setup.py build_ext -i
 #env ARCHFLAGS='-arch ppc -arch i386' python setup.py build_ext -i # This should not be needed, should be default.
 
